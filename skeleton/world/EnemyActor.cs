@@ -106,5 +106,9 @@ public partial class EnemyActor : CharacterBody3D
     {
         Visible = false;
         SetPhysicsProcess(false);
+        // MC 1348 A2: a dead actor deals no damage. _PhysicsProcess early-returns
+        // before the per-tick assignment, so the last value would stay frozen here
+        // and the director's damage sum would keep counting it every frame.
+        DamageDealt = 0;
     }
 }

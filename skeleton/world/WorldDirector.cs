@@ -36,6 +36,9 @@ using System.Collections.Generic;
 // It owns NO gameplay rules of its own — it wires the existing pure modules
 // into the scene (I1). The two Set*Enabled hooks are one-line gate seams named
 // in the design (§4.2); they carry no gameplay behavior.
+//
+// File size: >400 total lines — the composition root owns the whole live-loop
+// wiring; the A14 (MC 1348) PlayerActions/UI-build split is the scheduled fix.
 namespace LastAnimal.World;
 
 [GlobalClass]
@@ -174,6 +177,9 @@ public partial class WorldDirector : Node3D
         int incoming = 0;
         foreach (var e in _enemies)
         {
+            // MC 1348 A2: a dead actor's DamageDealt is frozen at its last value
+            // (the death path stops the per-tick assignment) — never sum a corpse.
+            if (e.IsDead) continue;
             e.PlayerTargetX = ppos.X;
             e.PlayerTargetZ = ppos.Z;
             incoming += e.DamageDealt;
