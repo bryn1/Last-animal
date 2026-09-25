@@ -1,4 +1,6 @@
-# Last Animal — install on Windows (M14)
+# Last Animal — install (M14)
+
+## Install on Windows
 
 ## Install steps
 
@@ -50,3 +52,31 @@ gate proves the binary is a valid PE carrying the C# assembly; it does not
 prove the game renders on your desktop. If it does not start, report the exact
 error text — do not assume the zip is bad before checking SmartScreen (and
 check that the `data_…` folder is still beside the .exe).
+
+## Install on Linux
+
+1. Get `LastAnimal-linux-x86_64.zip` (the distributable produced by
+   `tools/export_linux.sh`; see [build-and-run.md](build-and-run.md)).
+2. Unzip the WHOLE archive — not just the binary — into a folder you can
+   write to, e.g. `~/games/LastAnimal`:
+
+   ```bash
+   unzip LastAnimal-linux-x86_64.zip -d ~/games/LastAnimal
+   ```
+
+3. Make the binary executable and run it:
+
+   ```bash
+   chmod +x ~/games/LastAnimal/LastAnimal.x86_64
+   ~/games/LastAnimal/LastAnimal.x86_64
+   ```
+
+The zip also contains `data_LastAnimalPreflight_linuxbsd_x86_64/`, the .NET
+assemblies the game loads at startup: that folder must stay beside the binary,
+so do not move or delete it. No Godot installation and no .NET SDK are needed
+on the player machine — the .NET runtime ships in the data dir.
+
+Expected first run: a window opens with the game world (meadow zone) and the
+HUD shows Life / Manna / DNA meter / companion hearts. Saves work the same as
+on Windows (`user://savegame.json`, on Linux resolving under
+`~/.local/share/godot/app_userdata/Last Animal/`).

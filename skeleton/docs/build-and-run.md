@@ -11,6 +11,9 @@ and [player-guide.md](player-guide.md).
 | `build/LastAnimal.exe` | Windows x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck (`binary_format/embed_pck=true`), ~109 MB. |
 | `build/data_LastAnimalPreflight_windows_x86_64/` | The .NET assemblies the .exe loads at startup (`coreclr.dll`, `hostfxr.dll`, `GodotSharp.dll`, `LastAnimalPreflight.dll`, …), ~80 MB. Must sit beside the .exe. |
 | `build/LastAnimal-windows-x86_64.zip` | Distributable zip containing the .exe AND that data dir, ~73 MB. |
+| `build/LastAnimal.x86_64` | Linux x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck, ~76 MB. |
+| `build/data_LastAnimalPreflight_linuxbsd_x86_64/` | The .NET assemblies the Linux binary loads at startup. Must sit beside the binary. |
+| `build/LastAnimal-linux-x86_64.zip` | Distributable zip containing the Linux binary AND that data dir, ~63 MB. |
 
 All three are produced by one command from `skeleton/` (the project root —
 the script lives in `skeleton/tools/`, not at the repo root):
@@ -38,6 +41,27 @@ The script runs three steps and fails loudly on any of them:
    current build host **wine is unavailable**, so the script prints
    `wine UNAVAILABLE ... NOT run (not faked)` and exits 0 with the step-1
    checks as the executed evidence. This is stated, never hidden.
+
+## Linux export
+
+```bash
+bash tools/export_linux.sh
+```
+
+Same three-step shape as the Windows script: the `ci/export_check.sh` gate
+(preset `Linux`, ELF magic instead of PE), packaging the binary plus the
+`data_LastAnimalPreflight_linuxbsd_x86_64/` assemblies dir into
+`build/LastAnimal-linux-x86_64.zip`, and a NATIVE launch smoke — the packaged
+binary is launched under Xvfb via `tools/launch_linux_smoke.sh` (reusing the
+host's `graphical-test-helper.sh` capture mechanism) and must render a
+non-blank framebuffer (`RESULT=PASS`). Unlike the Windows smoke, this leg is
+asserted, not optional.
+
+The Linux preset uses `export_filter="all_resources"`: the game loads audio,
+terrain and textures through dynamic `GD.Load(string)` calls, which the
+`scenes` filter's dependency scan does not see — a `scenes` export ships a pck
+without them (observed as `No loader found for resource:
+res://assets/audio/music_theme.ogg` at startup).
 
 ## Building from source (Linux host)
 
@@ -88,3 +112,17 @@ runtime ships in the data dir — UNVERIFIED on a clean Windows machine: no
 Windows host and no wine were available this run. If the game fails to start
 on a player machine, check first that the data dir is beside the .exe, then
 try installing the .NET 8 desktop runtime.
+
+## Known issue: Wine 9.0 startup crash
+
+`LastAnimal.exe` crashes at startup under Wine 9.0 on the build host (vm105),
+while Wine itself works (`cmd.exe` runs). Signature: a null-pointer read
+before any game log line is emitted; identical with the OpenGL compatibility
+renderer and with `--headless`. Likeliest cause is the bundled .NET 8 host
+(`hostfxr`/`coreclr`) under Wine 9.0. Installing Wine 10.x from the apt source
+was considered and REJECTED for this run: moderate risk to the shared build
+host's package sources for a problem the smoke does not need solved.
+
+Workaround: run the native Linux build (`tools/export_linux.sh`) or the
+Windows artifact on a real Windows machine. The Wine crash is a documented
+finding, not something the build fixes.
