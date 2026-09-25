@@ -24,16 +24,6 @@ OUT_ZIP="build/LastAnimal-linux-x86_64.zip"
 source "$PROJ/ci/toolchain.sh"
 : "${GODOT:?set GODOT to the engine binary (see engine/PIN.txt or source ci/toolchain.sh)}"
 
-# Godot's mono export runs `dotnet publish` into $TMPDIR/godot-publish-dotnet/.
-# A stale cross-seat /tmp/godot-publish-dotnet (owned by another user, 0755)
-# makes that fail with "Access to the path is denied" — pin a private TMPDIR
-# when the default location exists but is not writable by us.
-if [ -e /tmp/godot-publish-dotnet ] && [ ! -w /tmp/godot-publish-dotnet ]; then
-  export TMPDIR="${TMPDIR:-/tmp}/la-export-$$"
-  mkdir -p "$TMPDIR"
-  echo "EXPORT_LINUX: /tmp/godot-publish-dotnet not writable — using private TMPDIR=$TMPDIR"
-fi
-
 echo "EXPORT_LINUX: step 1/3 — full-game export gate (ci/export_check.sh)"
 bash "$PROJ/ci/export_check.sh" Linux "$PROJ" "$OUT_EXE"
 
