@@ -1,6 +1,7 @@
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core;
+using LastAnimal.Ui;
 using LastAnimal.World;
 using System.Collections.Generic;
 
@@ -21,6 +22,10 @@ using System.Collections.Generic;
 //                   pay input never pressed, a due wage is skipped once per pay
 //                   interval, loyalty drains to 0 and the C7 betrayal executes
 //                   (bond broken, C2 Betrayal fired). Markers: BETRAYAL_FIRED.
+//   empathy_book  — A4: the Empathy Book reachable in play — the book input
+//                   opens the panel on the companion's live M04 entry (C2
+//                   EmpathyBookOpened fired) and pressing it again closes it.
+//                   Markers: EMPATHY_BOOK_OPENED, EMPATHY_BOOK_CLOSED.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
 public partial class P1FixProof : SceneTree
@@ -28,10 +33,12 @@ public partial class P1FixProof : SceneTree
     private const int FrameBudget = 6000;
     private const int WatchFrames = 90;   // corpse-damage watch window (~1.5 s)
     private const int BetrayalBudget = 3600; // wage stage: grace 20 s + interval 30 s + margin
+    private const int BookBudget = 600;      // book stage: press cycles + settle
 
     private EventBus? _bus;
     private WorldDirector? _director;
     private CharacterBody3D? _playerBody;
+    private EmpathyPanel? _empathy;
     private Node? _main;
     private string _mode = "corpse_damage";
     private int _stage;
@@ -42,6 +49,7 @@ public partial class P1FixProof : SceneTree
     private int _victimDamage;
     private int _healthAtKill;
     private int _betrayalCount;
+    private int _bookOpenedCount;
 
     public override void _Initialize()
     {
@@ -61,10 +69,13 @@ public partial class P1FixProof : SceneTree
         _bus = Root.GetNodeOrNull<EventBus>("/root/EventBus");
         _director = _main as WorldDirector;
         _playerBody = _director?.GetNodeOrNull<CharacterBody3D>("Player");
+        _empathy = _main?.GetNodeOrNull<EmpathyPanel>("UI/Empathy");
         if (_bus == null) { Fail("EventBus autoload not present"); return false; }
         if (_director == null) { Fail("main.tscn root is not WorldDirector"); return false; }
         if (_playerBody == null) { Fail("Player node not found"); return false; }
+        if (_empathy == null) { Fail("EmpathyPanel not found at UI/Empathy"); return false; }
         _bus.Betrayal += (_, _) => _betrayalCount++;
+        _bus.EmpathyBookOpened += () => _bookOpenedCount++;
         GD.Print($"LA_GATE: composed — zone={_director.CurrentZone} enemies={_director.Enemies.Count}");
         return true;
     }
@@ -81,7 +92,12 @@ public partial class P1FixProof : SceneTree
         switch (_stage)
         {
             case 0:
-                _stage = _mode == "wage_betrayal" ? 20 : 10;
+                _stage = _mode switch
+                {
+                    "wage_betrayal" => 20,
+                    "empathy_book" => 30,
+                    _ => 10,
+                };
                 _stageFrames = 0;
                 break;
 
@@ -178,6 +194,47 @@ public partial class P1FixProof : SceneTree
                 if (_stageFrames > BetrayalBudget)
                     Fail($"betrayal did not fire within {BetrayalBudget} frames (loyalty={_director.Companion.Companion.Loyalty}, state={_director.Companion.State})");
                 break;
+
+            // ---- empathy_book (A4): the book input opens/closes the panel ----
+            case 30:
+                Check("empathy_book: the panel starts closed", !_empathy!.Visible && _empathy.Current == null,
+                      $"visible={_empathy.Visible} current={( _empathy.Current == null ? "null" : "set")}");
+                if (_failed) return true;
+                _stage = 31;
+                _stageFrames = 0;
+                break;
+            case 31:
+                // Press the book action 2 frames, release 2, repeat (the proofs'
+                // input idiom) until the panel opens on a real M04 entry.
+                if (_stageFrames % 4 < 2) Input.ActionPress("book");
+                else Input.ActionRelease("book");
+                if (_empathy!.Visible && _bookOpenedCount > 0 && _empathy.Current != null)
+                {
+                    Input.ActionRelease("book");
+                    Check("EMPATHY_BOOK_OPENED: the book input opened the panel on a live M04 entry",
+                          _empathy.Current != null, $"entry={_empathy.Current?.CompanionId} state={_empathy.Current?.EmotionalState} signals={_bookOpenedCount}");
+                    if (_failed) return true;
+                    GD.Print("LA_GATE: EMPATHY_BOOK_OPENED — Empathy Book reachable in play (MC 1348 A4)");
+                    _stage = 32;
+                    _stageFrames = 0;
+                }
+                else if (_stageFrames > BookBudget) Fail("the book input never opened the EmpathyPanel");
+                break;
+            case 32:
+                // Press again: the panel must dismiss (the toggle must not brick).
+                if (_stageFrames % 4 < 2) Input.ActionPress("book");
+                else Input.ActionRelease("book");
+                if (!_empathy!.Visible && _empathy.Current == null)
+                {
+                    Input.ActionRelease("book");
+                    GD.Print("LA_GATE: EMPATHY_BOOK_CLOSED — the book input dismisses the panel (MC 1348 A4)");
+                    GD.Print("LA_GATE: PASS — empathy-book regression verified");
+                    _asserted = true;
+                    Quit(0);
+                    return true;
+                }
+                if (_stageFrames > BookBudget) Fail("the book input never closed the EmpathyPanel");
+                break;
         }
         return false;
     }
@@ -207,6 +264,7 @@ public partial class P1FixProof : SceneTree
 
     private void Fail(string why)
     {
+        Input.ActionRelease("book");
         _failed = true;
         GD.PrintErr($"LA_GATE: FAIL — {why}");
         Quit(1);
@@ -214,6 +272,7 @@ public partial class P1FixProof : SceneTree
 
     public override void _Finalize()
     {
+        Input.ActionRelease("book");
         if (!_asserted && !_failed)
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }

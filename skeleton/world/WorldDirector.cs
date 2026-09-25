@@ -5,6 +5,7 @@ using LastAnimal.Core;
 using LastAnimal.Core.Framework;
 using LastAnimal.Dna;
 using LastAnimal.Ecosystem;
+using LastAnimal.Empathy;
 using LastAnimal.Npc;
 using LastAnimal.Ui;
 using System;
@@ -238,6 +239,8 @@ public partial class WorldDirector : Node3D
             TryInteract();
         if (Input.IsActionJustPressed("travel"))
             TravelToNextZone();
+        if (Input.IsActionJustPressed("book"))
+            ToggleEmpathyBook();
         if (Input.IsActionJustPressed("save_game"))
             _saveLoad.Save();
         if (Input.IsActionJustPressed("load_game"))
@@ -432,6 +435,21 @@ public partial class WorldDirector : Node3D
         _bus.EmitDnaSpoken(new DnaSignature(sig.SpeciesHash, msg.SourceEntityId.ToString()));
         _dialogue.Show($"npc_{npcId}");
         GD.Print($"W3: interact -> DnaLanguage.Speak (npc={npcId}) -> DnaSpoken + DialogueSystem.Show");
+    }
+
+    /// <summary>
+    /// Open/close the Empathy Book (MC 1348 A4): the C13 surface becomes
+    /// reachable in play. The book action opens the panel on the companion's
+    /// LIVE M04 entry (C9 Query — hidden state, summary, hint); pressing it
+    /// again dismisses the panel.
+    /// </summary>
+    private void ToggleEmpathyBook()
+    {
+        if (_empathy.Visible)
+            _empathy.Close();
+        else
+            _empathy.Open(EmpathyBook.Query(_companionCore));
+        GD.Print($"W3: book action -> EmpathyPanel {( _empathy.Visible ? "opened (C9 Query)" : "closed")}");
     }
 
     // C10 -> M02 -> C2: an OnKill extraction appends to the spoken history and

@@ -15,6 +15,7 @@ Verified against the `[input]` map in `project.godot`:
 | Interact | `E` |
 | Travel to next zone | `T` |
 | Pay companion wage | `P` |
+| Empathy Book | `B` |
 | Save game | `F5` |
 | Load game | `F9` |
 
@@ -43,8 +44,9 @@ has no production caller), so it does not change during play.
    neglected companion against you: when loyalty reaches 0 the bond breaks,
    the betrayal damage lands and the C2 `Betrayal` signal fires. The Empathy
    Book (`src/ui/EmpathyPanel.cs`, logic in `src/empathy/EmpathyBook.cs`, C9)
-   lets you read a companion's hidden emotional state and route a resolution:
-   **Forgive** or **Permanent break**.
+   opens with `B` and lets you read a companion's hidden emotional state and
+   route a resolution: **Forgive** or **Permanent break**. Press `B` again to
+   close it.
 5. **Wages.** The `SalarySystem` (C6) is the economy pressure behind your
    choices, and paying is **your decision**: the first wage is due after 20 s
    of companionship and a new one comes due every 30 s thereafter. While a

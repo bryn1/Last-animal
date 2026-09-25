@@ -34,6 +34,15 @@ public partial class EmpathyPanel : Control
 
     private EventBus? _bus;
 
+    public EmpathyPanel()
+    {
+        // A closed book is the panel's intrinsic default (MC 1348 A4): the
+        // panel only exists on screen once Open() surfaces an entry. Without
+        // this the bare Control sits visible (empty) from boot, and a toggle
+        // keyed on Visible would read the boot state as "open".
+        Visible = false;
+    }
+
     /// <summary>
     /// Wire the C2 EventBus this panel emits <c>EmpathyBookOpened()</c> on.
     /// Composition sites (game scene vs headless test) choose the bus — no
