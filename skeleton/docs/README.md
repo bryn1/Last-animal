@@ -13,17 +13,17 @@ explicit, per PHASE0.md. The deliverable is a Windows .exe/.zip you run locally.
 | [build-and-run.md](build-and-run.md) | How the shipped artifact is built, and how to build it from source. |
 | [install.md](install.md) | How a player installs and first-runs the game (Windows and Linux). |
 
-## The delivered artifact (verified 2026-09-24)
+## The delivered artifact (verified 2026-09-25)
 
 - `build/LastAnimal.exe` — Windows x86_64 release export of the full game
-  (`res://main.tscn`), ~109 MB (109,413,144 bytes for the build verified
-  2026-09-24). The binary is rebuilt on every export, so its hash changes;
+  (`res://main.tscn`), ~111 MB (111,300,152 bytes for the build verified
+  2026-09-25, sha256 `db3adac29ac0a3b451f6a5572a608fe13f95453b9166f6f0a98b97df049b6076`).
+  The binary is rebuilt on every export, so its hash changes;
   the hash of the delivered build is recorded in the run's evidence file
   (MC 1344), not here.
 - `build/LastAnimal-windows-x86_64.zip` — the distributable package containing
   that .exe and the `data_LastAnimalPreflight_windows_x86_64/` assemblies dir
-  beside it, ~73 MB (73,036,740 bytes for the same build repackaged with the
-  data dir, MC 1347).
+  beside it, ~73 MB (73,339,834 bytes for the build verified 2026-09-25).
 
 - `build/LastAnimal.x86_64` — Linux x86_64 release export of the full game
   (`res://main.tscn`), ~76 MB, plus `build/LastAnimal-linux-x86_64.zip`
@@ -38,9 +38,13 @@ from `skeleton/` (the scripts live in `skeleton/tools/`); see
 
 ## Known limitation (stated, not hidden)
 
-The packaged Windows binary has **not** been launch-smoked: the build host has
-no wine, and the build script states this explicitly instead of faking a launch.
-The executed evidence for the binary is the export gate's PE-magic check plus
+The packaged Windows binary cannot be launch-smoked to green on the build
+host: Wine 9.0 is installed there, but it is broken for this exe (`wine32`
+missing, no X driver) and the exe crashes at startup under it — see the
+"Known issue" section below and [build-and-run.md](build-and-run.md). The
+export script runs the wine smoke when wine is present and fails loudly
+(non-zero exit) when the exe crashes; it never fakes a launch. The executed
+evidence for the binary is the export gate's PE-magic check plus
 its embedded-C#-assembly checks (`ci/export_check.sh`).
 
 ## Known issue: Wine 9.0 startup crash

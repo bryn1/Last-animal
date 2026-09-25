@@ -37,10 +37,16 @@ The script runs three steps and fails loudly on any of them:
 3. **Smoke** — if `wine` is installed, the packaged binary is headless-launched
    (`wine build/LastAnimal.exe --headless --quit-after 120`, must exit 0).
    The smoke asserts only exit 0 — the C16 contract's ">0 non-blank frames"
-   leg needs a wine-capable host and is not asserted by this script. On the
-   current build host **wine is unavailable**, so the script prints
-   `wine UNAVAILABLE ... NOT run (not faked)` and exits 0 with the step-1
-   checks as the executed evidence. This is stated, never hidden.
+   leg needs a wine-capable host and is not asserted by this script. Wine
+   states the script distinguishes, all stated on stdout and never faked:
+   - **wine absent** → prints `wine UNAVAILABLE ... NOT run (not faked)` and
+     exits 0, with the step-1 checks as the executed evidence.
+   - **wine present and working** → the smoke runs and must exit 0.
+   - **wine present but broken** (the current build host vm105, Wine 9.0:
+     `wine32` missing, no X driver — see "Known issue" below) → the smoke
+     launches, the exe crashes at startup, and the script exits non-zero.
+     That red exit is correct behaviour, not a build defect; the exe itself
+     still passes the step-1 PE + embedded-assembly checks.
 
 ## Linux export
 
@@ -70,14 +76,14 @@ Requirements:
 - **Godot 4.7.2-stable mono** plus the matching **mono export templates**
   (installed to `~/.local/share/godot/export_templates/`). The pinned engine
   binary is vendored one level above the repo — see
-  `/srv/workspace/svarkor-last-animal-phase2/gunilla/engine/PIN.txt` and
+  `/srv/workspace/last-animal/engine/PIN.txt` and
   `SHA512-SUMS.txt` in the same directory.
 - **.NET SDK 8.x** (the pinned line; the build host has 8.0.131).
 
 Steps:
 
 ```bash
-cd /srv/workspace/svarkor-last-animal-phase2/gunilla/skeleton
+cd /srv/workspace/last-animal/skeleton
 source ci/toolchain.sh          # pins dotnet + GODOT on PATH
 dotnet build LastAnimalPreflight.csproj   # must exit 0, 0 errors
 bash ci/export_check.sh         # full-game export gate (preset "Windows")
@@ -109,7 +115,8 @@ embedded error string is "Unable to find the .NET assemblies directory.").
 The zip ships both, and they must stay side by side after extraction. The
 player machine still needs **no Godot editor and no .NET SDK** — the .NET
 runtime ships in the data dir — UNVERIFIED on a clean Windows machine: no
-Windows host and no wine were available this run. If the game fails to start
+Windows host was available this run, and the build host's Wine 9.0 is broken
+for this exe (see "Known issue" below). If the game fails to start
 on a player machine, check first that the data dir is beside the .exe, then
 try installing the .NET 8 desktop runtime.
 

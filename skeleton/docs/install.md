@@ -46,8 +46,10 @@ this build could execute.
 
 ## Known limitation
 
-The packaged binary has not been launch-smoked: the build host has no wine and
-no Windows machine, so nobody has yet executed `LastAnimal.exe`. The export
+The packaged binary has not been launch-smoked to green: the build host has a
+broken Wine 9.0 (no `wine32`, no X driver) under which `LastAnimal.exe` crashes
+at startup, and no Windows machine — so the exe HAS been executed under wine,
+but it has never rendered on a working desktop. The export
 gate proves the binary is a valid PE carrying the C# assembly; it does not
 prove the game renders on your desktop. If it does not start, report the exact
 error text — do not assume the zip is bad before checking SmartScreen (and
