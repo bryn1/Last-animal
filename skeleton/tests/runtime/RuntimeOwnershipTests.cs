@@ -134,15 +134,15 @@ public class RuntimeOwnershipTests
         // machine. This pins the machine->component identity the entity must see.
         var core = new CompanionComponent();
         core.SetCompanion(7);
-        var needs = new CompanionNeeds(graceTicks: 2, payIntervalTicks: 4);
+        var needs = new CompanionNeeds(graceSeconds: 2, payIntervalSeconds: 4);
         var machine = new CompanionStateMachine("companion", core, needs);
 
         Assert.Same(core, machine.Companion);
 
         // Tick the machine the way CompanionEntity.Advance() does: the state
         // follows the SHARED component's needs, not a private copy.
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
         Assert.True(needs.SalaryDue);
         Assert.Equal(CompanionState.Needing, machine.Tick());
     }
@@ -155,7 +155,7 @@ public class RuntimeOwnershipTests
         core.SetCompanion(7);
         var salary = new SalarySystem();
         var machine = new CompanionStateMachine("companion", core,
-            new CompanionNeeds(graceTicks: 1, payIntervalTicks: 2), salary);
+            new CompanionNeeds(graceSeconds: 1, payIntervalSeconds: 2), salary);
 
         int before = core.Loyalty;
         machine.Pay();                       // M03 PaySalary: +5

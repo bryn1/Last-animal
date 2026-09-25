@@ -66,6 +66,7 @@ public partial class WorldDirector : Node3D
     private readonly List<EnemyActor> _zoneEnemies = new();
     private CompanionFollowBody? _companionBody;
     private int _companionLoyaltyLast;
+    private CompanionState _companionStateLast;   // MC 1348 A3: betrayal emits on the transition
     private string _zone = EcosystemSpawner.DefaultZone;
     private Vector3 _spawnOrigin;
     private EnemyActor? _boss;
@@ -192,13 +193,19 @@ public partial class WorldDirector : Node3D
         }
 
         // Companion loop (M03 -> M05): tick needs + the machine the visible
-        // entity is wired to; settlement policy as GameLoop's was.
-        _needs.TickAccompaniment();
+        // entity is wired to. Settlement policy (MC 1348 A3): a wage is the
+        // PLAYER's decision — pay it with the pay_wage action while it is due;
+        // a wage left unpaid for a full pay interval is one skipped cycle (the
+        // skip arm runs, M03 drains loyalty) until betrayal fires at loyalty 0.
+        _needs.TickAccompaniment(delta);
         var state = _companion.Tick();
-        if (_needs.SalaryDue)
-            _companion.Pay();
-        else if (state == CompanionState.Needing)
-            _companion.SkipPayment();
+        if (state != CompanionState.Betrayed)
+        {
+            if (_needs.SalaryDue && Input.IsActionJustPressed("pay_wage"))
+                _companion.Pay();
+            else if (_needs.ConsumeUnpaidInterval())
+                _companion.SkipPayment();
+        }
 
         int loy = _companionCore.Loyalty;
         if (loy != _companionLoyaltyLast)
@@ -206,8 +213,21 @@ public partial class WorldDirector : Node3D
             _bus.EmitLoyaltyChanged(new CompanionId(_companion.Name), loy);
             _companionLoyaltyLast = loy;
         }
-        if (state == CompanionState.Betrayed)
+        // C7 precondition path (MC 1348 A3): the machine mirrored M03's
+        // CheckBetrayal (loyalty 0 while bonded) — execute the betrayal: break
+        // the bond, land the betrayal damage, emit C2 Betrayal ONCE on the
+        // transition (not every frame).
+        if (state == CompanionState.Betrayed && _companionStateLast != CompanionState.Betrayed)
+        {
+            BetrayalResult? result = _betrayal.ExecuteBetrayal(_companionCore);
+            if (result != null)
+            {
+                _player.TakeDamage(result.DamageDealt);
+                _hud.UpdateLife(_player.Health);
+            }
             _bus.EmitBetrayal(new CompanionId(_companion.Name), new TargetId("player"));
+        }
+        _companionStateLast = state;
 
         // The visible companion body ticks the SAME machine (the integration fix).
         _companionBody?.Entity.Advance();

@@ -138,6 +138,9 @@ PROOF_P1="res://ci_proofs/P1FixProof.cs"
 # (H1) A2 corpse-damage loop: a kill on the enemy's attack frame must not leave
 # the corpse dealing its frozen last-tick damage every frame.
 run_mode corpse_damage pass "CORPSE_DAMAGE_STOPPED" "$PROOF_P1"
+# (H2) A3 wage/betrayal pillar: with the pay input never pressed, the skip arm
+# must drain loyalty to 0 and the C7 betrayal must execute in play.
+run_mode wage_betrayal pass "BETRAYAL_FIRED" "$PROOF_P1"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; non-blank render)"
 exit 0

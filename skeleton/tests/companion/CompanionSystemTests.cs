@@ -19,47 +19,47 @@ public class CompanionNeedsTests
     [Fact]
     public void TickAccompaniment_NoSalaryDue_BeforeGrace()
     {
-        var needs = new CompanionNeeds(graceTicks: 3);
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
+        var needs = new CompanionNeeds(graceSeconds: 3);
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
         Assert.False(needs.SalaryDue);
     }
 
     [Fact]
     public void TickAccompaniment_SalaryDue_AtGraceBoundary()
     {
-        var needs = new CompanionNeeds(graceTicks: 3);
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
+        var needs = new CompanionNeeds(graceSeconds: 3);
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
         Assert.True(needs.SalaryDue);
     }
 
     [Fact]
     public void MarkPaid_ClearsDue_AndRestartsClock()
     {
-        var needs = new CompanionNeeds(graceTicks: 2, payIntervalTicks: 2);
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
+        var needs = new CompanionNeeds(graceSeconds: 2, payIntervalSeconds: 2);
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
         Assert.True(needs.SalaryDue);
 
         needs.MarkPaid();
         Assert.False(needs.SalaryDue);
-        Assert.Equal(0, needs.UnpaidTicks);
+        Assert.Equal(0, needs.SkippedCycles);
 
-        // Next due comes PayIntervalTicks later, not immediately.
-        needs.TickAccompaniment();
+        // Next due comes PayIntervalSeconds later, not immediately.
+        needs.TickAccompaniment(1);
         Assert.False(needs.SalaryDue);
     }
 
     [Fact]
-    public void AdvanceUnpaid_AccumulatesUnmetDuration()
+    public void AdvanceSkippedCycle_AccumulatesSkippedCycles()
     {
         var needs = new CompanionNeeds();
-        Assert.Equal(0, needs.UnpaidTicks);
-        needs.AdvanceUnpaid();
-        needs.AdvanceUnpaid();
-        Assert.Equal(2, needs.UnpaidTicks);
+        Assert.Equal(0, needs.SkippedCycles);
+        needs.AdvanceSkippedCycle();
+        needs.AdvanceSkippedCycle();
+        Assert.Equal(2, needs.SkippedCycles);
     }
 }
 
@@ -70,31 +70,31 @@ public class CompanionStateMachineTests
     [Fact]
     public void Follow_To_Need_WhenSalaryBecomesDue()
     {
-        var needs = new CompanionNeeds(graceTicks: 2);
+        var needs = new CompanionNeeds(graceSeconds: 2);
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 80 };
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
         Assert.Equal(CompanionState.Following, sm.State);
 
         // Before the grace boundary the machine stays Following.
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         Assert.Equal(CompanionState.Following, sm.Tick());
 
         // Once the world advance crosses the grace boundary the salary is
         // due, and the machine transitions Following -> Needing.
-        needs.TickAccompaniment(); // crosses grace (accum 2 >= grace 2)
+        needs.TickAccompaniment(1); // crosses grace (accum 2 >= grace 2)
         Assert.Equal(CompanionState.Needing, sm.Tick());
     }
 
     [Fact]
     public void Follow_RemainsFollowing_WhileNoSalaryDue()
     {
-        var needs = new CompanionNeeds(graceTicks: 100);
+        var needs = new CompanionNeeds(graceSeconds: 100);
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 80 };
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
-        needs.TickAccompaniment();
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
+        needs.TickAccompaniment(1);
         Assert.Equal(CompanionState.Following, sm.Tick());
     }
 
@@ -103,10 +103,10 @@ public class CompanionStateMachineTests
     {
         // Loyalty 30 -> PayBonus +5 -> 35, via M03's SalarySystem.PaySalary.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 30 };
-        var needs = new CompanionNeeds(graceTicks: 1);
+        var needs = new CompanionNeeds(graceSeconds: 1);
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         sm.Tick(); // -> Needing
         Assert.Equal(CompanionState.Needing, sm.State);
 
@@ -123,10 +123,10 @@ public class CompanionStateMachineTests
     {
         // Loyalty 20 -> SkipPenalty -3 -> 17, via M03 SalarySystem.SkipSalary.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 20 };
-        var needs = new CompanionNeeds(graceTicks: 1);
+        var needs = new CompanionNeeds(graceSeconds: 1);
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         sm.Tick(); // -> Needing
         sm.SkipPayment(); // the "unpaid" arm — M03 drops loyalty
 
@@ -140,10 +140,10 @@ public class CompanionStateMachineTests
         // Drive loyalty from 10 down through repeated skips (each -3 via M03)
         // until M03's CheckBetrayal flips, and the machine mirrors Betrayed.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 10 };
-        var needs = new CompanionNeeds(graceTicks: 1);
+        var needs = new CompanionNeeds(graceSeconds: 1);
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         sm.Tick(); // -> Needing (loyalty 10, not yet betrayable: >0)
 
         // Skips: 10->7->4->1->(-2 clamped to 0). On reaching 0 the next
@@ -165,10 +165,10 @@ public class CompanionStateMachineTests
     public void Betrayed_IsTerminal()
     {
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 0 };
-        var needs = new CompanionNeeds(graceTicks: 1);
+        var needs = new CompanionNeeds(graceSeconds: 1);
         var sm = new CompanionStateMachine(CompanionName, comp, needs);
 
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         sm.Tick(); // betrayal already present -> Betrayed
         Assert.Equal(CompanionState.Betrayed, sm.State);
 
@@ -198,7 +198,7 @@ public class CompanionAnimationHookTests
         // Following companion resolves to M09's walkBaked clip (the animate-
         // via-retargeted-rig hook), matching the shared AnimationLibrary.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 80 };
-        var sm = new CompanionStateMachine("garn", comp, new CompanionNeeds(graceTicks: 99));
+        var sm = new CompanionStateMachine("garn", comp, new CompanionNeeds(graceSeconds: 99));
         var hook = new CompanionAnimationHook(Walk, "needIdle", "betrayedIdle");
 
         Assert.Equal(Walk, hook.Resolve(sm));

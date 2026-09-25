@@ -145,7 +145,7 @@ public class CompanionStateMachine
     {
         if (_salary.SkipSalary(Companion))
         {
-            _needs.AdvanceUnpaid();
+            _needs.AdvanceSkippedCycle();
             UnpaidCycles++;
             // No state change here today — the NEXT Tick() reads the dropped
             // loyalty through M03's CheckBetrayal and terminal-transitions.

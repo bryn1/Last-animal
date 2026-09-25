@@ -1,4 +1,5 @@
 using Godot;
+using LastAnimal.Companion;
 using LastAnimal.Core;
 using LastAnimal.World;
 using System.Collections.Generic;
@@ -16,12 +17,17 @@ using System.Collections.Generic;
 //   corpse_damage — A2: kill an enemy on the frame it attacks; the corpse must
 //                   not keep dealing its frozen last-tick damage every frame.
 //                   Markers: CORPSE_DAMAGE_STOPPED.
+//   wage_betrayal — A3: the wage/betrayal pillar reachable in play — with the
+//                   pay input never pressed, a due wage is skipped once per pay
+//                   interval, loyalty drains to 0 and the C7 betrayal executes
+//                   (bond broken, C2 Betrayal fired). Markers: BETRAYAL_FIRED.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
 public partial class P1FixProof : SceneTree
 {
     private const int FrameBudget = 6000;
     private const int WatchFrames = 90;   // corpse-damage watch window (~1.5 s)
+    private const int BetrayalBudget = 3600; // wage stage: grace 20 s + interval 30 s + margin
 
     private EventBus? _bus;
     private WorldDirector? _director;
@@ -35,6 +41,7 @@ public partial class P1FixProof : SceneTree
     private EnemyActor? _victim;
     private int _victimDamage;
     private int _healthAtKill;
+    private int _betrayalCount;
 
     public override void _Initialize()
     {
@@ -57,6 +64,7 @@ public partial class P1FixProof : SceneTree
         if (_bus == null) { Fail("EventBus autoload not present"); return false; }
         if (_director == null) { Fail("main.tscn root is not WorldDirector"); return false; }
         if (_playerBody == null) { Fail("Player node not found"); return false; }
+        _bus.Betrayal += (_, _) => _betrayalCount++;
         GD.Print($"LA_GATE: composed — zone={_director.CurrentZone} enemies={_director.Enemies.Count}");
         return true;
     }
@@ -73,7 +81,7 @@ public partial class P1FixProof : SceneTree
         switch (_stage)
         {
             case 0:
-                _stage = 10;
+                _stage = _mode == "wage_betrayal" ? 20 : 10;
                 _stageFrames = 0;
                 break;
 
@@ -125,6 +133,50 @@ public partial class P1FixProof : SceneTree
                     Quit(0);
                     return true;
                 }
+                break;
+
+            // ---- wage_betrayal (A3): withhold the wage, loyalty drains, betrayal fires ----
+            case 20:
+            {
+                // Stand clear of every enemy so nothing but the wage cycle can
+                // move loyalty, then drain it to just above one skip's penalty
+                // through M03 (the same API the save/load proof uses) — the
+                // production settlement policy must do the rest.
+                Vector3 p = _playerBody.GlobalPosition;
+                _playerBody.GlobalPosition = new Vector3(p.X + 40f, p.Y, p.Z + 40f);
+                var comp = _director.Companion.Companion;
+                comp.ModifyLoyalty(-(comp.Loyalty - 3));
+                int loyalty = comp.Loyalty;
+                Check("wage_betrayal: loyalty drained to 3 through M03", loyalty == 3, $"loyalty={loyalty}");
+                if (_failed) return true;
+                GD.Print("LA_GATE: wage withheld from here on — waiting for the skip arm to drain loyalty");
+                _stage = 21;
+                _stageFrames = 0;
+                break;
+            }
+            case 21:
+                // The player never presses pay_wage: the wage comes due after the
+                // grace, each full unpaid interval is one skipped cycle, loyalty
+                // hits 0 and the machine mirrors M03's betrayal. Wait for the C2
+                // Betrayal signal — the definitive marker that the director
+                // EXECUTED the betrayal (the visible entity ticks the same
+                // machine, so the state can flip one tick before the director's
+                // transition block runs).
+                if (_betrayalCount > 0)
+                {
+                    var comp = _director.Companion.Companion;
+                    Check("BETRAYAL_FIRED: loyalty drained to 0 by withheld wages", comp.Loyalty == 0, $"loyalty={comp.Loyalty}");
+                    Check("BETRAYAL_FIRED: the machine mirrored the betrayal", _director.Companion.State == CompanionState.Betrayed, $"state={_director.Companion.State}");
+                    Check("BETRAYAL_FIRED: ExecuteBetrayal ran — the bond is broken", !comp.HasCompanion, $"hasCompanion={comp.HasCompanion}");
+                    if (_failed) return true;
+                    GD.Print("LA_GATE: BETRAYAL_FIRED — wage/betrayal pillar reachable in play (MC 1348 A3)");
+                    GD.Print("LA_GATE: PASS — wage/betrayal regression verified");
+                    _asserted = true;
+                    Quit(0);
+                    return true;
+                }
+                if (_stageFrames > BetrayalBudget)
+                    Fail($"betrayal did not fire within {BetrayalBudget} frames (loyalty={_director.Companion.Companion.Loyalty}, state={_director.Companion.State})");
                 break;
         }
         return false;

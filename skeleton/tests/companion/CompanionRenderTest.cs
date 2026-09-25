@@ -50,7 +50,7 @@ public partial class CompanionRenderTest : Node
 
         // A Following companion: loyalty healthy, no salary due yet.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 80 };
-        var needs = new CompanionNeeds(graceTicks: 10_000); // stay Following for this render
+        var needs = new CompanionNeeds(graceSeconds: 10_000); // stay Following for this render
         var machine = new CompanionStateMachine("garn", comp, needs);
         // The hook maps state -> CLIP NAME: a Following companion -> "walkBaked",
         // the clip in M09's shared baked AnimationLibrary (resources/animation/walkBaked.tres).

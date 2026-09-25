@@ -14,6 +14,7 @@ Verified against the `[input]` map in `project.godot`:
 | Attack | `Space` or left mouse button |
 | Interact | `E` |
 | Travel to next zone | `T` |
+| Pay companion wage | `P` |
 | Save game | `F5` |
 | Load game | `F9` |
 
@@ -38,12 +39,18 @@ has no production caller), so it does not change during play.
 3. **Companions.** A companion follows you (`CompanionFollowBody`), has needs
    (`CompanionNeeds`) and a loyalty score (`LoyaltyChanged` signal). Loyalty
    moves with how you treat it; neglect has consequences.
-4. **Betrayal and the Empathy Book.** The `BetrayalSystem` (C7) can turn a
-   companion against you. The Empathy Book (`src/ui/EmpathyPanel.cs`, logic in
-   `src/empathy/EmpathyBook.cs`, C9) lets you read a companion's hidden
-   emotional state and route a resolution: **Forgive** or **Permanent break**.
-5. **Salary.** The `SalarySystem` (C6) pays (or withholds) a periodic salary —
-   the economy pressure behind your choices.
+4. **Betrayal and the Empathy Book.** The `BetrayalSystem` (C7) turns a
+   neglected companion against you: when loyalty reaches 0 the bond breaks,
+   the betrayal damage lands and the C2 `Betrayal` signal fires. The Empathy
+   Book (`src/ui/EmpathyPanel.cs`, logic in `src/empathy/EmpathyBook.cs`, C9)
+   lets you read a companion's hidden emotional state and route a resolution:
+   **Forgive** or **Permanent break**.
+5. **Wages.** The `SalarySystem` (C6) is the economy pressure behind your
+   choices, and paying is **your decision**: the first wage is due after 20 s
+   of companionship and a new one comes due every 30 s thereafter. While a
+   wage is due, press `P` to pay it (+5 loyalty). Ignore it and every full
+   30 s it stays unpaid is one skipped cycle (−3 loyalty) — withhold wages
+   long enough and loyalty erodes to 0 and the companion betrays you.
 6. **Zones.** The world is zoned (`zones/`: meadow, canyon, ruins; bluetest and
    redtest are engine test zones, not meant as destinations). Entering a zone
    triggers `EcosystemSpawner.OnZoneEnter` (C15): the spawn list reacts to your

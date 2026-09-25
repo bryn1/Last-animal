@@ -18,10 +18,10 @@ public class CompanionHarnessSelfTest
         // The intended law (Phase 9): skipping a payment DROPS loyalty via M03,
         // so it can never INCREASE. This test asserts the opposite and MUST fail.
         var comp = new CompanionComponent { Id = 1, CompanionEntityId = 2, Loyalty = 40 };
-        var needs = new CompanionNeeds(graceTicks: 1);
+        var needs = new CompanionNeeds(graceSeconds: 1);
         var sm = new CompanionStateMachine("garn", comp, needs);
 
-        needs.TickAccompaniment();
+        needs.TickAccompaniment(1);
         sm.Tick(); // -> Needing
         sm.SkipPayment();
 
