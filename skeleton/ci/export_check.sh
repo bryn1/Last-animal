@@ -35,8 +35,14 @@ timeout 300 "$GODOT" --headless --path . --build-solutions --quit-after 2 >/dev/
   || fail "engine --build-solutions failed (see ci/smoke.sh for the readable error)"
 timeout 300 "$GODOT" --headless --path . --export-release "$PRESET" "$OUT_EXE" 2>&1 | grep -E "ERROR" && fail "export reported ERROR"
 [ -f "$OUT_EXE" ] || fail "export produced no $OUT_EXE"
-MAGIC="$(head -c 2 "$OUT_EXE")"
-[ "$MAGIC" = "MZ" ] || fail "$OUT_EXE is not a PE (magic='$MAGIC')"
+# Platform-aware binary magic: a Windows preset must produce a PE ('MZ'), a
+# Linux preset an ELF ('\x7fELF'). One gate, two platforms.
+case "$PRESET" in
+  Linux*) EXPECT_MAGIC=$'\x7fELF'; MAGIC_DESC="ELF" ;;
+  *)      EXPECT_MAGIC="MZ";      MAGIC_DESC="PE"  ;;
+esac
+MAGIC="$(head -c 4 "$OUT_EXE")"
+[ "$MAGIC" = "$EXPECT_MAGIC" ] || fail "$OUT_EXE is not a $MAGIC_DESC (magic='$MAGIC')"
 
 # A PE alone is NOT proof of a C# export: also require the assembly + the
 # godot-mono runtime config inside the shipped .exe (embed_pck=true).
@@ -53,4 +59,4 @@ for tok, why in ((name, 'project assembly'),
         sys.exit(f"missing {why} marker {tok!r} in {sys.argv[1]} - GDScript-only export?")
     print(f"EXPORT_CHECK: found {why} marker {tok.decode()} x{data.count(tok)}")
 PY
-echo "EXPORT_CHECK: PASS — $OUT_EXE ($(stat -c%s "$OUT_EXE") bytes, PE magic OK)"
+echo "EXPORT_CHECK: PASS — $OUT_EXE ($(stat -c%s "$OUT_EXE") bytes, $MAGIC_DESC magic OK)"
