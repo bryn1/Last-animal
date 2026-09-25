@@ -34,6 +34,17 @@ else
   export PINNED_DOTNET_VERSION=""
 fi
 
+# --- writable TMPDIR for the mono export's `dotnet publish` ------------------
+# Godot's mono export publishes into $TMPDIR/godot-publish-dotnet/. A stale
+# cross-seat /tmp/godot-publish-dotnet (owned by another user, 0755) makes that
+# fail with "Access to the path is denied" — pin a private TMPDIR when the
+# default location exists but is not writable by us. Applies to every platform
+# export (Windows and Linux alike).
+if [ -e /tmp/godot-publish-dotnet ] && [ ! -w /tmp/godot-publish-dotnet ]; then
+  export TMPDIR="${TMPDIR:-/tmp}/la-export-$$"
+  mkdir -p "$TMPDIR"
+fi
+
 # --- pinned Godot editor -----------------------------------------------------
 # engine/PIN.txt is the source of truth for the version; the binary is vendored.
 if [ -z "${GODOT:-}" ]; then

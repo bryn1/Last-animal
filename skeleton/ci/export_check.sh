@@ -36,13 +36,15 @@ timeout 300 "$GODOT" --headless --path . --build-solutions --quit-after 2 >/dev/
 timeout 300 "$GODOT" --headless --path . --export-release "$PRESET" "$OUT_EXE" 2>&1 | grep -E "ERROR" && fail "export reported ERROR"
 [ -f "$OUT_EXE" ] || fail "export produced no $OUT_EXE"
 # Platform-aware binary magic: a Windows preset must produce a PE ('MZ'), a
-# Linux preset an ELF ('\x7fELF'). One gate, two platforms.
+# Linux preset an ELF ('\x7fELF'). One gate, two platforms. Compared as hex —
+# command substitution strips NUL bytes, so raw byte comparison is unreliable.
 case "$PRESET" in
-  Linux*) EXPECT_MAGIC=$'\x7fELF'; MAGIC_DESC="ELF" ;;
-  *)      EXPECT_MAGIC="MZ";      MAGIC_DESC="PE"  ;;
+  Linux*) EXPECT_HEX="7f454c46"; MAGIC_DESC="ELF" ;;
+  *)      EXPECT_HEX="4d5a";     MAGIC_DESC="PE"  ;;
 esac
-MAGIC="$(head -c 4 "$OUT_EXE")"
-[ "$MAGIC" = "$EXPECT_MAGIC" ] || fail "$OUT_EXE is not a $MAGIC_DESC (magic='$MAGIC')"
+MAGIC_HEX="$(head -c 4 "$OUT_EXE" | od -An -tx1 | tr -d ' \n')"
+# Prefix match: a PE's first 4 bytes are MZ + 2 arbitrary bytes (classic 4d5a9000).
+[ "${MAGIC_HEX#"$EXPECT_HEX"}" != "$MAGIC_HEX" ] || fail "$OUT_EXE is not a $MAGIC_DESC (magic hex='$MAGIC_HEX')"
 
 # A PE alone is NOT proof of a C# export: also require the assembly + the
 # godot-mono runtime config inside the shipped .exe (embed_pck=true).
