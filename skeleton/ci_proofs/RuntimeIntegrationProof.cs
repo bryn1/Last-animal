@@ -139,11 +139,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         _hud = main.GetNodeOrNull<Hud>("UI/HudLayer/Hud");
         _dialogue = main.GetNodeOrNull<DialogueSystem>("UI/Dialogue");
         _companion = main.GetNodeOrNull<CompanionEntity>("Companion/Entity");
-        for (int i = 0; i < 8; i++)
-        {
-            var e = main.GetNodeOrNull<EnemyActor>($"Enemy{i}");
-            if (e != null) _enemies.Add(e);
-        }
+        // MC 1348 A5: the boot Enemy{i} ring is stood down — the director's
+        // live Enemies set (the zone pipeline's SpawnSet actors) is the enemy
+        // population every mode drives.
+        _enemies.AddRange(_director!.Enemies);
 
         if (_playerBody == null) { Fail("Player node not found in main.tscn"); return; }
         if (_hud == null) { Fail("Hud not found at UI/HudLayer/Hud (WorldDirector UI not built)"); return; }

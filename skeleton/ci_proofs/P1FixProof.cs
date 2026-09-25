@@ -26,6 +26,9 @@ using System.Collections.Generic;
 //                   opens the panel on the companion's live M04 entry (C2
 //                   EmpathyBookOpened fired) and pressing it again closes it.
 //                   Markers: EMPATHY_BOOK_OPENED, EMPATHY_BOOK_CLOSED.
+//   zone_travel_boot — A5: zone travel despawns the BOOT enemy set too — after
+//                   travelling, no enemy from the boot composition remains
+//                   alive or in the director's live set. Markers: BOOT_SET_CLEARED.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
 public partial class P1FixProof : SceneTree
@@ -34,6 +37,7 @@ public partial class P1FixProof : SceneTree
     private const int WatchFrames = 90;   // corpse-damage watch window (~1.5 s)
     private const int BetrayalBudget = 3600; // wage stage: grace 20 s + interval 30 s + margin
     private const int BookBudget = 600;      // book stage: press cycles + settle
+    private const int TravelSettleFrames = 15; // zone travel: let QueueFree land
 
     private EventBus? _bus;
     private WorldDirector? _director;
@@ -50,6 +54,8 @@ public partial class P1FixProof : SceneTree
     private int _healthAtKill;
     private int _betrayalCount;
     private int _bookOpenedCount;
+    private string _bootZone = "";
+    private readonly List<EnemyActor> _bootEnemies = new();
 
     public override void _Initialize()
     {
@@ -96,6 +102,7 @@ public partial class P1FixProof : SceneTree
                 {
                     "wage_betrayal" => 20,
                     "empathy_book" => 30,
+                    "zone_travel_boot" => 40,
                     _ => 10,
                 };
                 _stageFrames = 0;
@@ -235,6 +242,50 @@ public partial class P1FixProof : SceneTree
                 }
                 if (_stageFrames > BookBudget) Fail("the book input never closed the EmpathyPanel");
                 break;
+
+            // ---- zone_travel_boot (A5): travel must despawn the boot set too ----
+            case 40:
+                // Record the boot composition: every enemy alive at compose time
+                // (pre-fix that is the hard-coded ring PLUS the meadow SpawnSet;
+                // post-fix it is the SpawnSet alone — either way it is the set
+                // travel must clear).
+                _bootZone = _director!.CurrentZone;
+                _bootEnemies.AddRange(_director.Enemies);
+                Check("zone_travel_boot: the boot composition fields enemies", _bootEnemies.Count > 0, $"bootEnemies={_bootEnemies.Count} zone={_bootZone}");
+                if (_failed) return true;
+                _stage = 41;
+                _stageFrames = 0;
+                break;
+            case 41:
+                // Press travel (2 frames press / 2 release) until the zone changes.
+                if (_stageFrames % 4 < 2) Input.ActionPress("travel");
+                else Input.ActionRelease("travel");
+                if (_director!.CurrentZone != _bootZone)
+                {
+                    Input.ActionRelease("travel");
+                    GD.Print($"LA_GATE: travelled {_bootZone} -> {_director.CurrentZone}");
+                    _stage = 42;
+                    _stageFrames = 0;
+                }
+                else if (_stageFrames > BookBudget) Fail("travel never changed the zone");
+                break;
+            case 42:
+                if (_stageFrames < TravelSettleFrames) break;   // let QueueFree land
+                int stillAlive = 0, stillListed = 0;
+                foreach (var e in _bootEnemies)
+                    if (IsInstanceValid(e) && !e.IsDead) stillAlive++;
+                foreach (var live in _director!.Enemies)
+                    if (_bootEnemies.Contains(live)) stillListed++;
+                Check("BOOT_SET_CLEARED: no boot enemy survives the travel (despawned)",
+                      stillAlive == 0, $"stillAlive={stillAlive} of {_bootEnemies.Count}");
+                Check("BOOT_SET_CLEARED: no boot enemy remains in the live set",
+                      stillListed == 0, $"stillListed={stillListed} of {_bootEnemies.Count}");
+                if (_failed) return true;
+                GD.Print("LA_GATE: BOOT_SET_CLEARED — zone travel despawns the boot enemy set (MC 1348 A5)");
+                GD.Print("LA_GATE: PASS — zone-travel boot-set regression verified");
+                _asserted = true;
+                Quit(0);
+                return true;
         }
         return false;
     }
@@ -265,6 +316,7 @@ public partial class P1FixProof : SceneTree
     private void Fail(string why)
     {
         Input.ActionRelease("book");
+        Input.ActionRelease("travel");
         _failed = true;
         GD.PrintErr($"LA_GATE: FAIL — {why}");
         Quit(1);
@@ -273,6 +325,7 @@ public partial class P1FixProof : SceneTree
     public override void _Finalize()
     {
         Input.ActionRelease("book");
+        Input.ActionRelease("travel");
         if (!_asserted && !_failed)
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }

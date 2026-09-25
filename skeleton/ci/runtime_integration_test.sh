@@ -146,6 +146,9 @@ run_mode wage_betrayal pass "BETRAYAL_FIRED" "$PROOF_P1"
 run_mode empathy_book pass "EMPATHY_BOOK_OPENED" "$PROOF_P1"
 LOGE="$(LA_GATE_MODE=empathy_book timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF_P1" 2>&1)" || true
 [[ "$LOGE" == *'EMPATHY_BOOK_CLOSED'* ]] || fail "empathy_book: expected EMPATHY_BOOK_CLOSED"
+# (H4) A5 zone travel must despawn the BOOT enemy set too: after travelling, no
+# enemy from the boot composition remains alive or in the director's live set.
+run_mode zone_travel_boot pass "BOOT_SET_CLEARED" "$PROOF_P1"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; non-blank render)"
 exit 0

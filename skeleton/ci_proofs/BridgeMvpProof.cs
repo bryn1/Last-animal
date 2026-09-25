@@ -132,11 +132,11 @@ public partial class BridgeMvpProof : SceneTree
         _hud = main.GetNodeOrNull<Hud>("UI/HudLayer/Hud");
         _empathy = main.GetNodeOrNull<EmpathyPanel>("UI/Empathy");
         _companion = main.GetNodeOrNull<CompanionFollowBody>("Companion");
-        for (int i = 0; i < 8; i++)
-        {
-            var e = main.GetNodeOrNull<EnemyActor>($"Enemy{i}");
-            if (e != null) _enemies.Add(e);
-        }
+        // MC 1348 A5: the boot Enemy{i} ring is stood down — the director's
+        // live set (the zone pipeline's SpawnSet actors, all children of main)
+        // is the enemy population this proof drives.
+        foreach (var child in main.GetChildren())
+            if (child is EnemyActor e) _enemies.Add(e);
 
         if (_player == null) { Fail("Player node not found in main.tscn"); return; }
         if (_hud == null) { Fail("Hud not found at UI/HudLayer/Hud (WorldDirector UI not built)"); return; }
@@ -161,8 +161,8 @@ public partial class BridgeMvpProof : SceneTree
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1 root
         // cause): the previous code captured it in stage 0 — the _Process frame
         // AFTER the press — by which time the player had already walked ~0.5 units
-        // and Enemy0 (spawned 2 units ahead, chasing at 3 u/s) had closed to contact
-        // range and body-blocked further motion, so the late baseline measured dx=0.
+        // and a chasing enemy had closed to contact range and body-blocked
+        // further motion, so the late baseline measured dx=0.
         _playerStart = _player.GlobalPosition;
         _pressPhysFrame = _physFrames;
 

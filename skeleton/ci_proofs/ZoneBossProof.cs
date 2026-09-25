@@ -17,9 +17,11 @@ using System.Collections.Generic;
 //     ZONE_TRAVEL_RUINS, SCALED_STATS_APPLIED.
 //
 //   boss_phase — kills grow the spoken-DNA history; once observed >=
-//     BossThreshold(4) a travel into canyon (BossTier 1) must field a live
-//     boss (BOSS_REACHED), and further kills must step BossController.Phase
-//     and fire C2 EcosystemAdapted on the REAL autoload bus (BOSS_PHASE_FIRED).
+//     BossThreshold(4) the next zone entry must field a live boss
+//     (BOSS_REACHED; MC 1348 A5: a zone holds exactly its denizen count, so
+//     the threshold can span zone entries), and further kills must step
+//     BossController.Phase and fire C2 EcosystemAdapted on the REAL autoload
+//     bus (BOSS_PHASE_FIRED).
 //
 //   death_load — MC 1348 N1: save while alive (F5 path), kill the player
 //     through the model, assert the SHELL stops moving (dead = no input
@@ -42,6 +44,7 @@ public partial class ZoneBossProof : SceneTree
     private int _adaptedCount;
     private int _travelToggle;
     private int _attackToggle;
+    private string _thresholdZone = "";   // zone at the BossThreshold crossing
     private Vector3 _spawnOrigin;
     private string _mode = "zone_travel";
     private int _stage;
@@ -134,30 +137,57 @@ public partial class ZoneBossProof : SceneTree
                 if (_stageFrames > 120) Fail("travel did not reach ruins");
                 break;
 
-            // ---- boss_phase: kill through the REAL path until observed >= 4 -
+            // ---- boss_phase: kill through the REAL path until observed >= 4.
+            // MC 1348 A5: a zone fields exactly its denizen count (meadow 3 —
+            // the old boot ring is stood down), so reaching BossThreshold(4)
+            // spans zone entries: when the pool runs dry, travel on and keep
+            // killing in the next zone's fresh set.
             case 20:
                 if (_director.SpokenDna.Count >= BossThreshold)
                 {
-                    GD.Print($"LA_GATE: observed={_director.SpokenDna.Count} >= BossThreshold — travelling to canyon");
+                    GD.Print($"LA_GATE: observed={_director.SpokenDna.Count} >= BossThreshold — travelling on");
                     _stage = 21;
                     _stageFrames = 0;
                     _travelToggle = 0;   // re-arm the just-pressed window
                 }
-                else KillLoop();
+                else if (!KillLoop())
+                {
+                    GD.Print($"LA_GATE: zone pool dry at observed={_director.SpokenDna.Count} — travelling on for a fresh set");
+                    _stage = 21;
+                    _stageFrames = 0;
+                    _travelToggle = 0;
+                }
                 break;
 
-            // ---- boss_phase: canyon must field the live boss ----------------
+            // ---- boss_phase: reach BossThreshold, then the NEXT zone entry
+            // must field the live boss ----------------
             case 21:
-                if (PressTravel() && _director.CurrentZone == "canyon")
+                if (_director.SpokenDna.Count >= BossThreshold)
                 {
-                    Check("canyon fields a live boss once observed >= BossThreshold",
-                          _director.HasLiveBoss, $"bossPhase={_director.BossPhase}");
+                    _thresholdZone = _director.CurrentZone;
+                    _stage = 23;
+                    _stageFrames = 0;
+                    _travelToggle = 0;
+                }
+                else if (!KillLoop())
+                {
+                    PressTravel();   // pool dry — the next entry fields a fresh set
+                }
+                else if (_stageFrames > 1200) Fail("kill path never reached BossThreshold");
+                break;
+
+            // ---- boss_phase: the first entry past the threshold fields the boss
+            case 23:
+                if (PressTravel() && _director.CurrentZone != _thresholdZone)
+                {
+                    Check("a zone entered past BossThreshold fields a live boss",
+                          _director.HasLiveBoss, $"zone={_director.CurrentZone} bossPhase={_director.BossPhase}");
                     if (_failed) return true;
                     GD.Print("LA_GATE: BOSS_REACHED — boss enemy live in play (was unreachable before)");
                     _stage = 22;
                     _stageFrames = 0;
                 }
-                else if (_stageFrames > 120) Fail("travel did not reach canyon (boss stage)");
+                else if (_stageFrames > 240) Fail("travel did not leave the threshold zone (boss stage)");
                 break;
 
             // ---- boss_phase: more kills must step the phase + fire C2 -------
@@ -175,7 +205,8 @@ public partial class ZoneBossProof : SceneTree
                 }
                 if (_director.SpokenDna.Count >= PhaseStepTarget && _stageFrames > 60)
                     Fail($"no EcosystemAdapted after observed={_director.SpokenDna.Count} (phase wire broken)");
-                else KillLoop();
+                else if (!KillLoop())
+                    PressTravel();   // pool dry — the next entry fields a fresh set
                 break;
 
             // ---- death_load: save alive, kill, shell must stop, load rescues
@@ -268,13 +299,26 @@ public partial class ZoneBossProof : SceneTree
     {
         _travelToggle++;
         if (_travelToggle == 1) Input.ActionPress("travel");
-        if (_travelToggle >= PressFrames) { Input.ActionRelease("travel"); return true; }
+        if (_travelToggle >= PressFrames)
+        {
+            // Re-arm (MC 1348 A5 follow-up): the frame stamp that makes
+            // IsActionJustPressed true is written only on the released->pressed
+            // transition, so a cycle left held (KillLoop took over mid-press)
+            // must be released AND the toggle restarted, or the next stage's
+            // press is a silent no-op and no travel edge ever fires.
+            Input.ActionRelease("travel");
+            _travelToggle = 0;
+            return true;
+        }
         return false;
     }
 
     /// <summary>One kill-loop frame: keep the nearest live enemy in melee range
-    /// and toggle attack, exactly like RuntimeIntegrationProof's kill stages.</summary>
-    private void KillLoop()
+    /// and toggle attack, exactly like RuntimeIntegrationProof's kill stages.
+    /// Returns false when no farmable enemy remains — the zone's pool is dry
+    /// (MC 1348 A5: a zone fields exactly its denizen count, the boot ring is
+    /// gone) — so the caller can travel on and keep killing in a fresh set.</summary>
+    private bool KillLoop()
     {
         EnemyActor? target = null;
         float best = float.MaxValue;
@@ -287,12 +331,7 @@ public partial class ZoneBossProof : SceneTree
             float d = e.GlobalPosition.DistanceTo(_playerBody!.GlobalPosition);
             if (d < best) { best = d; target = e; }
         }
-        if (target == null)
-        {
-            if (_director.HasLiveBoss) { Fail("only the boss remains — kill budget mis-set"); return; }
-            Fail("no live enemy left to kill (kill budget mis-set)");
-            return;
-        }
+        if (target == null) return false;
         if (best > _director.PlayerModel.AttackRange)
         {
             Vector3 p = target.GlobalPosition;
@@ -301,6 +340,7 @@ public partial class ZoneBossProof : SceneTree
         _attackToggle++;
         if (_attackToggle % 4 == 1) Input.ActionPress("attack");
         else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");
+        return true;
     }
 
     /// <summary>True when any live spawned enemy's AI stats differ from the

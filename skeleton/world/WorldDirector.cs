@@ -86,15 +86,6 @@ public partial class WorldDirector : Node3D
     private DialogueSystem _dialogue = null!;
     private EmpathyPanel _empathy = null!;
 
-    // Enemy spawn ring around the player's start, so several stay in the
-    // default camera frame.
-    private static readonly (float X, float Z)[] SPAWNS =
-    {
-        ( 5f,  0f),
-        (-4f,  4f),
-        ( 0f, -5f),
-    };
-
     // Interact reach: must exceed the companion's FollowDistance (3.5) so the
     // trailing companion is talkable when the player stops.
     private const float TalkRange = 4.5f;
@@ -163,7 +154,12 @@ public partial class WorldDirector : Node3D
             // MC 1348 N1: health rides the snapshot so F9 rescues a dead player.
             playerHealth: () => _player.Health,
             restoreHealth: h => _player.RestoreHealth(h));
-        SpawnEnemies();
+        // MC 1348 A5: the boot enemy set is the zone pipeline's job — the
+        // EnterZone below fires OnZoneEntered -> ApplySpawnSet, which fields
+        // the meadow SpawnSet into _zoneEnemies so zone travel can despawn it.
+        // The old hard-coded SpawnEnemies() ring spawned BESIDE that set and
+        // registered only in _enemies, so travel never despawned it and the
+        // stale boot goblins patrolled the player's re-entry point forever.
         SpawnCompanion();
         EnterZone(_zone);
         _companionLoyaltyLast = _companionCore.Loyalty;
@@ -270,30 +266,6 @@ public partial class WorldDirector : Node3D
         _empathy = new EmpathyPanel { Name = "Empathy" };
         _empathy.ConnectBus(_bus);
         UICanvas.AddChild(_empathy);
-    }
-
-    private void SpawnEnemies()
-    {
-        if (!_spawningEnabled) return;   // gate seam (design §4.2)
-
-        Color[] colours =
-        {
-            new Color(0.9f, 0.25f, 0.2f),   // red goblin
-            new Color(0.2f, 0.7f, 0.35f),   // green goblin
-            new Color(0.55f, 0.45f, 0.9f),  // purple goblin
-        };
-        Vector3 origin = Player?.GlobalPosition ?? Vector3.Zero;
-        for (int i = 0; i < SPAWNS.Length; i++)
-        {
-            // The DIRECTOR constructs the AI and injects it (design §2 row 2).
-            var ai = new EnemyAI(
-                new CombatVec3(origin.X + SPAWNS[i].X, 0f, origin.Z + SPAWNS[i].Z),
-                2000 + i, EnemyAI.Type.Goblin, seed: 2000 + i);
-            var actor = new EnemyActor { Name = $"Enemy{i}" };
-            actor.Configure(ai, origin.X + SPAWNS[i].X, origin.Z + SPAWNS[i].Z, colours[i]);
-            AddChild(actor);
-            _enemies.Add(actor);
-        }
     }
 
     /// <summary>Apply a SpawnSet: spawn an EnemyActor per entry (the design's
