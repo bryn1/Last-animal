@@ -38,8 +38,13 @@ using System.Collections.Generic;
 // into the scene (I1). The two Set*Enabled hooks are one-line gate seams named
 // in the design (§4.2); they carry no gameplay behavior.
 //
-// File size: >400 total lines — the composition root owns the whole live-loop
-// wiring; the A14 (MC 1348) PlayerActions/UI-build split is the scheduled fix.
+// SIZE REASON (hygiene rule, 400 ceiling): design 1256.2 names this class THE
+// single composition root — the ONLY production site that may construct and
+// bind the gameplay systems. Splitting construction/binding across files would
+// create a second composition site and break the instance-identity invariant
+// the design rests on, so the file deliberately exceeds the ceiling as one unit.
+// (The A14 MC 1348 PlayerActions/UI-build split remains the scheduled follow-up
+// if the file keeps growing.)
 namespace LastAnimal.World;
 
 [GlobalClass]

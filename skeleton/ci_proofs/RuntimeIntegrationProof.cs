@@ -46,6 +46,12 @@ using System.Linq;
 //                     (NEG_INTERACT), exit non-zero.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
+//
+// File size: >400 total lines — a multi-mode proof harness (8+ modes). The
+// mode-specific stage bodies live in the partial-class halves
+// RuntimeIntegrationProof.Save.cs (stages 20/21/22/30) and
+// RuntimeIntegrationProof.Interact.cs (stages 40/90); this file keeps the
+// shared harness (fields, composition, dispatch, main chain, helpers).
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private const int MoveFrames = 12;
@@ -435,193 +441,23 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (_physFrames >= _holdStartPhys + HoldFrames) { Quit(0); return true; }
                 break;
 
-            // ---- dna_speak / no_interact: the interact -> Speak -> DnaSpoken
-            // -> DialogueSystem production path (MC 1344 DA findings C2/C4/C13).
-            case 40:
-                {
-                    if (_dnaSpokenCount > 0)
-                    {
-                        Input.ActionRelease("interact");
-                        if (_mode == "no_interact")
-                        {
-                            Fail("no_interact: DnaSpoken reached the bus despite the interact seam disabled — the negative control is broken");
-                            return true;
-                        }
-                        Check("DnaSpoken fired on the REAL EventBus from the interact path",
-                              _dnaSpokenCount > 0, $"spoken={_dnaSpokenCount}");
-                        if (_failed) return true;
-                        GD.Print("LA_GATE: DNA_SPOKEN_EMITTED — interact -> DnaLanguage.Speak -> EventBus.DnaSpoken (real autoload bus)");
-                        Check("DialogueSystem opened with a non-empty active node",
-                              _dialogue!.IsOpen && _dialogue.ActiveNode.Length > 0,
-                              $"node='{_dialogue.ActiveNode}'");
-                        if (_failed) return true;
-                        GD.Print("LA_GATE: DIALOGUE_SHOWN — DialogueSystem.Show rendered the spoken NPC's node");
-                        GD.Print("LA_GATE: PASS — DNA-speak + dialogue production path verified");
-                        _asserted = true;
-                        _stage = 6;
-                        _stageFrames = 0;
-                        _holdStartPhys = _physFrames;
-                        break;
-                    }
-                    if (_stageFrames > AttackBudgetFrames)
-                    {
-                        if (_mode == "no_interact")
-                        {
-                            // The seam is off: no DnaSpoken AND no dialogue is the
-                            // DETECTED break (the control must be able to fail).
-                            if (_dialogue!.IsOpen)
-                            {
-                                Fail("no_interact: dialogue opened despite the interact seam disabled — the negative control is broken");
-                                return true;
-                            }
-                            GD.Print("LA_GATE: NEG_INTERACT: interact pressed near the NPC but no DnaSpoken fired and no dialogue opened (seam disabled) — break detected");
-                            Quit(1);
-                            return true;
-                        }
-                        Fail("interact did not fire DnaSpoken within the budget (input -> director -> Speak -> bus path broken)");
-                        return true;
-                    }
-                    // Press interact 2 frames, release 2, repeat (attack-stage idiom).
-                    _interactToggle++;
-                    if (_interactToggle % 4 == 1) Input.ActionPress("interact");
-                    else if (_interactToggle % 4 == 3) Input.ActionRelease("interact");
-                }
-                break;
-
             // ---- save mode: round-trip through the REAL scene state ----
             // MC 1344: the mode now runs the REAL kill chain first (stages 0-2),
             // so the save happens with DnaMeter > 0 and the load asserts a
             // CHANGED value round-trips. The old assert (meter unchanged while
             // LoadGame never wrote the meter) was vacuous — green by construction.
-            case 20:
-                {
-                    _dnaMeterBeforeSave = _hud.DnaMeter;
-                    _spokenDnaBeforeSave = _director.SpokenDna.Count;
-                    _loyaltyBeforeSave = _director.Companion.Companion.Loyalty;
-                    _zoneBeforeSave = _director.CurrentZone;
-                    _progressBeforeSave = _director.Progression;
-                    Check("SAVE_DNA_NONVACUOUS: DnaMeter > 0 at save time (a zero baseline would make the round-trip vacuous)",
-                          _dnaMeterBeforeSave > 0, $"dna={_dnaMeterBeforeSave}");
-                    if (_failed) return true;
-                    _director.SaveGame();
-                    var store = new GodotSaveStore();
-                    Check("SAVE_WRITTEN: save file exists at the globalized user:// path",
-                          System.IO.File.Exists(store.SavePath), $"path={store.SavePath}");
-                    if (_failed) return true;
-                    GD.Print("LA_GATE: SAVE_WRITTEN");
-                    TeleportIntoRange();   // line up the mutation kill (stage 21)
-                    _stage = 21;
-                    _stageFrames = 0;
-                }
-                break;
-
-            case 21:
-                {
-                    // Mutate the live state AWAY from the save through the REAL
-                    // path: a second kill bumps DnaMeter + _spokenDna past the
-                    // saved values; loyalty is drained directly.
-                    _attackToggle++;
-                    if (_attackToggle % 4 == 1) Input.ActionPress("attack");
-                    else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");
-                    if (_hud.DnaMeter > _dnaMeterBeforeSave && _director.SpokenDna.Count > _spokenDnaBeforeSave)
-                    {
-                        Input.ActionRelease("attack");
-                        _dnaMutated = _hud.DnaMeter;
-                        _director.Companion.Companion.ModifyLoyalty(-25);
-                        Check("MUTATED_AWAY_FROM_SAVE: dna meter + spoken history moved past the saved values",
-                              _dnaMutated > _dnaMeterBeforeSave, $"dna={_dnaMutated} (saved {_dnaMeterBeforeSave})");
-                        if (_failed) return true;
-                        GD.Print("LA_GATE: MUTATED_AWAY_FROM_SAVE");
-                        _stage = 22;
-                        _stageFrames = 0;
-                    }
-                    else if (_stageFrames > AttackBudgetFrames)
-                    {
-                        Fail("save mode: mutation kill did not land within the attack budget");
-                    }
-                }
-                break;
-
-            case 22:
-                {
-                    _director.LoadGame();
-                    Check("LOAD_RESTORED_DNA: DnaMeter restored to the SAVED value after being mutated",
-                          _hud.DnaMeter == _dnaMeterBeforeSave,
-                          $"dna={_hud.DnaMeter} (saved {_dnaMeterBeforeSave}, mutated {_dnaMutated})");
-                    if (_failed) return true;
-                    Check("LOAD_RESTORED_SPOKEN: spoken-DNA history restored to the saved snapshot",
-                          _director.SpokenDna.Count == _spokenDnaBeforeSave,
-                          $"spoken={_director.SpokenDna.Count} (saved {_spokenDnaBeforeSave})");
-                    if (_failed) return true;
-                    Check("LOAD_RESTORED_LOYALTY: companion loyalty restored to the saved value",
-                          _director.Companion.Companion.Loyalty == _loyaltyBeforeSave,
-                          $"loyalty={_director.Companion.Companion.Loyalty} (saved {_loyaltyBeforeSave})");
-                    if (_failed) return true;
-                    Check("LOAD_RESTORED_ZONE: director is back in the saved zone (re-entered, SpawnSet re-applied)",
-                          _director.CurrentZone == _zoneBeforeSave,
-                          $"zone={_director.CurrentZone} (saved {_zoneBeforeSave})");
-                    if (_failed) return true;
-                    Check("LOAD_RESTORED_PROGRESSION: progression restored from the save (no hardcoded zero)",
-                          _director.Progression == _progressBeforeSave,
-                          $"prog={_director.Progression} (saved {_progressBeforeSave})");
-                    if (_failed) return true;
-                    GD.Print("LA_GATE: LOAD_RESTORED_DNA + LOAD_RESTORED_LOYALTY");
-                    // Pure round-trip anchor (regression): representative state.
-                    var pureStore = new TempDirSaveStore();
-                    var state = GameState.Representative();
-                    Check("SAVE_ROUNDTRIP_PURE: representative GameState round-trips",
-                          SaveSystem.Save(state, pureStore) && SaveSystem.Load(pureStore) != null
-                          && SaveSystem.Load(pureStore)!.ZoneId == state.ZoneId,
-                          $"zone={state.ZoneId}");
-                    if (_failed) return true;
-                    GD.Print("LA_GATE: SAVE_ROUNDTRIP_PURE");
-                    GD.Print("LA_GATE: PASS — save/load through the real game verified");
-                    _asserted = true;
-                    _stage = 6;
-                    _stageFrames = 0;
-                }
-                break;
+            // Stage bodies live in RuntimeIntegrationProof.Save.cs (partial).
+            case 20: RunSaveStage(); break;
+            case 21: RunMutateStage(); break;
+            case 22: RunLoadStage(); break;
 
             // ---- save_bad_version mode: schema guard on a real save ----
-            case 30:
-                {
-                    _director.SaveGame();
-                    var store = new GodotSaveStore();
-                    Check("save written before the version break",
-                          System.IO.File.Exists(store.SavePath), $"path={store.SavePath}");
-                    if (_failed) return true;
-                    // Rewrite the on-disk Version header to a FUTURE version.
-                    string json = System.IO.File.ReadAllText(store.SavePath);
-                    string patched = System.Text.RegularExpressions.Regex.Replace(
-                        json, "\"Version\"\\s*:\\s*\\d+", $"\"Version\": {SaveSystem.CurrentVersion + 1}");
-                    System.IO.File.WriteAllText(store.SavePath, patched);
-                    GameState? loaded = SaveSystem.Load(store);
-                    if (loaded != null)
-                    {
-                        Fail("NEG_SAVE_VERSION: out-of-date/newer save was NOT rejected — schema guard broken");
-                        return true;
-                    }
-                    GD.Print("LA_GATE: NEG_SAVE_VERSION: out-of-date save rejected (Load returned null)");
-                    Quit(1);
-                    return true;
-                }
+            case 30: RunSaveBadVersionStage(); break;
 
-            // ---- no_spawn mode: assert the scene stayed empty ----
-            case 90:
-                if (_stageFrames >= 10)
-                {
-                    int live = 0;
-                    foreach (var e in _enemies) if (!e.IsDead) live++;
-                    if (live > 0)
-                    {
-                        Fail("no_spawn: enemies exist despite spawning disabled — the negative control is broken");
-                        return true;
-                    }
-                    GD.Print("LA_GATE: NEG_SPAWN: no EnemyActor in scene; chain cannot start — break detected");
-                    Quit(1);
-                    return true;
-                }
-                break;
+            // ---- dna_speak / no_interact + no_spawn: stage bodies live in
+            // RuntimeIntegrationProof.Interact.cs (partial).
+            case 40: RunInteractStage(); break;
+            case 90: RunNoSpawnStage(); break;
         }
         return false;
     }

@@ -77,6 +77,8 @@
     <Compile Include="ci_proofs/MainCompositionProof.cs" />
     <Compile Include="ci_proofs/BridgeMvpProof.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Save.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Interact.cs" />
     <Compile Include="ci_proofs/ZoneBossProof.cs" />
     <Compile Include="ci_proofs/P1FixProof.cs" />
     <Compile Include="tests/BootTest.cs" />

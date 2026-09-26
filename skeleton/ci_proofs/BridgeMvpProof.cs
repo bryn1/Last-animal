@@ -13,6 +13,11 @@ using System;
 
 // Last Animal — W7 bridge_mvp_proof (MC 1123.14; redo of MC 1123.8, artifact never landed).
 //
+// SIZE REASON (hygiene rule, 400 ceiling): one SceneTree state machine driving
+// all six markers through the same frame-budget/input-simulation machinery and
+// Fail/Check helpers; splitting it would duplicate that machinery per marker
+// (two mechanisms for one concern), so it stays one unit slightly over the
+// ceiling.
 // Proves the FULL playable MVP loop (BRIDGE-MVP.md §3) with all six markers,
 // printing one marker per closed loop and exiting non-zero on any missing one:
 //   1 PLAYER_MOVED      — simulated WASD drives Player -> CharacterBody3D (C10/RG3).
@@ -39,6 +44,13 @@ using System;
 // frames run uncapped, so the hold is near-instant there.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/BridgeMvpProof.cs
+//
+// SIZE REASON (hygiene rule, 400 ceiling): this file is ONE SceneTree state
+// machine — all six MVP markers above are stages of the same _Process switch
+// sharing the same physics-tick counter, frame budget and Fail/Check helpers.
+// Splitting the stages into separate files would duplicate that machinery per
+// marker (two mechanisms for one concern), so the file deliberately exceeds
+// the ceiling as a single unit.
 public partial class BridgeMvpProof : SceneTree
 {
     private const int MovePhysicsFrames = 30;  // WASD accumulation in PHYSICS ticks (0.5s @ 60Hz) before the move assert (headless uncapped frames are tiny; 12 gave dx=0.031 < 0.05, MC 1256.14)
