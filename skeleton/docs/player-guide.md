@@ -81,5 +81,7 @@ emotion label is written but is not restored on load.
 Claim labels: controls, HUD, systems, save/load behaviour and save path are
 VERIFIED against the source files named above. The moment-to-moment feel
 (difficulty, pacing) is UNVERIFIED — no human has played the packaged Windows
-build yet (no wine on the build host; see
-[build-and-run.md](build-and-run.md)).
+build yet (wine 9.0 IS installed on the build host vm105, but the packaged
+`LastAnimal.exe` crashes at startup under it — null-pointer read, no log line,
+both renderers and `--headless`; likeliest the bundled .NET 8 host under Wine
+9.0 — see [build-and-run.md](build-and-run.md)).
