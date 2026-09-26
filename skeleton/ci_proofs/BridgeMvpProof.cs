@@ -229,10 +229,9 @@ public partial class BridgeMvpProof : SceneTree
                     Input.ActionRelease("move_right");
                     GD.Print("BRIDGE_MVP_PROOF: MARKER 1/6 PLAYER_MOVED — simulated WASD -> PlayerController -> CharacterBody3D");
                     TeleportIntoRange();
-                    // MC 1345 mechanism (as RuntimeIntegrationProof): baseline at the
-                    // teleport — the companion is still at the player's pre-teleport
-                    // position, so dist0 reads "started away". The late stage-3
-                    // capture raced the companion's convergence under Xvfb (MC 1344.2).
+                    // Diagnostic only since MC 1388: the follow baseline that stage 4
+                    // asserts against is recaptured at the stage-3 -> 4 transition,
+                    // after the player is repositioned a clear distance away.
                     _companionStart = _companion.GlobalPosition;
                     _followDist0 = _companion.GlobalPosition.DistanceTo(_player.GlobalPosition);
                     _followStartPhys = _physFrames;
@@ -329,8 +328,20 @@ public partial class BridgeMvpProof : SceneTree
                     if (_failed) return true;
                     GD.Print("BRIDGE_MVP_PROOF: MARKER 4/6 BOOK_OPENED — EmpathyPanel.Open(BookEntry) surfaced the M04 entry + fired C2");
 
-                    // COMPANION_FOLLOWS: baseline was captured at the teleport
-                    // (MC 1344.2) — go straight to the follow window.
+                    // COMPANION_FOLLOWS: the companion's contract (CompanionFollowBody)
+                    // is to hold FollowDistance (3.5) BEHIND the player, not to close to
+                    // zero. The MC 1344.2 teleport baseline lands the companion almost
+                    // exactly on that ring (dist0 ~ 3.5), so a "dist must shrink" assert
+                    // is unsatisfiable there (MC 1388). Reposition the player a clear
+                    // distance away and capture the baseline HERE — the companion is
+                    // still at the old spot, so dist0 >> FollowDistance and the follow
+                    // window measures a real closing run. No race: the baseline is
+                    // captured before the companion can converge on the new position.
+                    _player!.GlobalPosition += new Vector3(6f, 0f, 0f);
+                    _companionStart = _companion.GlobalPosition;
+                    _followDist0 = _companion.GlobalPosition.DistanceTo(_player.GlobalPosition);
+                    _followStartPhys = _physFrames;
+                    GD.Print($"BRIDGE_MVP_PROOF: follow baseline recaptured after player reposition dist0={_followDist0:0.###}");
                     _stage = 4;
                     _stageFrames = 0;
                 }
