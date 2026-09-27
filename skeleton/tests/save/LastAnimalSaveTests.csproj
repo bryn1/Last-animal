@@ -35,12 +35,28 @@
     <Compile Include="../../src/save/GameState.cs" />
     <Compile Include="../../src/save/SaveSystem.cs" />
     <Compile Include="../../src/save/ZoneProgression.cs" />
+    <!-- MC 1405 N6 (cycle 2): the controller under test for the null-HUD
+         path, plus the engine-free sources it needs. SaveLoadController.cs
+         hardwires GodotSaveStore (which segfaults headless) and references
+         the Hud type — both are stood in by TestEngineSeams.cs, so the REAL
+         controller logic runs headless. -->
+    <Compile Include="../../world/SaveLoadController.cs" />
+    <Compile Include="../../src/combat/CombatVec3.cs" />
+    <Compile Include="../../src/npc/CompanionComponent.cs" />
+    <Compile Include="../../src/dna/LanguageSignature.cs" />
+    <Compile Include="../../src/ecosystem/EcosystemSpawner.cs" />
+    <Compile Include="../../src/combat/EnemyAI.cs" />
+    <Compile Include="../../src/dna/DnaLanguage.cs" />
+    <Compile Include="../../src/dna/DnaMessage.cs" />
+    <Compile Include="../../src/dna/EcosystemAdaptation.cs" />
     <!-- The test files themselves (EnableDefaultCompileItems=false, so they
          must be listed). The harness self-test is compiled conditionally so
          the gate script can drop it with /p:IncludeHarness=false (two-sided
          calibration, same pattern as ci/combat_test.sh). -->
     <Compile Include="SaveSystemTests.cs" />
     <Compile Include="ZoneProgressionTests.cs" />
+    <Compile Include="SaveLoadControllerNullHudTests.cs" />
+    <Compile Include="TestEngineSeams.cs" />
     <Compile Include="SaveHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
   </ItemGroup>
 

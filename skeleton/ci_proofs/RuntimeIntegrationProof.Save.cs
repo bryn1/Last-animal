@@ -12,7 +12,8 @@ public partial class RuntimeIntegrationProof : SceneTree
 {
     // MC 1405 N5: the player's world position at save time, plus the mutated
     // (teleported) position — the load assert is non-vacuous only if the two
-    // differ.
+    // differ. Captured in RunSaveStage/RunMutateStage, asserted in
+    // RunLoadStage (LOAD_RESTORED_POSITION).
     private Godot.Vector3 _playerPosBeforeSave;
     private Godot.Vector3 _playerPosMutated;
 
@@ -28,6 +29,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _loyaltyBeforeSave = _director.Companion.Companion.Loyalty;
         _zoneBeforeSave = _director.CurrentZone;
         _progressBeforeSave = _director.Progression;
+        _playerPosBeforeSave = _playerBody!.GlobalPosition;
         Check("SAVE_DNA_NONVACUOUS: DnaMeter > 0 at save time (a zero baseline would make the round-trip vacuous)",
               _dnaMeterBeforeSave > 0, $"dna={_dnaMeterBeforeSave}");
         if (_failed) return;
@@ -38,6 +40,12 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (_failed) return;
         GD.Print("LA_GATE: SAVE_WRITTEN");
         TeleportIntoRange();   // line up the mutation kill (stage 21)
+        if (_failed) return;
+        _playerPosMutated = _playerBody!.GlobalPosition;
+        Check("SAVE_POSITION_MUTATION_NONVACUOUS: the player was moved away from the saved position",
+              _playerPosMutated.DistanceTo(_playerPosBeforeSave) > 0.5f,
+              $"saved={_playerPosBeforeSave} mutated={_playerPosMutated}");
+        if (_failed) return;
         _stage = 21;
         _stageFrames = 0;
     }
@@ -58,6 +66,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             Check("MUTATED_AWAY_FROM_SAVE: dna meter + spoken history moved past the saved values",
                   _dnaMutated > _dnaMeterBeforeSave, $"dna={_dnaMutated} (saved {_dnaMeterBeforeSave})");
             if (_failed) return;
+            _playerPosMutated = _playerBody!.GlobalPosition;
             GD.Print("LA_GATE: MUTATED_AWAY_FROM_SAVE");
             _stage = 22;
             _stageFrames = 0;
@@ -74,6 +83,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         Check("LOAD_RESTORED_DNA: DnaMeter restored to the SAVED value after being mutated",
               _hud!.DnaMeter == _dnaMeterBeforeSave,
               $"dna={_hud.DnaMeter} (saved {_dnaMeterBeforeSave}, mutated {_dnaMutated})");
+        if (_failed) return;
+        Check("LOAD_RESTORED_POSITION: player back at the SAVED position after being moved away",
+              _playerBody!.GlobalPosition.DistanceTo(_playerPosBeforeSave) < 0.05f,
+              $"now={_playerBody.GlobalPosition} (saved {_playerPosBeforeSave}, mutated {_playerPosMutated})");
         if (_failed) return;
         Check("LOAD_RESTORED_SPOKEN: spoken-DNA history restored to the saved snapshot",
               _director.SpokenDna.Count == _spokenDnaBeforeSave,
