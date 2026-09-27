@@ -4,6 +4,13 @@ This document describes how the delivered Windows artifact is produced and how
 to rebuild it from source. For playing the game, see [install.md](install.md)
 and [player-guide.md](player-guide.md).
 
+**About the assembly name:** the C# assembly and csproj keep their historical
+preflight-era name `LastAnimalPreflight` (from the project's M00 preflight
+skeleton, MC 839.1). The name is NOT renamed to match the full game — renaming
+would break the export pipeline and the csproj references — so
+`LastAnimalPreflight.dll` in the artifacts below is the real game assembly,
+not a leftover preflight build.
+
 ## The delivered artifact
 
 | File | What it is |
@@ -61,7 +68,20 @@ Same three-step shape as the Windows script: the `ci/export_check.sh` gate
 binary is launched under Xvfb via `tools/launch_linux_smoke.sh` (reusing the
 host's `graphical-test-helper.sh` capture mechanism) and must render a
 non-blank framebuffer (`RESULT=PASS`). Unlike the Windows smoke, this leg is
-asserted, not optional.
+asserted, not optional. **Known limit:** the smoke asserts launch and a
+non-blank framebuffer only — no gameplay progression is asserted (it does not
+check saves, kills, quest or economy state), so a PASS proves the binary
+starts and renders, nothing further.
+
+## The C12 animation pipeline: what actually exists
+
+The spec's C12 names a literal `RetargetPipeline` module and a root-level
+`tools/retarget_bake.sh`; neither exists under those names. The substance is
+carried by two real artifacts instead: `animation_pipeline/` (a standalone
+Godot mono project whose `tools/retarget_bake.sh` does the retarget/bake) and
+its output `skeleton/resources/animation/walkBaked.tres`, which the game loads
+at runtime. Docs and coverage claims therefore treat "C12" as this
+bake-pipeline-plus-resource pair, not as a module with that literal name.
 
 The Linux preset uses `export_filter="all_resources"`: the game loads audio,
 terrain and textures through dynamic `GD.Load(string)` calls, which the
