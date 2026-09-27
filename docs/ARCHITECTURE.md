@@ -1,0 +1,122 @@
+# Last Animal — Architecture (layout v2, kept true by the Architect)
+
+Last Animal is a 2D/3D Godot 4.7.2 (mono/C#) game: a creature-companion survival
+game with DNA-language, empathy, ecosystem and save-progression systems.
+Repo root: `/srv/workspace/last-animal/` (git tree at root). The game project
+lives in `skeleton/`; `engine/` holds the pinned engine binaries; `animation_pipeline/`
+is a separate bake project. This document describes the tree AS IT IS; the
+Architect updates it whenever reality moves.
+
+## 1. Top-level layout
+
+| Path | What it is |
+|---|---|
+| `skeleton/` | The Godot game project (project.godot, assembly `LastAnimalPreflight`). |
+| `engine/` | Pinned Godot 4.7.2 stable + mono binaries, export templates (`PIN.txt` pins versions). Vendored — not source. |
+| `animation_pipeline/` | Standalone Godot mono project that retargets/bakes CC0 humanoid walk animations (`animation_pipeline/tools/retarget_bake.sh`, output `bake/*.tres`; consumed by the game as `skeleton/resources/animation/walkBaked.tres` — the real C12 substance; there is no literal `RetargetPipeline` module). |
+| `docs/` | This file + the docs map in §7. |
+| `.audits/` | Audit/verify/fix run dirs (`<YYYYMMDD-HHMM>-<slug>/`), never deliverables. |
+| `LEDGER.md`, `PREFLIGHT.md` | Project state ledger; M00 preflight record. |
+
+## 2. Game modules (`skeleton/src/`, pure C# logic)
+
+One concern per directory; systems are pure-logic classes constructed ONLY by
+the composition root (see §3).
+
+| Module | Files | Concern |
+|---|---|---|
+| `src/combat/` | `CombatSystem.cs`, `CombatVec3.cs`, `EnemyAI.cs`, `PlayerController.cs` | Combat math, enemy AI, player controller. |
+| `src/companion/` | `CompanionEntity.cs`, `CompanionNeeds.cs`, `CompanionStateMachine.cs`, `CompanionAnimationHook.cs` | Companion entity, needs, state machine, animation binding. |
+| `src/dna/` | `DnaLanguage.cs`, `DnaMessage.cs`, `EcosystemAdaptation.cs`, `LanguageSignature.cs` | DNA language, messages, ecosystem adaptation. |
+| `src/ecosystem/` | `EcosystemSpawner.cs`, `BossController.cs` | Spawning and the zone boss. |
+| `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
+| `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
+| `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
+| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs` | HUD, dialogue, empathy panel. |
+
+## 3. Godot layer (`skeleton/` outside `src/`)
+
+- **Autoloads** (`autoload/`, registered in `project.godot`): `MusicManager`,
+  `EventBus`, `GameBootstrap`, `SfxRouter`, `GameLoop`; plus `FrameworkTypes.cs`
+  and `IGameModule.cs` (shared framework). `GameBootstrap` is the service
+  registry the composition root binds into.
+- **Composition root**: `world/WorldDirector.cs` on `main.tscn` — the ONLY
+  production site that constructs gameplay systems and binds them into
+  `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
+  (`EnemyActor.cs`, `CompanionFollowBody.cs`, `FollowCamera.cs`,
+  `SaveLoadController.cs`) and `terrain_builder.gd`.
+- **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
+  `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
+- **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
+  `redtest/`).
+- **Input map**: WASD + arrows + attack, defined in `project.godot`.
+
+## 4. Entrypoints
+
+| Entrypoint | How |
+|---|---|
+| Play the game | Run `main.tscn` (project main scene) — or launch a packaged export binary. |
+| Preflight gate | `preflight.tscn` via the M00 preflight csproj (`LastAnimalPreflight.sln`). |
+| CI smokes | `bash ci/<gate>.sh` from `skeleton/` (see §5). |
+| Export a release | `bash tools/export_windows.sh` / `bash tools/export_linux.sh`. |
+
+## 5. Export pipeline (Windows + Linux, one gate)
+
+- `export_presets.cfg` defines three presets: `[preset.0]` Windows full game
+  (`all_resources`, `build/LastAnimal.exe`, embedded pck), `[preset.1]` Windows
+  preflight (`scenes`, `build/preflight.exe`, M00 gate only), `[preset.2]` Linux
+  full game (`all_resources`, `build/LastAnimal.x86_64`, embedded pck).
+- `ci/export_check.sh [preset] [proj] [out]` is the ONE export gate: checks
+  export templates are installed, runs the headless export, and verifies the
+  artifact magic — PE `MZ` for Windows, `\x7fELF` for Linux.
+- `ci/toolchain.sh` — sourced, pins dotnet on PATH and provides the shared
+  writable-TMPDIR workaround for mono export's `dotnet publish` (one
+  implementation used by both export scripts).
+- `tools/package_artifact.sh` — the ONE zip-packaging step (binary + .NET data
+  dir → distributable zip, python3 `zipfile`) shared by both export scripts;
+  fails loudly when the data dir or the game assembly is missing from the zip.
+- `tools/export_windows.sh` — gate → zip (exe + `data_LastAnimalPreflight_windows_x86_64/`)
+  → optional wine smoke (skipped explicitly when wine is absent; never faked).
+- `tools/export_linux.sh` — gate → zip (binary + `data_*_linux_x86_64/`) →
+  native Xvfb launch smoke.
+- `tools/launch_linux_smoke.sh` — launches the packaged Linux binary under Xvfb
+  via the existing `graphical-test-helper.sh`; RESULT=PASS means a non-blank
+  framebuffer capture (PNG written to the run's audit dir).
+
+## 6. CI gates (`skeleton/ci/`)
+
+`smoke.sh`, `boot_test.sh`, `bridge_mvp_test.sh`, `main_composition_test.sh`,
+`runtime_integration_test.sh`, `combat_test.sh`, `companion_test.sh`,
+`dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
+`audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
+Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
+`RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs`),
+`BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
+`ZoneBossProof.cs`). Tests live in `skeleton/tests/` (per-module csproj files:
+combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui).
+
+## 7. Docs map (`skeleton/docs/`)
+
+| File | Subject |
+|---|---|
+| `README.md` | Docs index. |
+| `build-and-run.md` | How the delivered artifacts are produced and rebuilt (both platforms). |
+| `install.md` | Player install steps (Windows + Linux). |
+| `player-guide.md` | How to play. |
+| `CYCLES.md` | That docs run's cycle log. |
+
+## 8. Data stores / ports
+
+- Saves: `SaveSystem` + `GodotSaveStore` (Godot `user://` storage); zone
+  progression persisted per zone. No external services, no network ports.
+- Build artifacts: `skeleton/build/` (exports + zips) — generated, not source.
+
+## 9. Known issues
+
+- **Wine 9.0 startup crash**: the packaged Windows exe crashes under Wine 9.0
+  on the build host (null-pointer read, no log line, also `--headless`;
+  likeliest the bundled .NET 8 host under Wine 9.0). Documented in
+  `docs/build-and-run.md`; the Linux export + native Xvfb smoke is the
+  verified launch path. Not fixed — a host/toolchain limitation.
+- `tests/companion/WageBetrayalPillarTests.cs` is mode 0600 owned by another
+  user — unreadable to other seats; needs `chown`/`chmod 644` (repo hygiene).
