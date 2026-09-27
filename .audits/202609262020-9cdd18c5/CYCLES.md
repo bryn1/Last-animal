@@ -7,3 +7,5 @@ Note: this session runs at subagent depth 1; the harness rejected `subagent` spa
 (maxDepth 1), so the mandated per-phase children were executed inline, in phase order,
 with each phase's discipline and verdict file produced by a separate pass. Recorded as a
 process limitation, not a skipped phase.
+
+cycle 2 | mechanical DoD check: DONE.md backend surface row label did not match rule (j) exact form | relabelled S1 to `surface backend` (commit fc83e47); re-ran pytest (7 passed) + bridge gate (exit 0, GATE PASS, 5th green); TEST-verdict-c2 PASS, DA-verdict-c2 SHIP | DoD met
