@@ -25,7 +25,7 @@ using System;
 //                         and Hud.DnaMeter increments (C13).
 //   3 HUD_BOUND         — Hud is bound to the bus; Life/Hearts move on events (C13).
 //   4 BOOK_OPENED       — EmpathyPanel.Open(BookEntry) surfaces a real M04 entry (C9+C13).
-//   5 COMPANION_FOLLOWS — CompanionActor closes distance to the Player over frames (M05).
+//   5 COMPANION_FOLLOWS — CompanionFollowBody closes distance to the Player over frames (M05).
 //   6 SAVE_ROUNDTRIP    — SaveSystem.Save(GameState, GodotSaveStore) -> Load round-trips (C14).
 //
 // Marker 2 drives the REAL playable path first (Input.ActionPress("attack") with the
@@ -378,13 +378,15 @@ public partial class BridgeMvpProof : SceneTree
                     GameState? loaded = SaveSystem.Load(store);
                     Check("Load returned the saved state", loaded != null, $"loaded={loaded}");
                     if (_failed || loaded == null) return true;
-                    Check("round-trip preserved zone/progression/loyalty/emotion/dna",
+                    // MC 1405 N7: the EmotionState label was removed — emotion
+                    // is a pure function of CompanionLoyalty (EmotionalDepth),
+                    // so loyalty is the persisted emotion carrier.
+                    Check("round-trip preserved zone/progression/loyalty/dna",
                           loaded.ZoneId == state.ZoneId
                           && loaded.Progression == state.Progression
                           && loaded.CompanionLoyalty == state.CompanionLoyalty
-                          && loaded.EmotionState == state.EmotionState
                           && loaded.LearnedDnaCounters.Count == state.LearnedDnaCounters.Count,
-                          $"zone={loaded.ZoneId} prog={loaded.Progression} loy={loaded.CompanionLoyalty} emo={loaded.EmotionState} dna={loaded.LearnedDnaCounters.Count}");
+                          $"zone={loaded.ZoneId} prog={loaded.Progression} loy={loaded.CompanionLoyalty} dna={loaded.LearnedDnaCounters.Count}");
                     if (_failed) return true;
                     GD.Print("BRIDGE_MVP_PROOF: MARKER 6/6 SAVE_ROUNDTRIP — SaveSystem.Save -> Load round-trip via GodotSaveStore (user://)");
                     GD.Print("BRIDGE_MVP_PROOF: PASS — all six playable-MVP markers asserted (BRIDGE-MVP.md §3)");

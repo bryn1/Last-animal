@@ -55,18 +55,35 @@ public class GameState
     /// </summary>
     public int PlayerHealth { get; set; } = 100;
 
+    /// <summary>
+    /// Player world position at save time (MC 1405 N5), as three floats —
+    /// this model is engine-free, so no Godot Vector3. Persisted so the F9
+    /// load path can put the player back where they stood instead of leaving
+    /// them at the load-point position with a fresh enemy ring around it.
+    /// Backward compatibility: old saves without these fields deserialize
+    /// with HasPlayerPosition == false, and the load path then keeps the
+    /// player where they are (the pre-N5 behaviour) instead of teleporting
+    /// them to (0,0,0).
+    /// </summary>
+    public bool HasPlayerPosition { get; set; } = false;
+    public float PlayerX { get; set; } = 0f;
+    public float PlayerY { get; set; } = 0f;
+    public float PlayerZ { get; set; } = 0f;
+
+    // MC 1405 N7: the former EmotionState label field was REMOVED, not wired.
+    // It was dead data: nothing read it back on load, and the companion's
+    // emotion is a pure function of loyalty (EmotionalDepth.ReadHiddenState),
+    // so persisting CompanionLoyalty already persists the emotion — the load
+    // path re-derives the label live through EmpathyBook. C14's "persists
+    // emotion" is carried by CompanionLoyalty; storing a second, derivable
+    // copy would only be a stale duplicate.
+
+
     /// <summary>Companion entity id (M03; -1 = no companion).</summary>
     public int CompanionEntityId { get; set; } = -1;
 
     /// <summary>Companion loyalty 0-100 (M03 emotion state source).</summary>
     public int CompanionLoyalty { get; set; } = 50;
-
-    /// <summary>
-    /// Derived hidden emotion state label (M03 C8): Content|Neutral|Anxious|Betrayed.
-    /// Recomputed on load from CompanionLoyalty by the caller; stored here as the
-    /// C14 "persists emotion" snapshot.
-    /// </summary>
-    public string EmotionState { get; set; } = "Neutral";
 
     /// <summary>Representative game state used by the round-trip DoD test.</summary>
     public static GameState Representative()
@@ -81,7 +98,10 @@ public class GameState
             CompanionEntityId = 7,
             CompanionLoyalty = 84,
             PlayerHealth = 100,
-            EmotionState = "Content"
+            HasPlayerPosition = true,
+            PlayerX = 4.5f,
+            PlayerY = 0f,
+            PlayerZ = -2.25f
         };
     }
 }

@@ -10,6 +10,12 @@ using LastAnimal.Save;
 // see the main file's header for the mode contract.
 public partial class RuntimeIntegrationProof : SceneTree
 {
+    // MC 1405 N5: the player's world position at save time, plus the mutated
+    // (teleported) position — the load assert is non-vacuous only if the two
+    // differ.
+    private Godot.Vector3 _playerPosBeforeSave;
+    private Godot.Vector3 _playerPosMutated;
+
     // ---- save mode: round-trip through the REAL scene state ----
     // MC 1344: the mode now runs the REAL kill chain first (stages 0-2),
     // so the save happens with DnaMeter > 0 and the load asserts a

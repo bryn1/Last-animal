@@ -158,7 +158,19 @@ public partial class WorldDirector : Node3D
             enterZone: EnterZone,
             // MC 1348 N1: health rides the snapshot so F9 rescues a dead player.
             playerHealth: () => _player.Health,
-            restoreHealth: h => _player.RestoreHealth(h));
+            restoreHealth: h => _player.RestoreHealth(h),
+            // MC 1405 N5: the player's world position rides the snapshot so F9
+            // puts the player back where they stood (travel semantics).
+            playerPosition: () =>
+            {
+                var p = Player?.GlobalPosition ?? Vector3.Zero;
+                return new CombatVec3(p.X, p.Y, p.Z);
+            },
+            restorePosition: p =>
+            {
+                if (Player != null)
+                    Player.GlobalPosition = new Vector3(p.X, p.Y, p.Z);
+            });
         // MC 1348 A5: the boot enemy set is the zone pipeline's job — the
         // EnterZone below fires OnZoneEntered -> ApplySpawnSet, which fields
         // the meadow SpawnSet into _zoneEnemies so zone travel can despawn it.

@@ -35,11 +35,15 @@ public class SaveSystemTests
         Assert.Equal(original.Progression, loaded.Progression);
         Assert.Equal(original.CompanionEntityId, loaded.CompanionEntityId);
         Assert.Equal(original.CompanionLoyalty, loaded.CompanionLoyalty);
-        Assert.Equal(original.EmotionState, loaded.EmotionState);
         Assert.Equal(original.Version, loaded.Version);
         Assert.Equal(original.LearnedDnaCounters, loaded.LearnedDnaCounters);
         Assert.Equal(original.DnaEventCount, loaded.DnaEventCount);
         Assert.Equal(original.PlayerHealth, loaded.PlayerHealth);
+        // MC 1405 N5: the player position rides the snapshot.
+        Assert.True(loaded.HasPlayerPosition);
+        Assert.Equal(original.PlayerX, loaded.PlayerX);
+        Assert.Equal(original.PlayerY, loaded.PlayerY);
+        Assert.Equal(original.PlayerZ, loaded.PlayerZ);
     }
 
     [Fact]
@@ -65,14 +69,15 @@ public class SaveSystemTests
     }
 
     [Fact]
-    public void PersistsDnaCounters_Emotion_Progression_Zone()
+    public void PersistsDnaCounters_LoyaltyEmotion_Progression_Zone()
     {
-        // C14: persists DNA counters (M02), emotion (M03), progression, zone.
+        // C14: persists DNA counters (M02), emotion (M03 — carried by
+        // CompanionLoyalty; the derivable EmotionState label was removed,
+        // MC 1405 N7), progression, zone.
         var store = NewStore();
         var state = new GameState
         {
             LearnedDnaCounters = new List<int> { 3, 0, 1, 3, 2 },
-            EmotionState = "Betrayed",
             CompanionLoyalty = 12,
             Progression = 5,
             ZoneId = "ruins"
@@ -81,7 +86,6 @@ public class SaveSystemTests
         var loaded = SaveSystem.Load(store);
         Assert.NotNull(loaded);
         Assert.Equal(new List<int> { 3, 0, 1, 3, 2 }, loaded.LearnedDnaCounters);
-        Assert.Equal("Betrayed", loaded.EmotionState);
         Assert.Equal(12, loaded.CompanionLoyalty);
         Assert.Equal(5, loaded.Progression);
         Assert.Equal("ruins", loaded.ZoneId);
@@ -100,6 +104,42 @@ public class SaveSystemTests
         var loaded = SaveSystem.Load(store);
         Assert.NotNull(loaded);
         Assert.Equal(42, loaded.PlayerHealth);
+    }
+
+    [Fact]
+    public void RoundTrip_PreservesPlayerPosition()
+    {
+        // MC 1405 N5: the save must capture the player's world position so a
+        // load puts the player back where they stood.
+        var store = NewStore();
+        var original = GameState.Representative();
+        original.PlayerX = 12.5f;
+        original.PlayerY = 0.25f;
+        original.PlayerZ = -7.75f;
+
+        Assert.True(SaveSystem.Save(original, store));
+        var loaded = SaveSystem.Load(store);
+        Assert.NotNull(loaded);
+        Assert.True(loaded!.HasPlayerPosition);
+        Assert.Equal(12.5f, loaded.PlayerX);
+        Assert.Equal(0.25f, loaded.PlayerY);
+        Assert.Equal(-7.75f, loaded.PlayerZ);
+    }
+
+    [Fact]
+    public void Load_OldSaveWithoutPosition_HasNoPositionFlag()
+    {
+        // MC 1405 N5 backward compatibility: a pre-N5 save carries no position
+        // fields. It must deserialize with HasPlayerPosition == false so the
+        // load path keeps the player where they are — never a teleport to
+        // (0,0,0) from the float defaults.
+        var store = NewStore();
+        store.WriteAllText(store.SavePath,
+            "{\"Version\": " + SaveSystem.CurrentVersion + ", \"ZoneId\": \"canyon\"}");
+        var loaded = SaveSystem.Load(store);
+        Assert.NotNull(loaded);
+        Assert.False(loaded!.HasPlayerPosition);
+        Assert.Equal("canyon", loaded.ZoneId);
     }
 
     // ------------------------------------------------------------------

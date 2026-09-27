@@ -1,3 +1,4 @@
+using LastAnimal.Combat;
 using LastAnimal.Dna;
 using LastAnimal.Ecosystem;
 using LastAnimal.Npc;
@@ -38,7 +39,10 @@ public sealed class SaveLoadController
 {
     private readonly List<LanguageSignature> _spokenDna;
     private readonly CompanionComponent _companion;
-    private readonly Hud _hud;
+    // MC 1405 N6: nullable, not `null!` — a composition without a UI canvas
+    // (BuildUi early-returns) leaves the HUD absent, and Save/Load must not
+    // NRE on it. Same tolerance WorldDirector applies to its optional nodes.
+    private readonly Hud? _hud;
     private readonly Func<string> _currentZone;
     private readonly Action<string> _enterZone;
 
@@ -53,14 +57,23 @@ public sealed class SaveLoadController
     private readonly Func<int> _playerHealth;
     private readonly Action<int> _restoreHealth;
 
+    // Player position seam (MC 1405 N5): read at save, restored on load BEFORE
+    // the zone re-entry, so the SpawnSet fields around where the player stood
+    // when they saved — matching travel semantics. Nullable for the same
+    // reason as _hud: a composition without a player node skips the restore.
+    private readonly Func<CombatVec3>? _playerPosition;
+    private readonly Action<CombatVec3>? _restorePosition;
+
     public SaveLoadController(
         List<LanguageSignature> spokenDna,
         CompanionComponent companion,
-        Hud hud,
+        Hud? hud,
         Func<string> currentZone,
         Action<string> enterZone,
         Func<int> playerHealth,
-        Action<int> restoreHealth)
+        Action<int> restoreHealth,
+        Func<CombatVec3>? playerPosition = null,
+        Action<CombatVec3>? restorePosition = null)
     {
         _spokenDna = spokenDna;
         _companion = companion;
@@ -69,6 +82,8 @@ public sealed class SaveLoadController
         _enterZone = enterZone;
         _playerHealth = playerHealth;
         _restoreHealth = restoreHealth;
+        _playerPosition = playerPosition;
+        _restorePosition = restorePosition;
     }
 
     /// <summary>Progression counter (chapters cleared / distinct zones entered).</summary>
@@ -91,13 +106,24 @@ public sealed class SaveLoadController
             // The per-position most-common nucleotide of the spoken history
             // (the C14 "persists DNA counters" snapshot).
             LearnedDnaCounters = BuildLearnedCounters(),
-            DnaEventCount = _hud.DnaMeter,
+            // MC 1405 N6: the HUD is optional (no-UI composition) — read the
+            // meter only when it exists, else the meter count is simply 0.
+            DnaEventCount = _hud?.DnaMeter ?? 0,
             CompanionEntityId = _companion.CompanionEntityId,
             CompanionLoyalty = _companion.Loyalty,
             // MC 1348 N1: health is part of the snapshot so a load can rescue
             // a dead player.
             PlayerHealth = _playerHealth(),
         };
+        // MC 1405 N5: the player's world position rides the snapshot too.
+        if (_playerPosition != null)
+        {
+            var p = _playerPosition();
+            state.HasPlayerPosition = true;
+            state.PlayerX = p.X;
+            state.PlayerY = p.Y;
+            state.PlayerZ = p.Z;
+        }
         return SaveSystem.Save(state, new GodotSaveStore());
     }
 
@@ -113,11 +139,20 @@ public sealed class SaveLoadController
         RestoreDna(loaded.LearnedDnaCounters);
         _companion.CompanionEntityId = loaded.CompanionEntityId;
         _companion.Loyalty = loaded.CompanionLoyalty;
-        _hud.UpdateDnaMeter(loaded.DnaEventCount);
+        // MC 1405 N6: HUD restore is guarded — a no-UI composition has no
+        // meter or life gauge to update.
+        _hud?.UpdateDnaMeter(loaded.DnaEventCount);
         // MC 1348 N1: restore health (reviving a dead player) and mirror it
         // on the HUD life gauge, which the bus does not drive.
         _restoreHealth(loaded.PlayerHealth);
-        _hud.UpdateLife(loaded.PlayerHealth);
+        _hud?.UpdateLife(loaded.PlayerHealth);
+        // MC 1405 N5: put the player back where they stood BEFORE the zone
+        // re-entry, so the re-applied SpawnSet spawns around the restored
+        // position (travel semantics), not around the load-point position.
+        // Old saves without the position fields keep the player where they
+        // are (HasPlayerPosition == false) — never a teleport to origin.
+        if (loaded.HasPlayerPosition && _restorePosition != null)
+            _restorePosition(new CombatVec3(loaded.PlayerX, loaded.PlayerY, loaded.PlayerZ));
         _progression.SeedForLoad(loaded.ZoneId, loaded.Progression);
         // Re-enter: the director's handler re-applies the zone's SpawnSet.
         _enterZone(loaded.ZoneId);
