@@ -26,7 +26,19 @@ echo "EXPORT_CHECK: godot=$VER  templates=$TDIR"
 [ -d "$TDIR" ] || fail "no export templates dir at $TDIR (install .tpz -> $TDIR/<version>)"
 
 cd "$PROJ" || fail "cannot cd $PROJ"
-rm -rf .godot build && mkdir -p build
+# Clean-export property, scoped to THIS platform (DA P3, MC 1405): a Windows
+# re-export must not delete the Linux binary beside it (and vice versa), so
+# only the current platform's exe, data dir and zip are removed here. The
+# shared .godot import cache is still wiped so the export rebuilds from a
+# clean engine state.
+case "$PRESET" in
+  Linux*) PLAT="linuxbsd"; TAG="linux"  ;;
+  *)      PLAT="windows";  TAG="windows" ;;
+esac
+rm -rf .godot
+mkdir -p build
+rm -f "$OUT_EXE" "build/LastAnimal-${TAG}-x86_64.zip"
+rm -rf build/data_*_"${PLAT}"_x86_64
 
 # Import + build the C# assembly THROUGH THE ENGINE. `--quit` does NOT build the
 # solution; without --build-solutions a mono project exports a .exe that is missing

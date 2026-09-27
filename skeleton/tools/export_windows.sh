@@ -32,33 +32,11 @@ bash "$PROJ/ci/export_check.sh" Windows "$PROJ" "$OUT_EXE"
 
 cd "$PROJ"
 echo "EXPORT_WINDOWS: step 2/3 — packaging $OUT_EXE + .NET data dir -> $OUT_ZIP"
-rm -f "$OUT_ZIP"
-# The mono export writes the .NET assemblies to data_<Assembly>_<arch>/ beside
-# the exe, and the Windows template loader loads hostfxr + the assemblies from
-# there (the exe's own error string: "Unable to find the .NET assemblies
-# directory.") — an exe-only zip cannot launch, so the data dir is mandatory
-# payload and its absence must fail the gate here.
 DATA_DIR="$(cd build && ls -d data_*_windows_x86_64 2>/dev/null | head -1 || true)"
-[ -n "$DATA_DIR" ] || { echo "EXPORT_WINDOWS: FAIL: no .NET assemblies data dir (build/data_*_windows_x86_64) beside $OUT_EXE" >&2; exit 1; }
-# `zip` is not installed on this host; python3's zipfile is the stdlib fallback.
-python3 - "$OUT_ZIP" "$OUT_EXE" "build/$DATA_DIR" <<'PY'
-import os, sys, zipfile
-out_zip, out_exe, data_dir = sys.argv[1], sys.argv[2], sys.argv[3]
-with zipfile.ZipFile(out_zip, "w", zipfile.ZIP_DEFLATED) as z:
-    z.write(out_exe, arcname=os.path.basename(out_exe))
-    for root, _dirs, files in os.walk(data_dir):
-        for f in sorted(files):
-            p = os.path.join(root, f)
-            z.write(p, arcname=os.path.relpath(p, os.path.dirname(data_dir)))
-# The gate must go red if either half of the payload is missing from the zip.
-names = zipfile.ZipFile(out_zip).namelist()
-if os.path.basename(out_exe) not in names:
-    sys.exit(f"EXPORT_WINDOWS: FAIL: {os.path.basename(out_exe)} missing from {out_zip}")
-if not any(n.startswith("data_") and n.endswith("/LastAnimalPreflight.dll") for n in names):
-    sys.exit(f"EXPORT_WINDOWS: FAIL: data_*/LastAnimalPreflight.dll missing from {out_zip}")
-print(f"EXPORT_WINDOWS: zip payload OK — {len(names)} entries (exe + data dir)")
-PY
-[ -s "$OUT_ZIP" ] || { echo "EXPORT_WINDOWS: FAIL: $OUT_ZIP is empty" >&2; exit 1; }
+[ -n "$DATA_DIR" ] || { echo "$(basename "$0" .sh | tr a-z A-Z): FAIL: no .NET assemblies data dir (build/data_*_windows_x86_64) beside $OUT_EXE" >&2; exit 1; }
+# Packaging is the shared helper (DA P3 dedup, MC 1405): one implementation
+# of the binary + data-dir zip concern for both platforms.
+bash "$HERE/package_artifact.sh" "$OUT_ZIP" "$OUT_EXE" "build/$DATA_DIR" "EXPORT_WINDOWS"
 
 echo "EXPORT_WINDOWS: step 3/3 — packaged-binary smoke"
 if command -v wine >/dev/null 2>&1; then
