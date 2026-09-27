@@ -1,0 +1,6 @@
+# CYCLES.md — MC 1405 cycle 2 P2 fixes
+
+| cycle | trigger | action | outcome |
+|---|---|---|---|
+| 1 | Task gate: close the two P2 findings (N5 dead fields / missing runtime position assert; N6 null-HUD path inspection-verified only) from .audits/202609262100-n5n6n7/ TEST+DA verdicts | FAN-OUT ATTEMPTED and BLOCKED by the harness: `subagent` → "Error: subagent depth 2 exceeds maxDepth 1" (this session IS a depth-1 child). All five phases executed inline by this session instead: placement plan (PLACEMENT.md) → fix (commit ec28b84) → test verification (TEST-verdict.md) → adversarial review (DA-verdict.md) → architecture/hygiene closing (ARCH-verdict.md) | All four gates exit 0 (build, save 19/19, runtime GATE PASS, bridge GATE PASS); both new asserts proven non-vacuous by planted-bad red runs (runtime: inverted LOAD_RESTORED_POSITION → gate exit 1; unit: inverted Load assert → test red). TEST PASS, DA SHIP, ARCH PASS |
+| 1 (incident) | Mid-run the planted-bad red run for the runtime assert was followed by `git checkout --` BEFORE the fix was committed, briefly reverting the real fix | Re-applied the fix verbatim, committed FIRST (ec28b84), then re-ran the planted-bad run and all four green gates on the committed tree | No residue; final tree = commit ec28b84, all gates green |
