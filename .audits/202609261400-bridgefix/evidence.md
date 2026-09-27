@@ -67,3 +67,9 @@ RUNTIME_EXIT=0    # bash skeleton/ci/runtime_integration_test.sh → "RUNTIME_IN
 dd1dbcb fix(ci): bridge proof follow stage repositions the player before the follow window (MC 1388)
 ```
 Authored `coder (MC 1388) <coder@agent-town.local>`, not pushed.
+
+## Orchestrator decisive re-run (2026-09-26, HEAD e191bfc)
+bash skeleton/ci/bridge_mvp_test.sh -> GATE PASS (six markers, non-blank render); VERIFY_EXIT=0
+dotnet build skeleton/LastAnimalPreflight.csproj -> exit 0; VERIFY_EXIT=0
+origin/master = e191bfc (pushed). VERIFY_EXIT=0
+VERIFY_EXIT=0
