@@ -113,6 +113,21 @@ bash tools/export_windows.sh    # gate + zip + (optional) wine smoke
 `ci/toolchain.sh` resolves `GODOT` to the vendored engine binary; override it
 by exporting `GODOT=/path/to/godot` before sourcing.
 
+## Building on Windows from source
+
+Requirements: the **.NET 8 SDK** and the **Godot 4.7.2-stable mono editor**
+(Windows build). Then:
+
+1. Open `skeleton/project.godot` in the Godot mono editor.
+2. Build the C# solution (the editor does this on import; or run
+   `dotnet build LastAnimalPreflight.csproj` from `skeleton/`).
+3. Press **F5** to run.
+
+`skeleton/NuGet.Config` (and `animation_pipeline/NuGet.Config`) is
+host-portable: it lists **nuget.org only** — no local engine paths. The
+Godot.NET.Sdk version cannot float because the csproj pins it exactly
+(`Godot.NET.Sdk/4.7.2`, no wildcard).
+
 ## Running the game on the build host (Linux)
 
 For a quick local run without exporting:
