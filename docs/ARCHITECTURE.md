@@ -43,8 +43,8 @@ the composition root (see §3).
 - **Composition root**: `world/WorldDirector.cs` on `main.tscn` — the ONLY
   production site that constructs gameplay systems and binds them into
   `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
-  (`EnemyActor.cs`, `CompanionFollowBody.cs`, `FollowCamera.cs`,
-  `SaveLoadController.cs`) and `terrain_builder.gd`.
+  (`EnemyActor.cs`, `CompanionFollowBody.cs`, `CompanionVisual.cs`,
+  `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
