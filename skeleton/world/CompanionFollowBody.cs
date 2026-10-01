@@ -48,14 +48,9 @@ public partial class CompanionFollowBody : Node3D
 
         // A clearly visible companion marker (gold), distinct from player/enemies,
         // so the rig's bones have a readable silhouette on llvmpipe software GL.
-        var mesh = new MeshInstance3D { Name = "Visual" };
-        mesh.Mesh = new CapsuleMesh { Radius = 0.4f, Height = 1.6f };
-        var mat = new StandardMaterial3D { AlbedoColor = new Color(0.95f, 0.75f, 0.15f), Roughness = 0.6f };
-        mat.EmissionEnabled = true;
-        mat.Emission = new Color(0.85f, 0.65f, 0.1f);
-        mat.EmissionEnergyMultiplier = 0.6f;
-        mesh.MaterialOverride = mat;
-        AddChild(mesh);
+        // MC 3889: composed quadruped visual (body + head + 4 legs), built by
+        // CompanionVisual — the node is still named "Visual" as before.
+        AddChild(CompanionVisual.Build());
     }
 
     public override void _Process(double delta)
