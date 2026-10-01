@@ -1,8 +1,16 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://zones/zone.gd" id="1_zone"]
 [ext_resource type="Script" path="res://world/terrain_builder.gd" id="2_terr"]
 [ext_resource type="Texture2D" path="res://resources/assets_packs/skyboxes/Skyboxes/skybox-day.png" id="3_sky"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/tree_oak.glb" id="4_treeoak"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/tree_default.glb" id="5_treedflt"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/tree_pineTallA.glb" id="6_treepine"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/plant_bushLarge.glb" id="7_bush"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/grass_large.glb" id="8_grass"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/plant_flatTall.glb" id="9_flat"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/log_stack.glb" id="10_log"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/mushroom_redGroup.glb" id="11_shroom"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_1"]
 panorama = ExtResource("3_sky")
@@ -62,3 +70,41 @@ transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 20, 25, 20)
 ; current=true here (instanced into main.tscn beside the player camera) was the
 ; dual-current conflict that let a dead static view win and blank the render.
 current = false
+
+[node name="Decor" type="Node3D" parent="."]
+
+[node name="Tree1" parent="Decor" instance=ExtResource("4_treeoak")]
+transform = Transform3D(2.2, 0, 0, 0, 2.2, 0, 0, 0, 2.2, 10, 0.2, 10)
+
+[node name="Tree2" parent="Decor" instance=ExtResource("5_treedflt")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -12, 0.35, 8)
+
+[node name="Tree3" parent="Decor" instance=ExtResource("6_treepine")]
+transform = Transform3D(2.4, 0, 0, 0, 2.4, 0, 0, 0, 2.4, 8, -0.05, -14)
+
+[node name="Tree4" parent="Decor" instance=ExtResource("4_treeoak")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -8, 0.2, -10)
+
+[node name="Tree5" parent="Decor" instance=ExtResource("6_treepine")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 18, -0.05, -6)
+
+[node name="Tree6" parent="Decor" instance=ExtResource("5_treedflt")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, -18, 0, 16)
+
+[node name="Bush1" parent="Decor" instance=ExtResource("7_bush")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 4, 0.3, 20)
+
+[node name="Bush2" parent="Decor" instance=ExtResource("7_bush")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -22, 0.15, -4)
+
+[node name="Grass1" parent="Decor" instance=ExtResource("8_grass")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 14, 0.15, 24)
+
+[node name="Shroom1" parent="Decor" instance=ExtResource("11_shroom")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 24, 0.5, -18)
+
+[node name="Plant1" parent="Decor" instance=ExtResource("9_flat")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -5, 0, -22)
+
+[node name="LogStack1" parent="Decor" instance=ExtResource("10_log")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 28, -0.05, 8)

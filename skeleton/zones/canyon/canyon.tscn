@@ -1,8 +1,17 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://zones/zone.gd" id="1_zone"]
 [ext_resource type="Script" path="res://world/terrain_builder.gd" id="2_terr"]
 [ext_resource type="Texture2D" path="res://resources/assets_packs/skyboxes/Skyboxes/skybox-morning.png" id="3_sky"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeA.glb" id="4_rlA"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeB.glb" id="5_rlB"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeC.glb" id="6_rlC"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeD.glb" id="7_rlD"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_smallA.glb" id="8_rsA"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_smallB.glb" id="9_rsB"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/cactus_tall.glb" id="10_cactus"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/castle-kit/Models/GLB format/rocks-large.glb" id="11_crockL"]
+[ext_resource type="PackedScene" path="res://resources/assets_packs/castle-kit/Models/GLB format/rocks-small.glb" id="12_crockS"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_1"]
 panorama = ExtResource("3_sky")
@@ -76,3 +85,41 @@ surface_material_override/0 = SubResource("StdMat_rock")
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.85, 0.52, 0, -0.52, 0.85, 35, 40, 45)
 current = true
+
+[node name="Decor" type="Node3D" parent="."]
+
+[node name="Rock1" parent="Decor" instance=ExtResource("4_rlA")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 15, 0.55, 15)
+
+[node name="Rock2" parent="Decor" instance=ExtResource("5_rlB")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -14, 0.4, 10)
+
+[node name="Rock3" parent="Decor" instance=ExtResource("6_rlC")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 10, 0.45, -16)
+
+[node name="Rock4" parent="Decor" instance=ExtResource("7_rlD")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -10, 0.4, -12)
+
+[node name="Pebble1" parent="Decor" instance=ExtResource("8_rsA")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 22, 0.45, -8)
+
+[node name="Pebble2" parent="Decor" instance=ExtResource("9_rsB")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -20, 0.35, 18)
+
+[node name="Pebble3" parent="Decor" instance=ExtResource("8_rsA")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 6, 0.45, 22)
+
+[node name="Rubble1" parent="Decor" instance=ExtResource("11_crockL")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -24, 0.25, -6)
+
+[node name="Cactus1" parent="Decor" instance=ExtResource("10_cactus")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 16, 0.55, 26)
+
+[node name="Cactus2" parent="Decor" instance=ExtResource("10_cactus")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0.5, -20)
+
+[node name="Rubble2" parent="Decor" instance=ExtResource("12_crockS")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 8, 0.5, -24)
+
+[node name="Pebble4" parent="Decor" instance=ExtResource("9_rsB")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 30, 0.6, 10)
