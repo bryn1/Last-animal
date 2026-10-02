@@ -184,3 +184,16 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   objective-arg cross-validation test (DA P2) + QuestTable doc-comment refresh; pre-W5 map
   row for WorldDirector.Story.cs + 2g must re-key wage seam per follower. docs/ARCHITECTURE.md
   synced (story row, Story partial, 11-signal bus, quest gates/modes, §8 v3).
+- MC 3911 stage 2d CLOSED (orchestrator-verified, 2026-10-02): authored 5-quest arc content
+  (Arrival / Answer in Tongue / Bread Before Bonds / Blood Teaches / The Watcher Falls) + arc
+  dialogue + QuestArcCrossCheckTests (DA W2 P2 ruling) + player-guide rewrite. ids untouched.
+- MC 3912 stage 2e CLOSED (orchestrator-verified, 2026-10-02): skill core — PlayerMutations
+  (pure consensus-Counters unlock), SkillState Manna economy (spend-once/+kill/cap-100/load-
+  verbatim), Invert Strike (Q, x3 next hit) + Mend (R) at the ONE DealDamage site (wrap, call
+  count 1), SfxRouter consume-only zero-asset, skill_3 (F) reserved per owner D4 deferral
+  (MC 3914 Calming Speak). W3 verdict board: TEST-c3 PASS (probes incl. cross-wave 2c guard),
+  DA-c3 FIX -> fix round c70bc13 (guide truthfulness P1, reward "authored note, playback not
+  wired" reword P2 -> emitter deferred MC 3915, N2 mirror pin P3 proven-red-twice). DA-c2/
+  ARCH re-verdicts on the fix tree = next wave. NOTE: first battery run post-fix hit a
+  msbuild-race transient (gate red once: 2 failures incl. the new pin); two serial re-runs
+  green; producer overlap ruled cause, no code fault found.

@@ -28,7 +28,8 @@ the composition root (see §3).
 |---|---|---|
 | `src/combat/` | `CombatSystem.cs`, `CombatVec3.cs`, `EnemyAI.cs`, `PlayerController.cs` | Combat math, enemy AI, player controller. |
 | `src/companion/` | `CompanionEntity.cs`, `CompanionNeeds.cs`, `CompanionStateMachine.cs`, `CompanionAnimationHook.cs` | Companion entity, needs, state machine, animation binding. |
-| `src/dna/` | `DnaLanguage.cs`, `DnaMessage.cs`, `EcosystemAdaptation.cs`, `LanguageSignature.cs` | DNA language, messages, ecosystem adaptation. |
+| `src/dna/` | `DnaLanguage.cs`, `DnaMessage.cs`, `EcosystemAdaptation.cs`, `LanguageSignature.cs`, `PlayerMutations.cs` | DNA language, messages, ecosystem adaptation; `PlayerMutations` = pure unlock authority (consensus `Counters` only, MC 3912 2e). |
+| `src/skills/` | `SkillState.cs` | Manna economy + arm/consume semantics (engine-free; MC 3912 2e). |
 | `src/ecosystem/` | `EcosystemSpawner.cs`, `BossController.cs` | Spawning and the zone boss. |
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
@@ -98,18 +99,18 @@ the composition root (see §3).
 `smoke.sh`, `boot_test.sh`, `bridge_mvp_test.sh`, `main_composition_test.sh`,
 `runtime_integration_test.sh`, `combat_test.sh`, `companion_test.sh`,
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
-`story_test.sh`, `quest_test.sh`,
+`story_test.sh`, `quest_test.sh`, `skill_test.sh`,
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
-`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/
-`quest_neg`),
+`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`;
+`RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
 `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
 framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
 after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
-combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui, story, quest).
+combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui, story, quest, skill).
 
 ## 7. Docs map (`skeleton/docs/`)
 
