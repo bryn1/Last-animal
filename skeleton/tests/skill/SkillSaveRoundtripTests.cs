@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using Xunit;
 using LastAnimal.Combat;
 using LastAnimal.Dna;
@@ -13,8 +15,10 @@ using LastAnimal.Skills;
 // == unlock(live)"): the unlock set computed from the consensus AFTER a
 // save/load round-trip EQUALS the one computed from the live spoken history
 // — across N>2 kills. The mirrors below reproduce SaveLoadController's
-// engine-side private helpers VERBATIM (BuildLearnedCounters :212-228 and
-// RestoreDna :203-208): the save path stores the per-position mode of the
+// engine-side private helpers VERBATIM (BuildLearnedCounters and
+// RestoreDna in world/SaveLoadController.cs — pinned by name, signature
+// and body shape by the guard test at the bottom of this file, never by
+// line numbers): the save path stores the per-position mode of the
 // player's nucleotides; the load path re-synthesizes ONE signature from the
 // counters. ObservedCount collapses to 1 there — which is exactly why the
 // authority must read Counters only.
@@ -58,6 +62,100 @@ public class SkillSaveRoundtripTests
         if (counters.Count > 0)
             rebuilt.Add(new LanguageSignature(counters.ToArray()));
         return rebuilt;
+    }
+
+    // ---- N2 MIRROR PIN (DA-c3 P3-2) ---------------------------------------
+    // SaveLoadController is engine-side and deliberately NOT compiled into
+    // this assembly (see the csproj), so type reflection cannot reach it —
+    // the pin reads the production SOURCE through the RepoFile idiom the
+    // 2d cross-check demonstrates (tests/story/QuestArcCrossCheckTests.cs).
+    // The guard test below fails loud on any drift: a rename or signature
+    // change of either private, or any change to the algorithm the mirrors
+    // reproduce, turns it RED naming both files.
+
+    /// <summary>Locate a repo file relative to the skeleton dir by walking up
+    /// from the test assembly output (QuestBusContractTests.RepoFile idiom —
+    /// robust for any bin/Depth and any checkout location).</summary>
+    private static string RepoFile(string relPath)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, relPath);
+            if (File.Exists(candidate)) return File.ReadAllText(candidate);
+            dir = dir.Parent;
+        }
+        throw new FileNotFoundException($"source not found from {AppContext.BaseDirectory}: {relPath}");
+    }
+
+    /// <summary>The braced body of the first method matching declaration
+    /// (brace-matched substring). Fails loudly if the declaration shape
+    /// changed — that IS a drift event, name it, never read dark.</summary>
+    private static string MethodBody(string source, string sourceName, string declaration)
+    {
+        var m = Regex.Match(source, declaration);
+        Assert.True(m.Success,
+            $"{sourceName}: no method matches '{declaration}' — the mirrored private was " +
+            "renamed or reshaped; update THIS mirror and its guard together (DA-c3 P3-2)");
+        int open = source.IndexOf('{', m.Index + m.Length);
+        Assert.True(open >= 0, $"{sourceName}: declaration '{declaration}' has no body?");
+        int depth = 0, i = open;
+        for (; i < source.Length; i++)
+        {
+            if (source[i] == '{') depth++;
+            else if (source[i] == '}') { depth--; if (depth == 0) break; }
+        }
+        Assert.True(depth == 0, $"{sourceName}: unbalanced braces after '{declaration}'");
+        return source.Substring(open, i - open + 1);
+    }
+
+    private static string Normalize(string body) => Regex.Replace(body, @"\s+", " ").Trim();
+
+    [Fact]
+    public void N2_mirror_pinned_to_SaveLoadController_privates()
+    {
+        var prod = RepoFile("world/SaveLoadController.cs");
+        var mirror = RepoFile("tests/skill/SkillSaveRoundtripTests.cs");
+
+        // Leg 1 — the mirrored privates still exist with the pinned names
+        // and signatures (rename / reshape = RED).
+        const string ProdBuild = @"private\s+List<int>\s+BuildLearnedCounters\s*\(\s*\)";
+        const string ProdRestore = @"private\s+void\s+RestoreDna\s*\(\s*List<int>\s+counters\s*\)";
+        Assert.Matches(ProdBuild, prod);
+        Assert.Matches(ProdRestore, prod);
+
+        // Leg 2 — BuildLearnedCounters: the per-position most-common-
+        // nucleotide algorithm is byte-equal between production and the
+        // mirror, modulo the one spelling seam (the _spokenDna field vs the
+        // spoken parameter). Any algorithm drift — tie-break, tally width,
+        // length rule — lands here.
+        var prodBuildBody = MethodBody(prod, "world/SaveLoadController.cs", ProdBuild);
+        var mirrorBuildBody = MethodBody(mirror, "tests/skill/SkillSaveRoundtripTests.cs",
+            @"private\s+static\s+List<int>\s+BuildLearnedCounters\s*\(");
+        Assert.Equal(
+            Normalize(mirrorBuildBody),
+            Normalize(prodBuildBody.Replace("_spokenDna", "spoken")));
+
+        // Leg 3 — RestoreDna: production mutates the field, the mirror
+        // returns a fresh list, so compare the SYNTHESIS ESSENCE: collapse
+        // the documented spelling seams (field -> rebuilt list; the field's
+        // Clear and the mirror's declare/return belong to the seam, not the
+        // rule) and require the remaining bodies to match — the ONE-
+        // signature-of-counters re-synthesis can no longer drift silently.
+        var prodRestoreBody = MethodBody(prod, "world/SaveLoadController.cs", ProdRestore);
+        var mirrorRestoreBody = MethodBody(mirror, "tests/skill/SkillSaveRoundtripTests.cs",
+            @"private\s+static\s+List<LanguageSignature>\s+RestoreDna\s*\(");
+        var prodEssence = Normalize(prodRestoreBody
+            .Replace("_spokenDna", "rebuilt")
+            .Replace("rebuilt.Clear();", ""));
+        var mirrorEssence = Normalize(mirrorRestoreBody
+            .Replace("var rebuilt = new List<LanguageSignature>();", "")
+            .Replace("return rebuilt;", ""));
+        Assert.Equal(
+            "if (counters.Count > 0) rebuilt.Add(new LanguageSignature(counters.ToArray()));",
+            prodEssence.Replace("{", "").Replace("}", "").Trim());
+        Assert.Equal(mirrorEssence.Replace("{", "").Replace("}", "").Trim(),
+            prodEssence.Replace("{", "").Replace("}", "").Trim());
     }
 
     [Fact]

@@ -16,6 +16,9 @@ Verified against the `[input]` map in `project.godot`:
 | Travel to next zone | `T` |
 | Pay companion wage | `P` |
 | Empathy Book | `B` |
+| Invert Strike (skill) | `Q` |
+| Mend (skill) | `R` |
+| Third skill (reserved, unbound) | `F` |
 | Save game | `F5` |
 | Load game | `F9` |
 
@@ -24,9 +27,11 @@ Verified against the `[input]` map in `project.godot`:
 Four readouts (C13 contract, `src/ui/Hud.cs`): **Life**, **Manna**, **DNA
 meter**, and **Companion hearts**. Life drops when enemies hit you. The DNA
 meter tracks your language progress; companion hearts mirror your companion's
-loyalty. **Manna is currently a static readout**: the gauge is drawn and
-labelled, but no gameplay mechanic drives it in this build (`Hud.UpdateManna`
-has no production caller), so it does not change during play.
+loyalty. **Manna is skill fuel**: every DNA extraction (kill) grants +5 and
+casting a skill spends it (`SkillState`, `src/skills/`). The gauge moves
+during play, caps at 100, and a save restores the exact saved value on
+load — nothing refills it for free. The skills and their keys are under
+**Skills** below.
 
 ## Core loop
 
@@ -58,6 +63,22 @@ has no production caller), so it does not change during play.
    triggers `EcosystemSpawner.OnZoneEnter` (C15): the spawn list reacts to your
    spoken-DNA history, so the ecosystem you face is the one you taught.
 
+## Skills
+
+Two launch skills ride the Manna economy (the tunables — costs, heal,
+per-kill gain, cap — live in `src/skills/SkillState.cs`):
+
+- **Invert Strike** (`Q`, 10 Manna): your next melee hit deals triple
+  damage; the arm is spent by that one hit.
+- **Mend** (`R`, 15 Manna): restore 25 life, never past your maximum.
+- **`F` is reserved** for the third launch skill (Calming Speak) — it is
+  not bound yet; pressing it does nothing in this build.
+
+You unlock skills by learning DNA: each extraction teaches the ecosystem's
+language a counter, and the learned positions open the skills
+(`src/dna/PlayerMutations.cs`) — the first extractions are enough. A press
+while locked or short of Manna spends nothing.
+
 ## Dialogue
 
 NPC dialogue is surfaced through the on-screen dialogue box
@@ -76,10 +97,11 @@ A quiet five-beat quest arc runs on top of the same systems
 `E`) → **Bread Before Bonds** (pay a due wage with `P`) → **Blood Teaches**
 (extract DNA from four creatures) → **The Watcher Falls** (kill the boss the
 zone fields once your spoken DNA crosses its threshold). Quests advance
-automatically as you play; each completion starts the next, and each reward
-is a short spoken beat rather than loot — the beats are authored nodes in
-the dialogue table. There is no quest log screen yet: the arc happens
-without menus.
+automatically as you play; each completion starts the next. A quest's
+reward is a short authored spoken beat rather than loot — a node in the
+dialogue table, recorded as a narrative note: its playback is not wired
+yet, so completing a quest does not speak the beat in this build. There is
+no quest log screen yet: the arc happens without menus.
 
 ## Saving and loading
 

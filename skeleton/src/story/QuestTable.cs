@@ -79,7 +79,9 @@ public sealed class QuestDef
 
     /// <summary>Reward beat — a DialogueTable node id (rewards are dialogue
     /// beats, plan 2d; no loot system). The story cross-check test validates
-    /// the reference, so a renamed node fails the gate, not the player.</summary>
+    /// the reference, so a renamed node fails the gate, not the player.
+    /// Honesty note (DA-c3 P2): this column is an authored narrative note —
+    /// nothing plays the node on completion yet (playback: MC 3915).</summary>
     public string Reward { get; }
 
     public QuestDef(string id, string title, QuestObjective objective, string reward)
