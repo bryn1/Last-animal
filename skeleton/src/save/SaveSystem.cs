@@ -48,8 +48,12 @@ public static class SaveSystem
     /// Current schema version. Bump + add an upgrade path when fields change.
     /// v2 (MC 1344): added GameState.DnaEventCount — v1 saves are rejected by
     /// the schema guard (logged upgrade path) rather than silently half-loaded.
+    /// v3 (MC 3901 2b, owner ruling D2 RATIFIED "All rec"): THE ONE ratified
+    /// break — Followers (roster), QuestStates, Manna added; the v2
+    /// single-companion fields removed. v2 saves are rejected exactly like
+    /// v1 saves were — logged upgrade path, no silent migration.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     /// <summary>Name of the save file inside the store path.</summary>
     public const string SaveFileName = "savegame.json";

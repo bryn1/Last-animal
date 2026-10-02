@@ -33,8 +33,12 @@ public class SaveSystemTests
         Assert.NotNull(loaded);
         Assert.Equal(original.ZoneId, loaded.ZoneId);
         Assert.Equal(original.Progression, loaded.Progression);
-        Assert.Equal(original.CompanionEntityId, loaded.CompanionEntityId);
-        Assert.Equal(original.CompanionLoyalty, loaded.CompanionLoyalty);
+        // v3 (MC 3901 2b): the roster-of-one replaces the v2 companion pair.
+        Assert.Equal(original.Followers.Count, loaded.Followers.Count);
+        Assert.Equal(original.Followers[0].EntityId, loaded.Followers[0].EntityId);
+        Assert.Equal(original.Followers[0].Loyalty, loaded.Followers[0].Loyalty);
+        Assert.Equal(original.QuestStates, loaded.QuestStates);
+        Assert.Equal(original.Manna, loaded.Manna);
         Assert.Equal(original.Version, loaded.Version);
         Assert.Equal(original.LearnedDnaCounters, loaded.LearnedDnaCounters);
         Assert.Equal(original.DnaEventCount, loaded.DnaEventCount);
@@ -72,13 +76,13 @@ public class SaveSystemTests
     public void PersistsDnaCounters_LoyaltyEmotion_Progression_Zone()
     {
         // C14: persists DNA counters (M02), emotion (M03 — carried by
-        // CompanionLoyalty; the derivable EmotionState label was removed,
+        // follower loyalty; the derivable EmotionState label was removed,
         // MC 1405 N7), progression, zone.
         var store = NewStore();
         var state = new GameState
         {
             LearnedDnaCounters = new List<int> { 3, 0, 1, 3, 2 },
-            CompanionLoyalty = 12,
+            Followers = new List<FollowerEntry> { new FollowerEntry { EntityId = 7, Loyalty = 12 } },
             Progression = 5,
             ZoneId = "ruins"
         };
@@ -86,9 +90,56 @@ public class SaveSystemTests
         var loaded = SaveSystem.Load(store);
         Assert.NotNull(loaded);
         Assert.Equal(new List<int> { 3, 0, 1, 3, 2 }, loaded.LearnedDnaCounters);
-        Assert.Equal(12, loaded.CompanionLoyalty);
+        Assert.Single(loaded.Followers);
+        Assert.Equal(12, loaded.Followers[0].Loyalty);
         Assert.Equal(5, loaded.Progression);
         Assert.Equal("ruins", loaded.ZoneId);
+    }
+
+    [Fact]
+    public void V3Persists_QuestStates_Manna_FollowersList()
+    {
+        // MC 3901 2b: the ONE ratified v2->v3 break adds exactly three fields.
+        // QuestStates (List<string> "id:status"), Manna (int), Followers
+        // (List of {EntityId, Loyalty}) must each survive a save/load
+        // round-trip. Asserts the EXACT values, so a dropped field or wrong
+        // element goes red.
+        var store = NewStore();
+        var state = new GameState
+        {
+            QuestStates = new List<string> { "intro:active", "wage:completed", "finale:locked" },
+            Manna = 37,
+            Followers = new List<FollowerEntry>
+            {
+                new FollowerEntry { EntityId = 11, Loyalty = 90 },
+                new FollowerEntry { EntityId = 12, Loyalty = 4 },
+            }
+        };
+        Assert.True(SaveSystem.Save(state, store));
+        var loaded = SaveSystem.Load(store);
+        Assert.NotNull(loaded);
+        Assert.Equal(new List<string> { "intro:active", "wage:completed", "finale:locked" }, loaded.QuestStates);
+        Assert.Equal(37, loaded.Manna);
+        Assert.Equal(2, loaded.Followers.Count);
+        Assert.Equal(11, loaded.Followers[0].EntityId);
+        Assert.Equal(90, loaded.Followers[0].Loyalty);
+        Assert.Equal(12, loaded.Followers[1].EntityId);
+        Assert.Equal(4, loaded.Followers[1].Loyalty);
+    }
+
+    [Fact]
+    public void V3HasNoLearnedMutationsField()
+    {
+        // MC 3901 2b (plan §G D2/D4): the v3 schema deliberately carries NO
+        // LearnedMutations field — the unlock authority recomputes from the
+        // round-trip-stable LearnedDnaCounters consensus. Proof-of-absence:
+        // serialize the representative state and assert the field name is
+        // absent from the wire form, and no v3 field is named "LearnedMutations".
+        var json = System.Text.Json.JsonSerializer.Serialize(GameState.Representative());
+        Assert.DoesNotContain("LearnedMutations", json);
+        // And the v2 single-companion fields are gone from the wire form too:
+        Assert.DoesNotContain("CompanionEntityId", json);
+        Assert.DoesNotContain("CompanionLoyalty", json);
     }
 
     [Fact]
@@ -175,6 +226,29 @@ public class SaveSystemTests
         var loaded = SaveSystem.Load(store);
         Assert.Null(loaded);
         Assert.Contains("newer build", string.Join(" | ", SaveSystem.Log));
+    }
+
+    [Fact]
+    public void Load_RejectsV2ShapedSave_AndLogsUpgradePath()
+    {
+        // MC 3901 2b (owner ruling D2 RATIFIED): a real v2-shaped save —
+        // literal Version 2 with the removed single-companion fields — is
+        // REJECTED, never silently migrated. Hardcoding 2 is correct here
+        // (it names the OLD schema under test); only the NEWER-than guard
+        // must stay CurrentVersion-relative (§G D9).
+        Assert.Equal(3, SaveSystem.CurrentVersion); // this test speaks to the v3 schema
+        var store = NewStore();
+        store.WriteAllText(store.SavePath,
+            "{\"Version\": 2, \"ZoneId\": \"canyon\", \"CompanionEntityId\": 7, \"CompanionLoyalty\": 84}");
+
+        SaveSystem.Log.Clear();
+        var loaded = SaveSystem.Load(store);
+        Assert.Null(loaded);
+
+        var logged = string.Join(" | ", SaveSystem.Log);
+        Assert.Contains("REJECTED", logged);
+        Assert.Contains("found v2", logged);
+        Assert.Contains("Upgrade path", logged);
     }
 
     [Fact]

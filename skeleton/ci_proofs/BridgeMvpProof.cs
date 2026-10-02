@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (482 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion.
+// SIZE: inherited >400 (486 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -410,14 +410,18 @@ public partial class BridgeMvpProof : SceneTree
                     Check("Load returned the saved state", loaded != null, $"loaded={loaded}");
                     if (_failed || loaded == null) return true;
                     // MC 1405 N7: the EmotionState label was removed — emotion
-                    // is a pure function of CompanionLoyalty (EmotionalDepth),
-                    // so loyalty is the persisted emotion carrier.
+                    // is a pure function of follower loyalty (EmotionalDepth),
+                    // so loyalty is the persisted emotion carrier. MC 3901 2b:
+                    // the v3 schema carries it in the Followers roster (the
+                    // v2 single-companion fields are gone with the ratified
+                    // one-time version break).
                     Check("round-trip preserved zone/progression/loyalty/dna",
                           loaded.ZoneId == state.ZoneId
                           && loaded.Progression == state.Progression
-                          && loaded.CompanionLoyalty == state.CompanionLoyalty
+                          && loaded.Followers.Count == state.Followers.Count
+                          && loaded.Followers[0].Loyalty == state.Followers[0].Loyalty
                           && loaded.LearnedDnaCounters.Count == state.LearnedDnaCounters.Count,
-                          $"zone={loaded.ZoneId} prog={loaded.Progression} loy={loaded.CompanionLoyalty} dna={loaded.LearnedDnaCounters.Count}");
+                          $"zone={loaded.ZoneId} prog={loaded.Progression} loy={loaded.Followers[0].Loyalty} dna={loaded.LearnedDnaCounters.Count}");
                     if (_failed) return true;
                     GD.Print("BRIDGE_MVP_PROOF: MARKER 6/6 SAVE_ROUNDTRIP — SaveSystem.Save -> Load round-trip via GodotSaveStore (user://)");
                     GD.Print("BRIDGE_MVP_PROOF: PASS — all six playable-MVP markers asserted (BRIDGE-MVP.md §3)");

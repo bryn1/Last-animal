@@ -23,7 +23,7 @@ using System.Collections.Generic;
 //     increments, so a restore cannot ride a bus event;
 //   - Progression (no hardcoded zeros — the counter lives here and ticks on
 //     first entry into each new zone);
-//   - the companion entity id + loyalty;
+//   - the follower roster (v3: the companion is Followers[0]);
 //   - the saved zone: the director's enter-zone callback is invoked so the
 //     zone's SpawnSet is re-applied (re-entry, not just a field write).
 //
@@ -109,8 +109,9 @@ public sealed class SaveLoadController
             // MC 1405 N6: the HUD is optional (no-UI composition) — read the
             // meter only when it exists, else the meter count is simply 0.
             DnaEventCount = _hud?.DnaMeter ?? 0,
-            CompanionEntityId = _companion.CompanionEntityId,
-            CompanionLoyalty = _companion.Loyalty,
+            // v3 (MC 3901 2b): the roster-of-one — the companion, when it
+            // exists, is Followers[0]; an empty roster means no follower.
+            Followers = BuildFollowers(),
             // MC 1348 N1: health is part of the snapshot so a load can rescue
             // a dead player.
             PlayerHealth = _playerHealth(),
@@ -137,8 +138,13 @@ public sealed class SaveLoadController
         if (loaded == null) return false;
 
         RestoreDna(loaded.LearnedDnaCounters);
-        _companion.CompanionEntityId = loaded.CompanionEntityId;
-        _companion.Loyalty = loaded.CompanionLoyalty;
+        // v3 (MC 3901 2b): restore the roster-of-one from Followers[0].
+        // An empty roster restores the no-companion defaults (the same
+        // -1/50 the v2 defaults carried). Stage 2g grows this to N; the
+        // single live companion object stays authoritative until then.
+        var follower = loaded.Followers.Count > 0 ? loaded.Followers[0] : new FollowerEntry();
+        _companion.CompanionEntityId = follower.EntityId;
+        _companion.Loyalty = follower.Loyalty;
         // MC 1405 N6: HUD restore is guarded — a no-UI composition has no
         // meter or life gauge to update.
         _hud?.UpdateDnaMeter(loaded.DnaEventCount);
@@ -157,6 +163,21 @@ public sealed class SaveLoadController
         // Re-enter: the director's handler re-applies the zone's SpawnSet.
         _enterZone(loaded.ZoneId);
         return true;
+    }
+
+    /// <summary>v3 roster snapshot (MC 3901 2b): the companion when bonded,
+    /// as Followers[0]; an empty list when there is no follower (the -1
+    /// sentinel is not persisted as a phantom roster entry).</summary>
+    private List<FollowerEntry> BuildFollowers()
+    {
+        var roster = new List<FollowerEntry>();
+        if (_companion.HasCompanion)
+            roster.Add(new FollowerEntry
+            {
+                EntityId = _companion.CompanionEntityId,
+                Loyalty = _companion.Loyalty
+            });
+        return roster;
     }
 
     /// <summary>Rebuild the spoken history from the saved counters: ONE

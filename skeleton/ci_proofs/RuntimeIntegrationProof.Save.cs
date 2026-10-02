@@ -1,6 +1,7 @@
 using Godot;
 using LastAnimal.Core;
 using LastAnimal.Save;
+using System.Linq;
 
 // Last Animal — T3b runtime integration proof, SAVE mode stages (MC 1256.10).
 //
@@ -17,6 +18,12 @@ public partial class RuntimeIntegrationProof : SceneTree
     private Godot.Vector3 _playerPosBeforeSave;
     private Godot.Vector3 _playerPosMutated;
 
+    // MC 3901 2b (v3): the follower entity id at save time — the v3 roster
+    // restores through Followers[0], so the LOAD_RESTORED_FOLLOWER leg must
+    // compare against what the save actually captured (boot companion id 7,
+    // WorldDirector.cs SetCompanion — non-vacuous, not the -1 sentinel).
+    private int _followerIdBeforeSave;
+
     // ---- save mode: round-trip through the REAL scene state ----
     // MC 1344: the mode now runs the REAL kill chain first (stages 0-2),
     // so the save happens with DnaMeter > 0 and the load asserts a
@@ -27,6 +34,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _dnaMeterBeforeSave = _hud!.DnaMeter;
         _spokenDnaBeforeSave = _director!.SpokenDna.Count;
         _loyaltyBeforeSave = _director.Companion.Companion.Loyalty;
+        _followerIdBeforeSave = _director.Companion.Companion.CompanionEntityId;
         _zoneBeforeSave = _director.CurrentZone;
         _progressBeforeSave = _director.Progression;
         _playerPosBeforeSave = _playerBody!.GlobalPosition;
@@ -63,6 +71,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             Input.ActionRelease("attack");
             _dnaMutated = _hud.DnaMeter;
             _director.Companion.Companion.ModifyLoyalty(-25);
+            // v3 (MC 3901 2b): unbind the follower id too, so the
+            // LOAD_RESTORED_FOLLOWER leg compares against a genuinely
+            // broken live state (the roster restore, not a no-op).
+            _director.Companion.Companion.CompanionEntityId = -1;
             Check("MUTATED_AWAY_FROM_SAVE: dna meter + spoken history moved past the saved values",
                   _dnaMutated > _dnaMeterBeforeSave, $"dna={_dnaMutated} (saved {_dnaMeterBeforeSave})");
             if (_failed) return;
@@ -96,6 +108,24 @@ public partial class RuntimeIntegrationProof : SceneTree
               _director.Companion.Companion.Loyalty == _loyaltyBeforeSave,
               $"loyalty={_director.Companion.Companion.Loyalty} (saved {_loyaltyBeforeSave})");
         if (_failed) return;
+        // v3 (MC 3901 2b): the roster-of-one restores through Followers[0] now
+        // that the single-companion GameState fields are gone. The id was
+        // mutated to -1 in RunMutateStage, so a load that never writes the
+        // companion back from Followers[0] leaves it -1 and this goes red.
+        Check("LOAD_RESTORED_FOLLOWER: roster-of-one id restored to the saved value",
+              _director.Companion.Companion.CompanionEntityId == _followerIdBeforeSave,
+              $"entityId={_director.Companion.Companion.CompanionEntityId} (saved {_followerIdBeforeSave})");
+        if (_failed) return;
+        // The v3 wire form on disk (the real user:// save) must carry the
+        // roster itself, not just the live restore: a Followers-shaped save
+        // is the schema v3 contract.
+        var onDisk = SaveSystem.Load(new GodotSaveStore());
+        Check("LOAD_RESTORED_FOLLOWER: the on-disk v3 save carries the roster-of-one",
+              onDisk != null && onDisk.Followers.Count == 1
+              && onDisk.Followers[0].EntityId == _followerIdBeforeSave,
+              onDisk == null ? "on-disk save rejected"
+                             : $"followers={onDisk.Followers.Count} id={onDisk.Followers[0].EntityId}");
+        if (_failed) return;
         Check("LOAD_RESTORED_ZONE: director is back in the saved zone (re-entered, SpawnSet re-applied)",
               _director.CurrentZone == _zoneBeforeSave,
               $"zone={_director.CurrentZone} (saved {_zoneBeforeSave})");
@@ -104,14 +134,23 @@ public partial class RuntimeIntegrationProof : SceneTree
               _director.Progression == _progressBeforeSave,
               $"prog={_director.Progression} (saved {_progressBeforeSave})");
         if (_failed) return;
-        GD.Print("LA_GATE: LOAD_RESTORED_DNA + LOAD_RESTORED_LOYALTY");
+        GD.Print("LA_GATE: LOAD_RESTORED_DNA + LOAD_RESTORED_LOYALTY + LOAD_RESTORED_FOLLOWER");
         // Pure round-trip anchor (regression): representative state.
         var pureStore = new TempDirSaveStore();
         var state = GameState.Representative();
-        Check("SAVE_ROUNDTRIP_PURE: representative GameState round-trips",
+        // v3 (MC 3901 2b): the representative carries non-default values for
+        // ALL three new fields (Followers [7,84], QuestStates 2 entries,
+        // Manna 42), so this leg asserts the v3 schema end-to-end — a field
+        // dropped from GameState or its serializer goes red here.
+        Check("SAVE_ROUNDTRIP_PURE: representative GameState round-trips (v3 fields incl.)",
               SaveSystem.Save(state, pureStore) && SaveSystem.Load(pureStore) != null
-              && SaveSystem.Load(pureStore)!.ZoneId == state.ZoneId,
-              $"zone={state.ZoneId}");
+              && SaveSystem.Load(pureStore)!.ZoneId == state.ZoneId
+              && SaveSystem.Load(pureStore)!.Manna == state.Manna
+              && SaveSystem.Load(pureStore)!.QuestStates.SequenceEqual(state.QuestStates)
+              && SaveSystem.Load(pureStore)!.Followers.Count == state.Followers.Count
+              && SaveSystem.Load(pureStore)!.Followers[0].EntityId == state.Followers[0].EntityId
+              && SaveSystem.Load(pureStore)!.Followers[0].Loyalty == state.Followers[0].Loyalty,
+              $"zone={state.ZoneId} manna={state.Manna} quests={state.QuestStates.Count} followers={state.Followers.Count}");
         if (_failed) return;
         GD.Print("LA_GATE: SAVE_ROUNDTRIP_PURE");
         GD.Print("LA_GATE: PASS — save/load through the real game verified");

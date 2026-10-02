@@ -73,17 +73,36 @@ public class GameState
     // MC 1405 N7: the former EmotionState label field was REMOVED, not wired.
     // It was dead data: nothing read it back on load, and the companion's
     // emotion is a pure function of loyalty (EmotionalDepth.ReadHiddenState),
-    // so persisting CompanionLoyalty already persists the emotion — the load
-    // path re-derives the label live through EmpathyBook. C14's "persists
-    // emotion" is carried by CompanionLoyalty; storing a second, derivable
-    // copy would only be a stale duplicate.
+    // so persisting the follower loyalty already persists the emotion — the
+    // load path re-derives the label live through EmpathyBook. C14's
+    // "persists emotion" is carried by Followers[0].Loyalty; storing a
+    // second, derivable copy would only be a stale duplicate.
 
+    /// <summary>
+    /// v3 follower roster (MC 3901 2b, owner ruling D2 RATIFIED "All rec").
+    /// The v2 single-companion fields CompanionEntityId/CompanionLoyalty were
+    /// REMOVED at this one ratified version break — no silent migration:
+    /// v2 saves are rejected with the logged upgrade path. The roster-of-one
+    /// is Followers[0] from day one (the roster grows to N in stage 2g).
+    /// Deliberately NO LearnedMutations field (plan §G D2/D4): the skill
+    /// unlock authority recomputes from the round-trip-stable
+    /// LearnedDnaCounters consensus already persisted above.
+    /// </summary>
+    public List<FollowerEntry> Followers { get; set; } = new();
 
-    /// <summary>Companion entity id (M03; -1 = no companion).</summary>
-    public int CompanionEntityId { get; set; } = -1;
+    /// <summary>
+    /// v3 quest states (MC 3901 2b): one "id:status" string per quest; the
+    /// id/status vocabulary belongs to the quest core (stage 2c), which
+    /// persists completion through this field.
+    /// </summary>
+    public List<string> QuestStates { get; set; } = new();
 
-    /// <summary>Companion loyalty 0-100 (M03 emotion state source).</summary>
-    public int CompanionLoyalty { get; set; } = 50;
+    /// <summary>
+    /// v3 skill currency (MC 3901 2b; owner ruling D3 RATIFIED): spent on
+    /// skill use, gained per kill, cap 100, NO cross-load regen — a load
+    /// restores exactly the saved value.
+    /// </summary>
+    public int Manna { get; set; } = 0;
 
     /// <summary>Representative game state used by the round-trip DoD test.</summary>
     public static GameState Representative()
@@ -95,8 +114,13 @@ public class GameState
             Progression = 3,
             LearnedDnaCounters = new List<int> { 0, 2, 1, 3 },
             DnaEventCount = 12,
-            CompanionEntityId = 7,
-            CompanionLoyalty = 84,
+            // v3 roster-of-one: the v2 companion (7, 84) survives as Followers[0].
+            Followers = new List<FollowerEntry>
+            {
+                new FollowerEntry { EntityId = 7, Loyalty = 84 }
+            },
+            QuestStates = new List<string> { "q_intro:active", "q_speak:completed" },
+            Manna = 42,
             PlayerHealth = 100,
             HasPlayerPosition = true,
             PlayerX = 4.5f,
@@ -104,4 +128,21 @@ public class GameState
             PlayerZ = -2.25f
         };
     }
+}
+
+/// <summary>
+/// One follower in the v3 GameState.Followers roster (MC 3901 2b). Pure
+/// data, same discipline as the rest of the schema: non-mutating
+/// { get; set; } properties so System.Text.Json round-trips trivially.
+/// Defaults mirror the v2 single-companion defaults (-1 = no companion,
+/// loyalty 50). Lives in GameState.cs — it is part of the save schema,
+/// not a separate concern, and a new file would need csproj/.uid churn.
+/// </summary>
+public class FollowerEntry
+{
+    /// <summary>Entity id of this follower (-1 sentinel never appears in a roster; absent = not listed).</summary>
+    public int EntityId { get; set; } = -1;
+
+    /// <summary>Loyalty 0-100 (M03 emotion state source, per follower).</summary>
+    public int Loyalty { get; set; } = 50;
 }
