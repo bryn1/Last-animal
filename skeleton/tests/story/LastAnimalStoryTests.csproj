@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Last Animal — story data-layer test project (MC 3900 stage 2a, code,
+       2026-10-02). Standalone xunit project: compiles the engine-free
+       src/story sources directly (via Compile Include) so `dotnet test` runs
+       the DialogueTable suite headless without the Godot SDK — the exact
+       shape of tests/save/LastAnimalSaveTests.csproj. The engine project
+       compiles the same DialogueTable for the injected view.
+       (StoryTextCaptureTest.cs lives in tests/story/ but is NOT compiled
+       here: it is a Godot SceneTree script built by the engine project and
+       run by ci/ui_test.sh's exact-text leg D.) -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- Assembly name must not collide with the Godot project's assembly. -->
+    <AssemblyName>LastAnimalStoryTests</AssemblyName>
+    <RootNamespace>LastAnimal.Tests</RootNamespace>
+    <!-- Compile ONLY the explicitly listed files below (same rule as every
+         other per-feature test csproj: explicit list is the source of truth). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Story data-layer sources (engine-free I3). -->
+    <Compile Include="../../src/story/DialogueTable.cs" />
+    <!-- The test files themselves (EnableDefaultCompileItems=false, so they
+         must be listed). The harness self-test is compiled conditionally so
+         the gate script can drop it with /p:IncludeHarness=false (two-sided
+         calibration, same pattern as ci/save_test.sh). -->
+    <Compile Include="DialogueTableTests.cs" />
+    <Compile Include="StoryHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
+  </ItemGroup>
+
+</Project>

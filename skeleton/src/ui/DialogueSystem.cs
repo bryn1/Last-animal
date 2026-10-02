@@ -1,6 +1,10 @@
 using Godot;
+using LastAnimal.Story;
 
 // Last Animal — M10 ui-hud (MC 890.14, dobbie, 2026-09-06).
+// MC 3900 stage 2a: the text source moved from a private hardcoded switch to
+// the injected engine-free DialogueTable (src/story/); the Show/Close/
+// ActiveNode contract and the never-blank fallback are unchanged.
 //
 // C13 (PHASE0.md line 382): `DialogueSystem.Show(nodeId)`.
 // The dialogue box view: a Godot Control that, given a node id, shows that
@@ -22,7 +26,16 @@ public partial class DialogueSystem : Control
     /// <summary>The node id currently on screen, or empty when closed.</summary>
     public string ActiveNode { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// The authored dialogue table this View reads (injected by the
+    /// composition root). Null falls back to DialogueTable.Default() so the
+    /// box still paints authored text — the View owns no dialogue text either
+    /// way; only the fallback line below is its own.
+    /// </summary>
+    public DialogueTable? Table { get; set; }
+
     private Label? _textLabel;
+    private static DialogueTable? _defaultTable;
 
     /// <summary>
     /// Open a dialogue node on screen: record it as active and paint its text.
@@ -63,15 +76,13 @@ public partial class DialogueSystem : Control
     private void EnsureVisible() => Visible = true;
 
     /// <summary>
-    /// Map a node id to its on-screen text. The rich narrative lives in the
-    /// script/data layer; this stub keeps the View honest with a diegetic
-    /// fallback so the box never renders blank.
+    /// Map a node id to its on-screen text via the injected data table (the
+    /// script/data layer this View was always meant to read). The never-blank
+    /// bar is kept: a node the table does not author (e.g. the production
+    /// trigger's un-authored npc_&lt;id&gt; nodes) still renders the diegetic
+    /// fallback line.
     /// </summary>
-    private static string DialogueFor(string nodeId) => nodeId switch
-    {
-        "intro"  => "The last animal stands at the edge of the world.",
-        "meadow" => "A breeze moves the tall grass. Something watches.",
-        "betray" => "The companion turns. There may be no turning back.",
-        _        => $"Dialogue node [{nodeId}]."
-    };
+    private string DialogueFor(string nodeId) =>
+        (Table ?? (_defaultTable ??= DialogueTable.Default())).FindText(nodeId)
+        ?? $"Dialogue node [{nodeId}].";
 }

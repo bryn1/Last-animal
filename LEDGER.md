@@ -152,3 +152,13 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   companion stack, save v2->v3 one ratified break; 8 owner decisions D1-D8 pending "rec";
   DA gate running). Two seed-notes claims refuted against code: no "6 weapon types" exist
   (grep weapon = 0 hits), AdaptationSystem is really src/dna/EcosystemAdaptation.cs.
+- MC 3900 stage 2a BUILT (code, 2026-10-02): story DATA layer behind the existing dialogue
+  view — new engine-free src/story/DialogueTable.cs (id -> authored text + optional
+  Func<string,bool> condition, nil for now) REPLACES DialogueSystem's private hardcoded
+  DialogueFor switch; table injected in WorldDirector.BuildUi (1 line); Show/Close/ActiveNode
+  + never-blank fallback unchanged; production trigger unchanged (interact -> Show npc_<id>).
+  3 migrated nodes verbatim + 2 new authored arc seeds (first_speak, wage_duty; owner ruling
+  D6 English diegetic-minimal). Gates: NEW ci/story_test.sh two-pass green, ci/ui_test.sh leg D
+  asserts EXACT painted text for an authored node, runtime dna_speak DIALOGUE_SHOWN + bridge
+  regression green, planted-bad (removed authored node) went RED naming it, reverted clean.
+  Evidence: .audits/20261002-2a/evidence.md, checker dir .audits/202610020519-e9b6c9c6/out/.

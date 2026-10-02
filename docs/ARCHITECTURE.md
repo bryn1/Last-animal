@@ -33,6 +33,7 @@ the composition root (see §3).
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
+| `src/story/` | `DialogueTable.cs` | Authored dialogue nodes (id → text + optional condition hook); the engine-free data source injected into the dialogue View (MC 3900 2a). |
 | `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs` | HUD, dialogue, empathy panel. |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)

@@ -41,6 +41,11 @@
     <Compile Include="src/ui/Hud.cs" />
     <Compile Include="src/ui/DialogueSystem.cs" />
     <Compile Include="src/ui/EmpathyPanel.cs" />
+    <!-- Compile MC 3900 stage 2a story data layer (DialogueTable: pure logic,
+         the injected text source of the dialogue view) + its headless
+         exact-text capture proof (Godot SceneTree script, ci/ui_test.sh leg D). -->
+    <Compile Include="src/story/DialogueTable.cs" />
+    <Compile Include="tests/story/StoryTextCaptureTest.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

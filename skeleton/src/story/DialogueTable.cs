@@ -1,0 +1,121 @@
+using System;
+using System.Collections.Generic;
+
+// Last Animal — story data layer (MC 3900, stage 2a, code, 2026-10-02).
+//
+// Dialogue text moves OUT of the View's private hardcoded switch (the old
+// `DialogueFor` stub in src/ui/DialogueSystem.cs, per its own comment: "the
+// narrative lives in the script/data layer") INTO this authored, engine-free
+// table: node id -> authored text + optional condition hook (Func<string,bool>,
+// nil for every node in stage 2a; the 2c quest layer gates nodes with it).
+//
+// Pure C# (I3): compiled by the main assembly AND by the standalone xunit
+// project tests/story/LastAnimalStoryTests.csproj, so `dotnet test` runs the
+// suite headless without GodotSharp. REPLACES the text switch; the
+// Show/Close/ActiveNode View contract and the View's never-blank diegetic
+// fallback are UNCHANGED — the composition root injects the table
+// (world/WorldDirector.BuildUi), never a parallel dialogue system.
+namespace LastAnimal.Story;
+
+/// <summary>One authored dialogue node: id, diegetic text, optional gate.</summary>
+public sealed class DialogueEntry
+{
+    /// <summary>Node id used by DialogueSystem.Show(nodeId).</summary>
+    public string Id { get; }
+
+    /// <summary>The authored on-screen text (never empty — enforced here).</summary>
+    public string Text { get; }
+
+    /// <summary>
+    /// Optional availability gate over the node id. Nil for now (stage 2a
+    /// authors unconditional nodes); a wired condition hides the node from
+    /// IsAvailable without removing its text (the View stays logic-free).
+    /// </summary>
+    public Func<string, bool>? Condition { get; }
+
+    public DialogueEntry(string id, string text, Func<string, bool>? condition = null)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("dialogue node id must be non-empty", nameof(id));
+        if (string.IsNullOrEmpty(text))
+            throw new ArgumentException($"authored text for node '{id}' must be non-empty", nameof(text));
+        Id = id;
+        Text = text;
+        Condition = condition;
+    }
+}
+
+/// <summary>
+/// The authored dialogue nodes the dialogue View paints (C13 data source).
+/// Immutable after construction; ids are ordinal-unique.
+/// </summary>
+public sealed class DialogueTable
+{
+    private readonly DialogueEntry[] _entries;
+    private readonly Dictionary<string, DialogueEntry> _byId;
+
+    public DialogueTable(IEnumerable<DialogueEntry> entries)
+    {
+        if (entries == null) throw new ArgumentNullException(nameof(entries));
+        var list = new List<DialogueEntry>();
+        _byId = new Dictionary<string, DialogueEntry>(StringComparer.Ordinal);
+        foreach (var entry in entries)
+        {
+            if (entry == null) throw new ArgumentException("null dialogue entry", nameof(entries));
+            if (!_byId.TryAdd(entry.Id, entry))
+                throw new ArgumentException($"duplicate dialogue node id: '{entry.Id}'", nameof(entries));
+            list.Add(entry);
+        }
+        _entries = list.ToArray();
+    }
+
+    /// <summary>All authored nodes, in authoring order.</summary>
+    public IReadOnlyList<DialogueEntry> Entries => _entries;
+
+    /// <summary>Number of authored nodes.</summary>
+    public int Count => _entries.Length;
+
+    /// <summary>Does the table author this node id at all (condition aside)?</summary>
+    public bool Has(string nodeId) => nodeId != null && _byId.ContainsKey(nodeId);
+
+    /// <summary>Raw entry lookup; false when the table does not author the id.</summary>
+    public bool TryGetEntry(string nodeId, out DialogueEntry? entry)
+    {
+        entry = null;
+        return nodeId != null && _byId.TryGetValue(nodeId, out entry);
+    }
+
+    /// <summary>
+    /// The authored text for a node id, or null when the table has no such
+    /// node. Returning null (not a fallback string) is deliberate: the
+    /// never-blank diegetic fallback stays the View's honesty contract.
+    /// </summary>
+    public string? FindText(string nodeId) =>
+        TryGetEntry(nodeId, out var entry) ? entry!.Text : null;
+
+    /// <summary>
+    /// True when the node exists and its optional condition hook passes (a nil
+    /// condition is always available). The View does not consult this in 2a;
+    /// the quest layer (2c) gates node availability through it.
+    /// </summary>
+    public bool IsAvailable(string nodeId) =>
+        TryGetEntry(nodeId, out var entry) && (entry!.Condition == null || entry.Condition(nodeId));
+
+    /// <summary>
+    /// The default authored table: injected by the composition root
+    /// (world/WorldDirector.BuildUi) into the dialogue View.
+    /// </summary>
+    public static DialogueTable Default() => new DialogueTable(new DialogueEntry[]
+    {
+        // Migrated verbatim from the old DialogueSystem.DialogueFor switch —
+        // the exact strings are the existing painted contract.
+        new("intro",  "The last animal stands at the edge of the world."),
+        new("meadow", "A breeze moves the tall grass. Something watches."),
+        new("betray", "The companion turns. There may be no turning back."),
+        // New arc seeds authored in stage 2a (owner ruling D6: English,
+        // diegetic-minimal, matching the migrated nodes' tone). Grown to the
+        // 5-quest arc rows by stage 2d content work in this same table.
+        new("first_speak", "You answer in its own tongue. It listens, for now."),
+        new("wage_duty",   "The companion waits. Bread first, bonds after."),
+    });
+}

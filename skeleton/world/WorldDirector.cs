@@ -289,7 +289,8 @@ public partial class WorldDirector : Node3D
         // Dialogue + empathy panels: instanced (per the composition DoD) but
         // not force-opened on boot, so the full-width intro line does not
         // collide with the top-left HUD. They remain available to show later.
-        _dialogue = new DialogueSystem { Name = "Dialogue" };
+        // MC 3900 stage 2a: inject the authored story data table into the view.
+        _dialogue = new DialogueSystem { Name = "Dialogue", Table = LastAnimal.Story.DialogueTable.Default() };
         UICanvas.AddChild(_dialogue);
 
         _empathy = new EmpathyPanel { Name = "Empathy" };
