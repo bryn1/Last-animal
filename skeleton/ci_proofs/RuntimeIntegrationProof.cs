@@ -245,7 +245,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode == "quest_arc" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
