@@ -28,7 +28,7 @@ public static class ActorVisual
     {
         EnemyAI.Type.Goblin => new Color(0.25f, 0.75f, 0.30f),    // bright green
         EnemyAI.Type.Orc => new Color(0.55f, 0.40f, 0.15f),       // muddy brown
-        EnemyAI.Type.Skeleton => new Color(0.72f, 0.92f, 0.98f),  // ice cyan (sky-safe)
+        EnemyAI.Type.Skeleton => new Color(0.62f, 0.45f, 0.90f),  // arcane violet (sky-safe)
         _ => new Color(0.65f, 0.08f, 0.45f),                      // Demon: deep magenta
     };
 
