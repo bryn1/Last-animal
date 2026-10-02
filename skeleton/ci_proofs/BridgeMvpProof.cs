@@ -1,3 +1,4 @@
+// SIZE: inherited >400 (458 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;

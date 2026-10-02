@@ -1,3 +1,4 @@
+// SIZE: inherited >400 (518 l) — reasons per MC 3895 DA P2-1; see SIZE REASON block below (THE single composition root).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
