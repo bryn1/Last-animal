@@ -24,6 +24,11 @@ public partial class SfxRouter : Node
         bus.LoyaltyChanged += (_, _) => Fire("loyalty");
         bus.Betrayal += (_, _) => Fire("betrayal");
         bus.EcosystemAdapted += _ => Fire("ecosystem");
+        // MC 3912 stage 2e (owner ruling D7 RATIFIED): route the new SkillUsed
+        // signal onto an EXISTING stream — a skill is the player speaking its
+        // own mutated DNA, so it rides "dna_spoken". Zero new assets (plan §D
+        // 7: no new audio this increment; Fire already skips a missing stream).
+        bus.SkillUsed += _ => Fire("dna_spoken");
     }
 
     private void Fire(string sfx)

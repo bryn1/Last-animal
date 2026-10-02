@@ -51,6 +51,12 @@ using System.Linq;
 //                     (QUEST_PERSIST; the v3 QuestStates wire).
 //   quest_neg       — the SetQuestHooksEnabled gate seam is off; the arc must
 //                     stall (NEG_QUEST), exit non-zero.
+//   skill_use       — MC 3912 stage 2e: the skill economy end-to-end on the
+//                     live scene — kill gain, live unlock, armed multiplier
+//                     AT the single DealDamage site, arm consumed after one
+//                     hit, rejection, Mend (RuntimeIntegrationProof.Skills.cs).
+//   skill_neg       — the SetSkillActionsEnabled gate seam is off; kills and
+//                     presses must move nothing (NEG_SKILL), exit non-zero.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -135,6 +141,9 @@ public partial class RuntimeIntegrationProof : SceneTree
         // quest_neg: the story/quest gate seam (MC 3904 2c) must be off BEFORE
         // the director's _Ready runs InitStory — same set-before-AddChild idiom.
         if (_mode == "quest_neg" && main is WorldDirector dneg) dneg.SetQuestHooksEnabled(false);
+        // skill_neg: the skill gate seam (MC 3912 2e) must be off BEFORE
+        // _Ready runs InitSkills — same set-before-AddChild idiom.
+        if (_mode == "skill_neg" && main is WorldDirector dsk) dsk.SetSkillActionsEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -211,6 +220,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // skill_use / skill_neg (MC 3912 2e): the skill chain drives its own
+        // input (farm + measured hits + skill presses); skip the movement
+        // press and route to stage 60 — stage bodies live in
+        // RuntimeIntegrationProof.Skills.cs.
+        if (_mode is "skill_use" or "skill_neg")
+        {
+            _stage = 60;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (skill mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -245,7 +266,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "skill_use" or "skill_neg" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -487,6 +508,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- quest_arc / quest_persist / quest_neg (MC 3904 2c): stage
             // bodies live in RuntimeIntegrationProof.Quests.cs (partial).
             case 50: RunQuestStage(); break;
+
+            // ---- skill_use / skill_neg (MC 3912 2e): stage bodies live in
+            // RuntimeIntegrationProof.Skills.cs (partial).
+            case 60: RunSkillStage(); break;
         }
         return false;
     }
@@ -496,6 +521,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         Input.ActionRelease("move_right");   // unconditional: never leak a pressed action
         Input.ActionRelease("attack");
         Input.ActionRelease("interact");
+        Input.ActionRelease("travel");       // MC 3912 2e: skill modes travel too
+        Input.ActionRelease("skill_1");
+        Input.ActionRelease("skill_2");
+        Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
         if (!_asserted && !_failed && _mode is "positive" or "save")
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }

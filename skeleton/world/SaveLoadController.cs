@@ -73,6 +73,14 @@ public sealed class SaveLoadController
     public Func<List<string>>? QuestStatesWrite { get; set; }
     public Action<List<string>>? QuestStatesRestore { get; set; }
 
+    // Manna seams (MC 3912 2e): the v3 Manna field exists since 2b but only
+    // the WorldDirector.Skills partial owns its semantics — this controller
+    // stays vocabulary-free (same injection idiom as the QuestStates seams
+    // above; unset seams leave the schema default 0). Owner ruling D3: a
+    // load restores the saved value EXACTLY — no cross-load refill here.
+    public Func<int>? MannaWrite { get; set; }
+    public Action<int>? MannaRestore { get; set; }
+
     public SaveLoadController(
         List<LanguageSignature> spokenDna,
         CompanionComponent companion,
@@ -124,6 +132,9 @@ public sealed class SaveLoadController
             // MC 1348 N1: health is part of the snapshot so a load can rescue
             // a dead player.
             PlayerHealth = _playerHealth(),
+            // MC 3912 2e: the skill currency rides the snapshot (v3 field;
+            // unset seam saves the 0 default, the schema's own).
+            Manna = MannaWrite?.Invoke() ?? 0,
         };
         // MC 3904 2c: quest progress rides the snapshot (v3 QuestStates,
         // "id:status" rows from the live QuestLog; unset seam saves an empty
@@ -155,6 +166,9 @@ public sealed class SaveLoadController
         // MC 3904 2c: the live QuestLog re-applies the saved rows (direct
         // restore, no replayed transitions — see QuestLog.FromSaveRows).
         QuestStatesRestore?.Invoke(loaded.QuestStates);
+        // MC 3912 2e: the live Manna re-applies the saved value verbatim
+        // (restore, never refill — the Skills partial owns the storage).
+        MannaRestore?.Invoke(loaded.Manna);
         // v3 (MC 3901 2b): restore the roster-of-one from Followers[0].
         // An empty roster restores the no-companion defaults (the same
         // -1/50 the v2 defaults carried). Stage 2g grows this to N; the

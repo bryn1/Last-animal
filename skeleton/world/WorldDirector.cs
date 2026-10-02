@@ -183,6 +183,10 @@ public partial class WorldDirector : Node3D
         // QuestStates save seams. Runs before the boot EnterZone below so the
         // meadow entry feeds the intro quest.
         InitStory();
+        // MC 3912 stage 2e: skill root seam (world/WorldDirector.Skills.cs
+        // partial) — constructs the skill core, wires the v3 Manna save seams
+        // and the kill-manna rider on the DnaExtracted forward below.
+        InitSkills();
         // MC 1348 A5: the boot enemy set is the zone pipeline's job — the
         // EnterZone below fires OnZoneEntered -> ApplySpawnSet, which fields
         // the meadow SpawnSet into _zoneEnemies so zone travel can despawn it.
@@ -278,6 +282,7 @@ public partial class WorldDirector : Node3D
             _saveLoad.Save();
         if (Input.IsActionJustPressed("load_game"))
             _saveLoad.Load();
+        PollSkillActions();   // MC 3912 2e: skill_1/skill_2 arms (Skills partial)
     }
 
     private void BuildUi()
@@ -409,7 +414,9 @@ public partial class WorldDirector : Node3D
 
         // The ONLY kill path (design §1.1): through the director-owned
         // CombatSystem. OnKill extracts the entity-id-seeded signature.
-        _combat.DealDamage(attackerId: 0, best.Ai, _player.MeleeDamage);
+        // MC 3912 2e: the damage VALUE rides the armed-skill multiplier at
+        // this single call site (kill-path grep leg stays exactly 1).
+        _combat.DealDamage(attackerId: 0, best.Ai, ConsumeSkillDamage(_player.MeleeDamage));
         if (best.IsDead)
         {
             best.KillHide();

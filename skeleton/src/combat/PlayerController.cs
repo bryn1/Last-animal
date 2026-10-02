@@ -35,6 +35,31 @@ public class PlayerController
     public float AttackRange { get; } = 1.5f;
     public int MeleeDamage { get; } = 20;
 
+    // MC 3912 stage 2e (owner ruling D3 RATIFIED): the controller stores the
+    // skill economy's two live values; the SEMANTICS (spend/gain/arm/consume)
+    // live in LastAnimal.Skills.SkillState — one mechanism per concern. The
+    // clamp lives here so EVERY writer (kill gain, skill spend, save load)
+    // is cap-honest without repeating the rule.
+    /// <summary>Manna cap (owner ruling D3: cap 100, no cross-load regen).</summary>
+    public const int MannaCap = 100;
+
+    private int _manna;
+
+    /// <summary>Skill currency (v3 save field Manna; restore writes verbatim).</summary>
+    public int Manna
+    {
+        get => _manna;
+        set => _manna = Math.Clamp(value, 0, MannaCap);
+    }
+
+    /// <summary>
+    /// Pending melee multiplier: 1 = unarmed base; >1 after arming Invert
+    /// Strike. Read-and-reset through SkillState.ConsumeArmedDamage at the
+    /// single DealDamage call site — the arm rides the damage VALUE, so the
+    /// kill path stays ONE (plan §B 2e).
+    /// </summary>
+    public int ArmMultiplier { get; set; } = 1;
+
     public bool IsDead => Health <= 0;
 
     /// <summary>Set of enemies currently within melee reach of the player.</summary>

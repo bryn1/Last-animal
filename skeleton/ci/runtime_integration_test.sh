@@ -169,5 +169,25 @@ LOGP="$(LA_GATE_MODE=quest_persist timeout 300 "$GODOT" --headless --path "$PROJ
 [[ "$LOGP" == *'QUEST_REWIND —'* ]] || fail "quest_persist: expected QUEST_REWIND (one post-load extraction, zero cascading completes — DA P1)"
 run_mode quest_neg fail "NEG_QUEST"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; non-blank render)"
+# (J) MC 3912 stage 2e skill core: the skill economy end-to-end on the REAL
+# scene — +Manna rides the existing kill handler, the live consensus unlocks
+# both launch skills, an UNARMED hit deals exactly MeleeDamage THROUGH the
+# single DealDamage site, skill_1 pays EXACTLY once and arms, the armed hit
+# deals MeleeDamage x multiplier and the arm is consumed after that one hit,
+# a short balance is rejected without spending, and Mend pays once and
+# raises health. skill_neg proves the gate seam stalls the whole economy.
+run_mode skill_use pass "SKILL_USED invert_strike"
+LOGSK="$(LA_GATE_MODE=skill_use timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGSK" == *'KILL_MANNA_GAIN'* ]] || fail "skill_use: expected KILL_MANNA_GAIN (+Manna on the existing DnaExtracted handler)"
+[[ "$LOGSK" == *'UNLOCK_INVERT_STRIKE + UNLOCK_MEND'* ]] || fail "skill_use: expected UNLOCK_INVERT_STRIKE + UNLOCK_MEND (live consensus authority)"
+[[ "$LOGSK" == *'UNARMED_HIT_BASE'* ]] || fail "skill_use: expected UNARMED_HIT_BASE (base damage at the DealDamage site)"
+[[ "$LOGSK" == *'MANNA_SPEND_ONCE'* ]] || fail "skill_use: expected MANNA_SPEND_ONCE (Manna dropped exactly once)"
+[[ "$LOGSK" == *'ARMED_HIT_MULTIPLIED'* ]] || fail "skill_use: expected ARMED_HIT_MULTIPLIED (MeleeDamage x multiplier through the ONE kill path)"
+[[ "$LOGSK" == *'ARM_CONSUMED'* ]] || fail "skill_use: expected ARM_CONSUMED (arm rode exactly one hit)"
+[[ "$LOGSK" == *'MANNA_REJECTED'* ]] || fail "skill_use: expected MANNA_REJECTED (insufficient Manna refused)"
+[[ "$LOGSK" == *'MEND_HEALTH_UP'* ]] || fail "skill_use: expected MEND_HEALTH_UP (Mend healed and paid once)"
+[[ "$LOGSK" == *'SKILL_USED mend'* ]] || fail "skill_use: expected SKILL_USED mend on the bus"
+run_mode skill_neg fail "NEG_SKILL"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; skill economy green, skill_neg red; non-blank render)"
 exit 0
