@@ -173,3 +173,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   SaveLoadController.cs QuestStates persistence joins 2c's file set (W2 solo).
 - Follow-up registered (ARCH F-2 P3): skeleton/docs/player-guide.md:64-67 still describes
   dialogue text as hardcoded DialogueFor — rewrite lands with stage 2d.
+- MC 3904 stage 2c CLOSED (orchestrator-verified, 2026-10-02): quest core. 2c build ed4a5b2
+  (pure QuestTable/QuestLog, ONE batched 5-signal bus edit, InitStory root seam, QuestStates
+  live persistence per W1 F-1 map amendment); DA cycle-1 FIX found a REAL P1 (evidence counters
+  survived load -> post-load observation fast-forwarded the arc); fixed at 4ce42de (+f30cf67
+  frame-budget grant) with named rewind tests + extended quest_persist leg (QUEST_REWIND).
+  W2 verdict board at f30cf67, pin 64ecf261 (--base ed4a5b2): TEST-c3 PASS (7/7 + 4 probes),
+  DA-c2 SHIP (P1 6/6 fields, non-vacuous tests, axes judged), ARCH PASS. Carried: MC 3910
+  (death_load stale-save leg + RuntimeIntegrationProof.cs 536L SIZE/split); 2d gains
+  objective-arg cross-validation test (DA P2) + QuestTable doc-comment refresh; pre-W5 map
+  row for WorldDirector.Story.cs + 2g must re-key wage seam per follower. docs/ARCHITECTURE.md
+  synced (story row, Story partial, 11-signal bus, quest gates/modes, §8 v3).

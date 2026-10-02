@@ -33,7 +33,7 @@ the composition root (see §3).
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
-| `src/story/` | `DialogueTable.cs` | Authored dialogue nodes (id → text + optional condition hook); the engine-free data source injected into the dialogue View (MC 3900 2a). |
+| `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1). Engine-free (MC 3900 2a, MC 3904 2c). |
 | `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs` | HUD, dialogue, empathy panel. |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
@@ -41,14 +41,20 @@ the composition root (see §3).
 - **Autoloads** (`autoload/`, registered in `project.godot`): `MusicManager`,
   `EventBus`, `GameBootstrap`, `SfxRouter`, `GameLoop`; plus `FrameworkTypes.cs`
   and `IGameModule.cs` (shared framework). `GameBootstrap` is the service
-  registry the composition root binds into.
+  registry the composition root binds into. `EventBus` carries 11 string-Id
+  signals (GD0202), incl. the five quest-core signals `QuestStarted`,
+  `QuestObjective`, `QuestCompleted`, `WagePaid`, `SkillUsed` (carriers
+  `QuestId`/`SkillId`; landed once by MC 3904 2c — consumers never edit the bus).
 - **Composition root**: `world/WorldDirector.cs` on `main.tscn` — the ONLY
   production site that constructs gameplay systems and binds them into
   `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
   (`EnemyActor.cs`, `CompanionFollowBody.cs`, `CompanionVisual.cs`,
   `ActorVisual.cs` — MC 3895 composed per-type enemy silhouettes, boss scaled;
   spawned zone enemies parent under the director's `Visuals` Node3D on
-  `main.tscn`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  `main.tscn`), `WorldDirector.Story.cs` (partial: the quest root seam —
+  `InitStory` wiring, observation-hook delivery, wage-settle → `WagePaid`
+  attribution to the ACTIVE wage row; wiring only, quest rules live in the pure
+  `QuestLog`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
@@ -92,15 +98,18 @@ the composition root (see §3).
 `smoke.sh`, `boot_test.sh`, `bridge_mvp_test.sh`, `main_composition_test.sh`,
 `runtime_integration_test.sh`, `combat_test.sh`, `companion_test.sh`,
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
+`story_test.sh`, `quest_test.sh`,
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
-`RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs`),
+`RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
+`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/
+`quest_neg`),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
 `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
 framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
 after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
-combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui).
+combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui, story, quest).
 
 ## 7. Docs map (`skeleton/docs/`)
 
@@ -115,7 +124,11 @@ combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui).
 ## 8. Data stores / ports
 
 - Saves: `SaveSystem` + `GodotSaveStore` (Godot `user://` storage); zone
-  progression persisted per zone. No external services, no network ports.
+  progression persisted per zone. Schema v3 (MC 3901 2b, one ratified break):
+  `QuestStates` ("id:status" rows, persisted/restored through the live-scene
+  `SaveLoadController` seams by the story root seam, MC 3904), `Manna`, and the
+  `Followers` roster ({EntityId, Loyalty}); no `LearnedMutations` field (struck
+  per PLAN §G D2/D4). No external services, no network ports.
 - Build artifacts: `skeleton/build/` (exports + zips) — generated, not source.
 
 ## 9. Known issues
