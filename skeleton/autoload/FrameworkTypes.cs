@@ -61,3 +61,27 @@ public partial class MutationId : Resource
 
     public override string ToString() => $"MutationId({Id})";
 }
+
+/// <summary>A quest reference (MC 3904 2c: QuestStarted / QuestObjective /
+/// QuestCompleted / WagePaid). String-keyed id — the QuestTable row id.</summary>
+public partial class QuestId : Resource
+{
+    [Export] public string Id = "<none>";
+
+    public QuestId() { }
+    public QuestId(string id) { Id = id; }
+
+    public override string ToString() => $"QuestId({Id})";
+}
+
+/// <summary>A player skill reference (MC 3904 2c batch: SkillUsed; the skill
+/// core (2e) is its only producer/consumer). String-keyed id.</summary>
+public partial class SkillId : Resource
+{
+    [Export] public string Id = "<none>";
+
+    public SkillId() { }
+    public SkillId(string id) { Id = id; }
+
+    public override string ToString() => $"SkillId({Id})";
+}

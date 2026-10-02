@@ -64,6 +64,15 @@ public sealed class SaveLoadController
     private readonly Func<CombatVec3>? _playerPosition;
     private readonly Action<CombatVec3>? _restorePosition;
 
+    // QuestStates seams (MC 3904 2c): the v3 field exists since 2b but nothing
+    // persisted it during play (the W1 F-1 map amendment). WorldDirector.Story
+    // injects these after construction; the vocabulary ("id:status") is owned
+    // by the pure QuestLog. Unset (a composition without the story seam)
+    // leaves the v3 field empty at save and unread at load — the field's
+    // presence is still the schema's, never this controller's invention.
+    public Func<List<string>>? QuestStatesWrite { get; set; }
+    public Action<List<string>>? QuestStatesRestore { get; set; }
+
     public SaveLoadController(
         List<LanguageSignature> spokenDna,
         CompanionComponent companion,
@@ -116,6 +125,11 @@ public sealed class SaveLoadController
             // a dead player.
             PlayerHealth = _playerHealth(),
         };
+        // MC 3904 2c: quest progress rides the snapshot (v3 QuestStates,
+        // "id:status" rows from the live QuestLog; unset seam saves an empty
+        // field, the schema default).
+        if (QuestStatesWrite != null)
+            state.QuestStates = QuestStatesWrite();
         // MC 1405 N5: the player's world position rides the snapshot too.
         if (_playerPosition != null)
         {
@@ -138,6 +152,9 @@ public sealed class SaveLoadController
         if (loaded == null) return false;
 
         RestoreDna(loaded.LearnedDnaCounters);
+        // MC 3904 2c: the live QuestLog re-applies the saved rows (direct
+        // restore, no replayed transitions — see QuestLog.FromSaveRows).
+        QuestStatesRestore?.Invoke(loaded.QuestStates);
         // v3 (MC 3901 2b): restore the roster-of-one from Followers[0].
         // An empty roster restores the no-companion defaults (the same
         // -1/50 the v2 defaults carried). Stage 2g grows this to N; the

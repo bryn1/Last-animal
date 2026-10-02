@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Last Animal — quest-core test project (MC 3904 stage 2c, code,
+       2026-10-02). Standalone xunit project: compiles the engine-free
+       src/story quest sources + the src/save schema they ride, so
+       `dotnet test` runs the QuestLog/QuestTable suite headless without the
+       Godot SDK — the exact shape of tests/story/LastAnimalStoryTests.csproj.
+       The engine project compiles the same files for the live scene. -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- Assembly name must not collide with the Godot project's assembly. -->
+    <AssemblyName>LastAnimalQuestTests</AssemblyName>
+    <RootNamespace>LastAnimal.Tests</RootNamespace>
+    <!-- Compile ONLY the explicitly listed files below (same rule as every
+         per-feature test csproj: explicit list is the source of truth). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Quest core + save schema sources (engine-free I3). GodotSaveStore.cs
+         is NOT compiled — the wire test uses its own temp-dir store. -->
+    <Compile Include="../../src/story/QuestTable.cs" />
+    <Compile Include="../../src/story/QuestLog.cs" />
+    <Compile Include="../../src/save/GameState.cs" />
+    <Compile Include="../../src/save/SaveSystem.cs" />
+    <!-- The test files themselves (EnableDefaultCompileItems=false, so they
+         must be listed). The harness self-test is compiled conditionally so
+         the gate script can drop it with /p:IncludeHarness=false (two-sided
+         calibration, same pattern as ci/save_test.sh). -->
+    <Compile Include="QuestTableTests.cs" />
+    <Compile Include="QuestLogTests.cs" />
+    <Compile Include="QuestSaveWireTests.cs" />
+    <Compile Include="QuestBusContractTests.cs" />
+    <Compile Include="QuestHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
+  </ItemGroup>
+
+</Project>

@@ -53,6 +53,24 @@ public partial class EventBus : Node
     // the C9 pure-logic side (EmpathyBook.Query) fed by the M10 EmpathyPanel.
     [Signal] public delegate void EmpathyBookOpenedEventHandler();
 
+    // --- MC 3904 stage 2c (plan §B "2c only"): THE ONE batched bus edit.
+    //     Exactly five quest-core signals, all string-Id per GD0202 (the same
+    //     wire idiom as above: carriers QuestId / SkillId in FrameworkTypes).
+    //     2e/2f/2g CONSUME these and never edit this file. SkillUsed is
+    //     emitted/consumed by 2e (skill core) — 2c only lands the batch. ------
+    // [signal] QuestStarted(String)   — a quest row went Active.
+    // [signal] QuestObjective(String) — an active row's objective was met.
+    // [signal] QuestCompleted(String) — a met row was completed (reward beat).
+    // [signal] WagePaid(String)       — a wage settle landed (rides the existing
+    //                                   Needing->Following settle); Id = the
+    //                                   quest the settle serves.
+    // [signal] SkillUsed(String)      — a player skill fired (2e).
+    [Signal] public delegate void QuestStartedEventHandler(string quest);
+    [Signal] public delegate void QuestObjectiveEventHandler(string quest);
+    [Signal] public delegate void QuestCompletedEventHandler(string quest);
+    [Signal] public delegate void WagePaidEventHandler(string quest);
+    [Signal] public delegate void SkillUsedEventHandler(string skill);
+
     // --- C2: publish surface (thin, no logic) --------------------------------
 
     public void EmitDnaExtracted(DnaSignature signature)
@@ -73,4 +91,20 @@ public partial class EventBus : Node
     // --- M04: EmpathyBookOpened() emit (C2) --------------------------------
     public void EmitEmpathyBookOpened()
         => EmitSignal(SignalName.EmpathyBookOpened);
+
+    // --- MC 3904 stage 2c: quest-batch emit surface (see signals above) ----
+    public void EmitQuestStarted(QuestId quest)
+        => EmitSignal(SignalName.QuestStarted, quest.Id);
+
+    public void EmitQuestObjective(QuestId quest)
+        => EmitSignal(SignalName.QuestObjective, quest.Id);
+
+    public void EmitQuestCompleted(QuestId quest)
+        => EmitSignal(SignalName.QuestCompleted, quest.Id);
+
+    public void EmitWagePaid(QuestId quest)
+        => EmitSignal(SignalName.WagePaid, quest.Id);
+
+    public void EmitSkillUsed(SkillId skill)
+        => EmitSignal(SignalName.SkillUsed, skill.Id);
 }

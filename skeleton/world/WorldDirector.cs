@@ -178,6 +178,11 @@ public partial class WorldDirector : Node3D
                 if (Player != null)
                     Player.GlobalPosition = new Vector3(p.X, p.Y, p.Z);
             });
+        // MC 3904 stage 2c: story/quest root seam (world/WorldDirector.Story.cs
+        // partial) — constructs the quest core, wires the bus hooks and the
+        // QuestStates save seams. Runs before the boot EnterZone below so the
+        // meadow entry feeds the intro quest.
+        InitStory();
         // MC 1348 A5: the boot enemy set is the zone pipeline's job — the
         // EnterZone below fires OnZoneEntered -> ApplySpawnSet, which fields
         // the meadow SpawnSet into _zoneEnemies so zone travel can despawn it.
@@ -228,7 +233,10 @@ public partial class WorldDirector : Node3D
         if (state != CompanionState.Betrayed)
         {
             if (_needs.SalaryDue && Input.IsActionJustPressed("pay_wage"))
+            {
                 _companion.Pay();
+                NotifyWageSettled();   // MC 3904 2c: WagePaid rides the settle (Story partial)
+            }
             else if (_needs.ConsumeUnpaidInterval())
                 _companion.SkipPayment();
         }

@@ -150,5 +150,20 @@ LOGE="$(LA_GATE_MODE=empathy_book timeout 240 "$GODOT" --headless --path "$PROJ"
 # enemy from the boot composition remains alive or in the director's live set.
 run_mode zone_travel_boot pass "BOOT_SET_CLEARED" "$PROOF_P1"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; non-blank render)"
+# (I) MC 3904 stage 2c quest core: the FULL 5-quest placeholder arc driven
+# headlessly through the REAL scene — boot zone fact -> speak -> the pay_wage
+# settle riding WagePaid (QUEST_OBJECTIVE on q_wage) -> four extractions ->
+# the zone-boss finale (QUEST_COMPLETED, owner ruling D6); quest progress
+# surviving save->load in the live scene (QUEST_PERSIST); and the
+# SetQuestHooksEnabled gate seam going red (NEG_QUEST).
+run_mode quest_arc pass "QUEST_COMPLETED"
+LOGQ="$(LA_GATE_MODE=quest_arc timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGQ" == *'QUEST_STARTED'* ]] || fail "quest_arc: expected QUEST_STARTED"
+[[ "$LOGQ" == *'QUEST_OBJECTIVE q_wage'* ]] || fail "quest_arc: expected QUEST_OBJECTIVE q_wage (WagePaid arm driven)"
+[[ "$LOGQ" == *'WAGE_PAID for q_wage'* ]] || fail "quest_arc: expected WAGE_PAID for q_wage on the bus"
+[[ "$LOGQ" == *'QUEST_COMPLETED q_boss'* ]] || fail "quest_arc: expected QUEST_COMPLETED q_boss (zone-boss finale)"
+run_mode quest_persist pass "QUEST_PERSIST"
+run_mode quest_neg fail "NEG_QUEST"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc + persist green, quest_neg red; non-blank render)"
 exit 0

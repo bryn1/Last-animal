@@ -46,6 +46,13 @@
          exact-text capture proof (Godot SceneTree script, ci/ui_test.sh leg D). -->
     <Compile Include="src/story/DialogueTable.cs" />
     <Compile Include="tests/story/StoryTextCaptureTest.cs" />
+    <!-- Compile MC 3904 stage 2c quest core (pure QuestTable/QuestLog, the
+         DialogueTable shape discipline) + the story/quest composition-root
+         partial + the quest-arc runtime proof partial. -->
+    <Compile Include="src/story/QuestTable.cs" />
+    <Compile Include="src/story/QuestLog.cs" />
+    <Compile Include="world/WorldDirector.Story.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Quests.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

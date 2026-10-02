@@ -44,6 +44,13 @@ using System.Linq;
 //   no_interact     — the director's interact seam is disabled; interact is
 //                     pressed but no DnaSpoken fires and no dialogue opens
 //                     (NEG_INTERACT), exit non-zero.
+//   quest_arc       — MC 3904 stage 2c: the FULL 5-quest placeholder arc
+//                     driven to the zone-boss finale (QUEST_COMPLETED;
+//                     RuntimeIntegrationProof.Quests.cs).
+//   quest_persist   — live-scene quest progress survives save -> load
+//                     (QUEST_PERSIST; the v3 QuestStates wire).
+//   quest_neg       — the SetQuestHooksEnabled gate seam is off; the arc must
+//                     stall (NEG_QUEST), exit non-zero.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -125,6 +132,9 @@ public partial class RuntimeIntegrationProof : SceneTree
         // director spawns in _Ready, which runs at AddChild, so the flag must be
         // set on the INSTANTIATED (not yet added) node (MC 1344.1).
         if (_mode == "no_spawn" && main is WorldDirector d) d.SetSpawningEnabled(false);
+        // quest_neg: the story/quest gate seam (MC 3904 2c) must be off BEFORE
+        // the director's _Ready runs InitStory — same set-before-AddChild idiom.
+        if (_mode == "quest_neg" && main is WorldDirector dneg) dneg.SetQuestHooksEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -189,6 +199,18 @@ public partial class RuntimeIntegrationProof : SceneTree
         // is pressed but neither DnaSpoken nor the dialogue may fire.
         if (_mode == "no_interact") _director.SetInteractEnabled(false);
 
+        // quest_arc / quest_persist / quest_neg (MC 3904 2c): the quest chain
+        // drives its own input (teleport + interact/pay/attack/travel); skip
+        // the movement press and route to stage 50 — stage bodies live in
+        // RuntimeIntegrationProof.Quests.cs.
+        if (_mode is "quest_arc" or "quest_persist" or "quest_neg")
+        {
+            _stage = 50;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (quest mode) — enemies={_enemies.Count} intro={_director.Quests.Status("q_intro")}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -221,7 +243,10 @@ public partial class RuntimeIntegrationProof : SceneTree
 
         _frames++;
         _stageFrames++;
-        if (_frames > FrameBudget) { Fail("frame budget exhausted before all stages"); return true; }
+        // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
+        // boss): it needs the larger budget defined in the Quests partial.
+        int budget = _mode == "quest_arc" ? QuestFrameBudget : FrameBudget;
+        if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
         {
@@ -458,6 +483,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // RuntimeIntegrationProof.Interact.cs (partial).
             case 40: RunInteractStage(); break;
             case 90: RunNoSpawnStage(); break;
+
+            // ---- quest_arc / quest_persist / quest_neg (MC 3904 2c): stage
+            // bodies live in RuntimeIntegrationProof.Quests.cs (partial).
+            case 50: RunQuestStage(); break;
         }
         return false;
     }
