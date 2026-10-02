@@ -55,7 +55,10 @@ the composition root (see §3).
   `main.tscn`), `WorldDirector.Story.cs` (partial: the quest root seam —
   `InitStory` wiring, observation-hook delivery, wage-settle → `WagePaid`
   attribution to the ACTIVE wage row; wiring only, quest rules live in the pure
-  `QuestLog`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
+  `InitSkills` wiring, Q/R input poll, Manna save seams + the single armed-damage
+  wrap at the one `DealDamage` call; wiring only, economy lives in the engine-free
+  `SkillState`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,

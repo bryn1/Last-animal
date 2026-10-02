@@ -197,3 +197,11 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   ARCH re-verdicts on the fix tree = next wave. NOTE: first battery run post-fix hit a
   msbuild-race transient (gate red once: 2 failures incl. the new pin); two serial re-runs
   green; producer overlap ruled cause, no code fault found.
+- W3 FIX VERDICT BOARD CLOSED at ef816ec, one pinned tree, all three children on identical
+  hash 340c6e2a (--base d9288c4): TEST-c2 PASS (full battery + N2-pin drift RED-probe),
+  DA-c2 SHIP (all c1 items closed; every guide number cross-read vs code constants), ARCH
+  PASS (5 dims; one NEW P3 A1 = §3 WorldDirector.Skills.cs row — landed next commit).
+  Carries: 3915 (reward emitter + guide cap-location reword + F-key wording), +x on
+  runtime_integration_test.sh + stale header (:17) next code round, economy consts literal-
+  pin (cheap now), MC 3910 proof-size warning (565/600, split at next proof touch).
+  Per-child loop dirs ruled DECLINED terminal (standing doctrine).
