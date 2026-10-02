@@ -187,6 +187,10 @@ public partial class WorldDirector : Node3D
         // partial) — constructs the skill core, wires the v3 Manna save seams
         // and the kill-manna rider on the DnaExtracted forward below.
         InitSkills();
+        // MC 3933 stage 2f: UI root seam (world/WorldDirector.Ui.cs partial)
+        // — the TAB-toggle skills panel + live HUD readouts (Manna digits,
+        // learned-skill names, ACTIVE quest line; plan §G D4, owner D4/D5).
+        InitUi();
         // MC 1348 A5: the boot enemy set is the zone pipeline's job — the
         // EnterZone below fires OnZoneEntered -> ApplySpawnSet, which fields
         // the meadow SpawnSet into _zoneEnemies so zone travel can despawn it.
@@ -283,6 +287,7 @@ public partial class WorldDirector : Node3D
         if (Input.IsActionJustPressed("load_game"))
             _saveLoad.Load();
         PollSkillActions();   // MC 3912 2e: skill_1/skill_2 arms (Skills partial)
+        TickUi();             // MC 3933 2f: ui_toggle (TAB) handler + live HUD refresh (Ui partial)
     }
 
     private void BuildUi()

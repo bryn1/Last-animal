@@ -60,6 +60,13 @@
     <Compile Include="src/skills/SkillState.cs" />
     <Compile Include="world/WorldDirector.Skills.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Skills.cs" />
+    <!-- Compile MC 3933 stage 2f skills/quest UI (the TAB-toggle SkillsPanel
+         view + the UI composition partial + its headless pure-logic leg +
+         the framebuffer capture script for ci/ui_test.sh legs E/F). -->
+    <Compile Include="src/ui/SkillsPanel.cs" />
+    <Compile Include="world/WorldDirector.Ui.cs" />
+    <Compile Include="tests/ui/SkillsPanelTest.cs" />
+    <Compile Include="tests/ui/SkillsPanelCaptureTest.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

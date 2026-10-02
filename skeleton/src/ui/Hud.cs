@@ -1,8 +1,16 @@
 using Godot;
 using LastAnimal.Core;
 using LastAnimal.Core.Framework;
+using LastAnimal.Dna;
+using System;
 
 // Last Animal — M10 ui-hud (MC 890.14, dobbie, 2026-09-06).
+// MC 3933 stage 2f: two extra readout rows — learned-skill names + the ACTIVE
+// quest line — fed through BindLive, and the Manna digits move to the LIVE
+// source when one is bound. Plan §G D4 (RATIFIED): the View re-invokes the
+// live provider functions on EVERY redraw; it keeps no state copy of its own,
+// so there is nothing here that can go stale (tests/ui SkillsPanelTest
+// freshness leg plants exactly that defect and goes RED on it).
 //
 // C13 (PHASE0.md line 382): `Hud.Bind(Life, Manna, DnaMeter, CompanionHearts)`.
 // The head-up display: the player's four readouts, rendered as a Godot Control
@@ -23,9 +31,12 @@ using LastAnimal.Core.Framework;
 namespace LastAnimal.Ui;
 
 /// <summary>
-/// The four-gauge heads-up display (C13). Renders Life / Manna / DnaMeter /
-/// CompanionHearts as child Labels. Two gauges move on the C2 EventBus
+/// The heads-up display (C13). Renders Life / Manna / DnaMeter /
+/// CompanionHearts as child Labels, plus the 2f rows: learned-skill names
+/// and the ACTIVE quest line. Two gauges move on the C2 EventBus
 /// (DnaMeter, CompanionHearts); Life/Manna move through the combat seam.
+/// Once <see cref="BindLive"/> is wired the Manna digits and the 2f rows are
+/// re-read from the live providers on every redraw (plan §G D4 — no cache).
 /// </summary>
 public partial class Hud : Control
 {
@@ -39,6 +50,14 @@ public partial class Hud : Control
     private Label? _mannaLabel;
     private Label? _dnaLabel;
     private Label? _heartsLabel;
+    private Label? _skillsLabel;
+    private Label? _questLabel;
+
+    // 2f live sources (plan §G D4): re-invoked at every redraw, never copied
+    // into a field — the View holds providers, not values.
+    private Func<int>? _liveManna;
+    private Func<SkillUnlocks>? _liveUnlocks;
+    private Func<string>? _liveQuest;
 
     private EventBus? _bus;
 
@@ -55,6 +74,35 @@ public partial class Hud : Control
         DnaMeter = dnaMeter;
         CompanionHearts = companionHearts;
 
+        BuildControls();
+        Redraw();
+    }
+
+    /// <summary>
+    /// 2f live seam (plan §G D4): bind the sources the readouts are re-drawn
+    /// FROM. The three provider functions are invoked fresh at EVERY redraw —
+    /// the HUD never stores their values, so there is no copy here to stale
+    /// out. Composition sites inject closures over the live systems (the
+    /// WorldDirector Ui partial does this in production; tests/ui injects
+    /// mutable fixtures and proves the labels track the fixture).
+    /// </summary>
+    public void BindLive(Func<int> liveManna, Func<SkillUnlocks> liveUnlocks, Func<string> liveQuest)
+    {
+        _liveManna = liveManna ?? throw new ArgumentNullException(nameof(liveManna));
+        _liveUnlocks = liveUnlocks ?? throw new ArgumentNullException(nameof(liveUnlocks));
+        _liveQuest = liveQuest ?? throw new ArgumentNullException(nameof(liveQuest));
+        BuildControls();
+        Redraw();
+    }
+
+    /// <summary>
+    /// 2f refresh seam: pull the live providers once more and repaint. The
+    /// production driver is the director's per-frame TickUi; bus events also
+    /// redraw through the existing handlers. No manual poke needed anywhere
+    /// else — that is the freshness contract the tests/ui leg pins.
+    /// </summary>
+    public void RefreshLive()
+    {
         BuildControls();
         Redraw();
     }
@@ -149,16 +197,20 @@ public partial class Hud : Control
         _mannaLabel = MakeLabel("Manna");
         _dnaLabel = MakeLabel("DNA");
         _heartsLabel = MakeLabel("Hearts");
+        _skillsLabel = MakeLabel("Skills");
+        _questLabel = MakeLabel("Quest");
 
-        // Stack the four gauges down the top-left corner so all are readable.
-        for (int i = 0; i < 4; i++)
+        // Stack the readouts down the top-left corner so all are readable.
+        for (int i = 0; i < 6; i++)
         {
             Label l = i switch
             {
                 0 => _lifeLabel,
                 1 => _mannaLabel,
                 2 => _dnaLabel,
-                _ => _heartsLabel
+                3 => _heartsLabel,
+                4 => _skillsLabel,
+                _ => _questLabel
             };
             l.Position = new Vector2(8, 8 + i * 28);
             AddChild(l);
@@ -178,8 +230,27 @@ public partial class Hud : Control
     {
         if (_lifeLabel == null) return;
         _lifeLabel!.Text = $"Life: {Life}/100";
-        _mannaLabel!.Text = $"Manna: {Manna}/100";
+        // 2f: with a live source bound, the digits are pulled from it right
+        // now; the UpdateManna push seam (2e) stays the bus-less path and
+        // stays consistent because both read the same PlayerController.
+        int manna = _liveManna != null ? Clamp(_liveManna()) : Manna;
+        _mannaLabel!.Text = $"Manna: {manna}/100";
         _dnaLabel!.Text = $"DNA meter: {DnaMeter}";
         _heartsLabel!.Text = $"Hearts: {CompanionHearts}";
+        if (_skillsLabel != null)
+            _skillsLabel.Text = _liveUnlocks != null ? SkillNames(_liveUnlocks()) : string.Empty;
+        if (_questLabel != null)
+            _questLabel!.Text = _liveQuest != null ? _liveQuest() : string.Empty;
+    }
+
+    /// <summary>The learned-skill row, derived from the LIVE unlock verdict
+    /// (plan §G D4: single source — display names are presentation only).</summary>
+    private static string SkillNames(SkillUnlocks unlocks)
+    {
+        var ids = unlocks.Ids;
+        if (ids.Count == 0) return "Skills: none";
+        var names = new string[ids.Count];
+        for (int i = 0; i < ids.Count; i++) names[i] = SkillsPanel.DisplayName(ids[i]);
+        return "Skills: " + string.Join(", ", names);
     }
 }
