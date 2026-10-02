@@ -61,10 +61,25 @@ has no production caller), so it does not change during play.
 ## Dialogue
 
 NPC dialogue is surfaced through the on-screen dialogue box
-(`DialogueSystem.Show(nodeId)`, C13). Dialogue content is keyed by node id,
-but in this build the content is a small hardcoded set of lines
-(`DialogueSystem.DialogueFor`); any node id outside that set falls back to a
-generic placeholder line. There is no per-NPC dialogue content yet.
+(`DialogueSystem.Show(nodeId)`, C13). The text lives in a plain authored
+data table (`src/story/DialogueTable.cs`: node id -> text), which the
+composition root injects into the box — it is no longer hardcoded in the
+view. A node id the table does not author (for example the `npc_<id>` ids
+the interact trigger produces) still shows a short neutral line, never a
+blank box.
+
+## Quests
+
+A quiet five-beat quest arc runs on top of the same systems
+(`src/story/QuestTable.cs`, advanced by `src/story/QuestLog.cs`): **Arrival**
+(enter the meadow) → **Answer in Tongue** (speak DNA to a creature with
+`E`) → **Bread Before Bonds** (pay a due wage with `P`) → **Blood Teaches**
+(extract DNA from four creatures) → **The Watcher Falls** (kill the boss the
+zone fields once your spoken DNA crosses its threshold). Quests advance
+automatically as you play; each completion starts the next, and each reward
+is a short spoken beat rather than loot — the beats are authored nodes in
+the dialogue table. There is no quest log screen yet: the arc happens
+without menus.
 
 ## Saving and loading
 

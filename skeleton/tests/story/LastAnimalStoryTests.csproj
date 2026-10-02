@@ -30,13 +30,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Story data-layer sources (engine-free I3). -->
+    <!-- Story data-layer sources (engine-free I3). QuestTable.cs joined the
+         list in stage 2d: the arc cross-check test below reads it beside the
+         dialogue table (MC 3911, DA P2 cross-validation). -->
     <Compile Include="../../src/story/DialogueTable.cs" />
+    <Compile Include="../../src/story/QuestTable.cs" />
     <!-- The test files themselves (EnableDefaultCompileItems=false, so they
          must be listed). The harness self-test is compiled conditionally so
          the gate script can drop it with /p:IncludeHarness=false (two-sided
          calibration, same pattern as ci/save_test.sh). -->
     <Compile Include="DialogueTableTests.cs" />
+    <Compile Include="QuestArcCrossCheckTests.cs" />
     <Compile Include="StoryHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
   </ItemGroup>
 

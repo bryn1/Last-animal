@@ -112,10 +112,15 @@ public sealed class DialogueTable
         new("intro",  "The last animal stands at the edge of the world."),
         new("meadow", "A breeze moves the tall grass. Something watches."),
         new("betray", "The companion turns. There may be no turning back."),
-        // New arc seeds authored in stage 2a (owner ruling D6: English,
-        // diegetic-minimal, matching the migrated nodes' tone). Grown to the
-        // 5-quest arc rows by stage 2d content work in this same table.
+        // Arc seeds authored in stage 2a, grown to the full arc by stage 2d
+        // (owner ruling D6: English, diegetic-minimal, matching the migrated
+        // nodes' tone). Every quest reward beat of QuestTable.Default() names
+        // a node of THIS table; tests/story cross-checks the references, so
+        // renaming a node here fails the story gate, not the player.
         new("first_speak", "You answer in its own tongue. It listens, for now."),
         new("wage_duty",   "The companion waits. Bread first, bonds after."),
+        // 2d arc beats: the kill-quest reward and the finale reward.
+        new("counters",    "They fall. Something of their tongue passes into you. The land keeps count."),
+        new("boss_fallen", "The watcher falls. The grass settles. Nothing is decided."),
     });
 }

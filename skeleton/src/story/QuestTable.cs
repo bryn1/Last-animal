@@ -11,11 +11,19 @@ using System.Collections.Generic;
 // per-follower loyalty, boss dead) — the quest core subscribes, it never
 // re-derives companion/DNA/zone state and it never duplicates ZoneProgression.
 //
-// PLACEHOLDER CONTRACT (plan §B D5): the five rows below are the 5-quest arc
-// (owner ruling D6: ends at a zone boss) under STABLE ids. Stage 2d swaps the
-// content rows (titles, rewards, objective args) under the SAME ids — the
-// arc proof (ci_proofs/RuntimeIntegrationProof.Quests.cs) drives the ids and
-// is never edited by 2d.
+// ARC CONTRACT (plan §B D5, content authored by stage 2d): the five rows
+// below are the 5-quest arc (owner ruling D6: ends at a zone boss) under the
+// STABLE ids the arc proof (ci_proofs/RuntimeIntegrationProof.Quests.cs)
+// drives — 2d swapped titles/rewards under those ids and edited no proof
+// file. The per-row objective KINDS and the intro zone arg stay exactly as
+// 2c authored them: they are pinned by tests/quest (the id/kind/chain contract
+// tests + the DefaultArc fact-for-fact sequence) and driven fact-for-fact by
+// the quest_arc runtime mode — a content swap keeps every gate green.
+// Rewards are dialogue beats (no loot system): each Reward names a node id
+// of DialogueTable (src/story/DialogueTable.cs). tests/story
+// (QuestArcCrossCheckTests.cs) cross-checks those node references plus every
+// objective arg (DialogueShown -> node table, ZoneReached -> the spawner's
+// zone set), so a rename anywhere in the content chain fails loud (DA P2).
 namespace LastAnimal.Story;
 
 /// <summary>The objective fact a quest row waits on (all bus/scene observables).</summary>
@@ -69,7 +77,9 @@ public sealed class QuestDef
 
     public QuestObjective Objective { get; }
 
-    /// <summary>Reward text beat (no loot system: rewards are dialogue beats, plan 2d).</summary>
+    /// <summary>Reward beat — a DialogueTable node id (rewards are dialogue
+    /// beats, plan 2d; no loot system). The story cross-check test validates
+    /// the reference, so a renamed node fails the gate, not the player.</summary>
     public string Reward { get; }
 
     public QuestDef(string id, string title, QuestObjective objective, string reward)
@@ -136,8 +146,13 @@ public sealed class QuestTable
         return null;
     }
 
-    /// <summary>The first row id authored for an objective kind (the wage-settle
-    /// seam names its target with this); null when no row carries the kind.</summary>
+    /// <summary>The first row id authored for this objective kind (a purely
+    /// structural table query). NOTE (ARCH W2, reworded by 2d): the runtime
+    /// wage-settle seam does NOT use this — it attributes a settle through
+    /// QuestLog.FindActiveIdByObjectiveKind, because a Completed row never
+    /// keeps collecting settles. This query answers "does the arc author a
+    /// row of this kind, first one wins" and stays for table-API symmetry
+    /// (tests/quest pins both lookups to keep the roles distinct).</summary>
     public string? FindIdByObjectiveKind(QuestObjectiveKind kind)
     {
         foreach (var e in _entries)
@@ -146,29 +161,31 @@ public sealed class QuestTable
     }
 
     /// <summary>
-    /// The placeholder 5-quest arc (ids are the 2c/2d contract, plan §B D5).
-    /// Content rows are swapped by stage 2d under these same ids; the arc
-    /// proof drives the ids and never the text.
+    /// The authored 5-quest arc (ids are the 2c/2d contract, plan §B D5;
+    /// content authored in stage 2d — owner ruling D6: English,
+    /// diegetic-minimal, ending at the zone boss). The arc proof drives the
+    /// ids and the objective facts, never the text; rewards reference the
+    /// arc nodes of DialogueTable (cross-checked by tests/story).
     /// </summary>
     public static QuestTable Default() => new QuestTable(new QuestDef[]
     {
-        // The boot zone entry satisfies the intro beat; the proof then drives
+        // The boot zone entry satisfies the intro beat; the arc then runs
         // speak -> wage settle -> kills (also crossing the boss-spawn DNA
         // threshold) -> the zone-boss finale (owner ruling D6).
-        new("q_intro", "Placeholder: First Steps",
+        new("q_intro", "Arrival",
             new QuestObjective(QuestObjectiveKind.ZoneReached, 1, "meadow"),
-            "Placeholder reward (2d authors)."),
-        new("q_speak", "Placeholder: Answer in Tongue",
+            "intro"),
+        new("q_speak", "Answer in Tongue",
             new QuestObjective(QuestObjectiveKind.Spoken, 1),
-            "Placeholder reward (2d authors)."),
-        new("q_wage", "Placeholder: Bread Before Bonds",
+            "first_speak"),
+        new("q_wage", "Bread Before Bonds",
             new QuestObjective(QuestObjectiveKind.WagePaid, 1),
-            "Placeholder reward (2d authors)."),
-        new("q_kills", "Placeholder: Learn Their Counters",
+            "wage_duty"),
+        new("q_kills", "Blood Teaches",
             new QuestObjective(QuestObjectiveKind.Kills, 4),
-            "Placeholder reward (2d authors)."),
-        new("q_boss", "Placeholder: Fall of the Zone Boss",
+            "counters"),
+        new("q_boss", "The Watcher Falls",
             new QuestObjective(QuestObjectiveKind.BossDead, 1),
-            "Placeholder reward (2d authors)."),
+            "boss_fallen"),
     });
 }
