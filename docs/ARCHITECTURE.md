@@ -35,7 +35,7 @@ the composition root (see §3).
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
 | `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1). Engine-free (MC 3900 2a, MC 3904 2c). |
-| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs` | HUD, dialogue, empathy panel. |
+| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies), dialogue, empathy panel, TAB skills panel (MC 3933 2f). |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
 
@@ -58,12 +58,15 @@ the composition root (see §3).
   `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
   `InitSkills` wiring, Q/R input poll, Manna save seams + the single armed-damage
   wrap at the one `DealDamage` call; wiring only, economy lives in the engine-free
-  `SkillState`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  `SkillState`), `WorldDirector.Ui.cs` (partial: the UI root seam — `InitUi`
+  wiring of the skills panel + HUD readout providers (live closures, no cached
+  copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
   `redtest/`).
-- **Input map**: WASD + arrows + attack, defined in `project.godot`.
+- **Input map**: WASD + arrows + attack, skill_1..2 (Q/R; F reserved), ui_toggle
+  (TAB), defined in `project.godot`.
 
 ## 4. Entrypoints
 
@@ -107,13 +110,17 @@ the composition root (see §3).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
 `RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`;
-`RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`),
+`RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
+`ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
+writing, stamps `PlayerHealth=42`, and the load asserts that content
+(marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
 `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
 framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
 after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
-combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui, story, quest, skill).
+combat, dna_npc, ecosystem, companion, empathy, runtime, save, story, quest,
+skill; ui tests compile into the main csproj and run via `--script`).
 
 ## 7. Docs map (`skeleton/docs/`)
 

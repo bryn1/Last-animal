@@ -205,3 +205,12 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   runtime_integration_test.sh + stale header (:17) next code round, economy consts literal-
   pin (cheap now), MC 3910 proof-size warning (565/600, split at next proof touch).
   Per-child loop dirs ruled DECLINED terminal (standing doctrine).
+- W4 CLOSED (orchestrator-verified, 2026-10-02): MC 3910 (death_load owns its save: delete-
+  before-write + PlayerHealth=42 stamp, DEATH_SAVE_OWNED leg; SIZE headers) + MC 3933 2f
+  (SkillsPanel TAB + live HUD Manna/skills/ACTIVE-quest, legs E+F, zero new colors).
+  Verdict board .audits/20261002-W4wave: TEST PASS + DA SHIP (hash 712e1df3), ARCH PASS
+  (hash 046052 = same tree + my in-flight docs sync; delta docs-only, noted honestly).
+  Docs synced by orchestrator per §G F1 (G1 six-readouts guide claim + TAB row + F-key
+  wording + cap-location reword; G2 §2/§3/input-map rows; G3 tests/ui csproj exception).
+  Comment-only residuals carried to MC 3915 (G4 518->539, G5 1280x720, F2 --wait, DA F1
+  director-DNA gate leg). 7-gate battery green at 23472da on my runs.

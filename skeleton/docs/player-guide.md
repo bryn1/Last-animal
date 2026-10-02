@@ -18,14 +18,16 @@ Verified against the `[input]` map in `project.godot`:
 | Empathy Book | `B` |
 | Invert Strike (skill) | `Q` |
 | Mend (skill) | `R` |
-| Third skill (reserved, unbound) | `F` |
+| Skills panel (toggle) | `TAB` |
+| Third skill (reserved; bound but inert) | `F` |
 | Save game | `F5` |
 | Load game | `F9` |
 
 ## The HUD
 
-Four readouts (C13 contract, `src/ui/Hud.cs`): **Life**, **Manna**, **DNA
-meter**, and **Companion hearts**. Life drops when enemies hit you. The DNA
+Six readouts (C13 contract extended by MC 3933, `src/ui/Hud.cs`): **Life**,
+**Manna**, **DNA meter**, **Companion hearts**, **Skills** (what you have
+learned) and the **ACTIVE quest** line. Life drops when enemies hit you. The DNA
 meter tracks your language progress; companion hearts mirror your companion's
 loyalty. **Manna is skill fuel**: every DNA extraction (kill) grants +5 and
 casting a skill spends it (`SkillState`, `src/skills/`). The gauge moves
@@ -66,7 +68,8 @@ load — nothing refills it for free. The skills and their keys are under
 ## Skills
 
 Two launch skills ride the Manna economy (the tunables — costs, heal,
-per-kill gain, cap — live in `src/skills/SkillState.cs`):
+per-kill gain — live in `src/skills/SkillState.cs`, the cap in
+`src/combat/PlayerController.cs`):
 
 - **Invert Strike** (`Q`, 10 Manna): your next melee hit deals triple
   damage; the arm is spent by that one hit.
