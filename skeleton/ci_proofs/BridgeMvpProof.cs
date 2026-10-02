@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (458 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan.
+// SIZE: inherited >400 (482 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -162,6 +162,30 @@ public partial class BridgeMvpProof : SceneTree
         if (_empathy == null) { Fail("EmpathyPanel not found at UI/Empathy"); return; }
         if (_companion == null) { Fail("CompanionFollowBody not found at Main/Companion"); return; }
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
+
+        // MC 3897 (MC 3895 TEST verdict P2): the spawn check asserts VISUAL
+        // CONTENT, not just bodies — every spawned enemy's Visual subtree must
+        // hold >=1 MeshInstance3D. Counting EnemyActor bodies alone stayed
+        // green while ActorVisual.Build returned an empty tree (mutation probe,
+        // MC 3895); an enemy with an empty Visual subtree is now a loud fail
+        // naming the actor. Six-marker assertions and the pre-3895
+        // direct-children enemy scan above are untouched.
+        foreach (EnemyActor e in _enemies)
+        {
+            int meshes = 0;
+            if (e.Visual != null)
+            {
+                if (e.Visual is MeshInstance3D) meshes++; // pre-3895 placeholder shape
+                foreach (Node d in e.Visual.GetChildren(true))
+                    if (d is MeshInstance3D) meshes++;
+            }
+            if (meshes == 0)
+            {
+                Fail($"VISUAL_CONTENT: enemy {e.Name} ({e.Kind}) Visual subtree has 0 MeshInstance3D — ActorVisual built no mesh");
+                return;
+            }
+        }
+        GD.Print($"BRIDGE_MVP_PROOF: VISUAL_CONTENT — all {_enemies.Count} spawned enemies have >=1 MeshInstance3D under Visual");
 
         // MC 1344.1: the autoload EventBus may only exist by now (it loads after
         // _Initialize in --script mode). Resolve it here if _Initialize missed it,
