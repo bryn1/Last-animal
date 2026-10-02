@@ -7,8 +7,9 @@ using LastAnimal.Combat;
 // EnemyActor: the VISIBLE enemy body in the playable scene. It wraps a pure
 // M08 EnemyAI (C11, engine-free, REUSED verbatim — no AI logic re-authored
 // here) in a thin CharacterBody3D shell: gravity + MoveAndSlide so it rests
-// on the meadow heightfield terrain exactly like the Player, a coloured mesh
-// so it is actually visible, and velocity toward the AI's target so it
+// on the meadow heightfield terrain exactly like the Player, a composed
+// per-type silhouette (MC 3895: ActorVisual, visual-only) so it is actually
+// visible AND readable by kind, and velocity toward the AI's target so it
 // approaches/chases the player.
 //
 // Ownership (design 1256.2 §2): the WorldDirector — the ONE composition root —
@@ -27,28 +28,28 @@ public partial class EnemyActor : CharacterBody3D
     public EnemyAI.Type Kind { get; private set; }
     public bool IsDead => Ai.IsDead;
 
-    public MeshInstance3D? Visual { get; private set; }
+    /// <summary>MC 3895: Node3D root of the composed ActorVisual (was the
+    /// single MeshInstance3D box). LookAt in _PhysicsProcess drives facing.</summary>
+    public Node3D? Visual { get; private set; }
 
     /// <summary>
     /// Configure the enemy: the DIRECTOR-OWNED AI (injected — this shell never
-    /// constructs gameplay systems), spawn position and mesh colour.
+    /// constructs gameplay systems), spawn position and the composed visual
+    /// for its type (MC 3895: the old flat red colour parameter is gone — the
+    /// silhouette + colour are derived from the AI's EnemyType, boss flag).
     /// </summary>
-    public void Configure(EnemyAI ai, float x, float z, Color colour)
+    public void Configure(EnemyAI ai, float x, float z, bool isBoss = false)
     {
         Kind = ai.EnemyType;
         Ai = ai;
         Position = new Vector3(x, 4f, z);   // spawn above the terrain, gravity settles it down
 
-        var mesh = new MeshInstance3D { Name = "Visual" };
-        var box = new BoxMesh { Size = new Vector3(0.9f, 1.5f, 0.9f) };
-        mesh.Mesh = box;
-        // Emission = albedo so the enemy is clearly visible even where the
-        // single top-down light leaves shadow (robust on llvmpipe software GL).
-        var mat = new StandardMaterial3D { AlbedoColor = colour, Roughness = 0.7f };
-        mat.EmissionEnabled = true;
-        mat.Emission = colour;
-        mat.EmissionEnergyMultiplier = 0.6f;
-        mesh.MaterialOverride = mat;
+        // MC 3895: composed per-type silhouette built by ActorVisual (the
+        // CompanionVisual pattern, 0b5ada2), replacing the inline BoxMesh all
+        // enemies shared. The node keeps the name "Visual". It rides the body
+        // (this shell's own movement IS the sim follow), so there is no second
+        // follow mechanism; KillHide hides it, QueueFree frees it.
+        var mesh = ActorVisual.Build(Kind, isBoss);
         AddChild(mesh);
         Visual = mesh;
 

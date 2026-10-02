@@ -145,10 +145,16 @@ public partial class BridgeMvpProof : SceneTree
         _empathy = main.GetNodeOrNull<EmpathyPanel>("UI/Empathy");
         _companion = main.GetNodeOrNull<CompanionFollowBody>("Companion");
         // MC 1348 A5: the boot Enemy{i} ring is stood down — the director's
-        // live set (the zone pipeline's SpawnSet actors, all children of main)
-        // is the enemy population this proof drives.
+        // live set (the zone pipeline's SpawnSet actors) is the enemy
+        // population this proof drives. MC 3895: the zone bodies hang under
+        // Main/Visuals (the spawn-visual container); scan that subtree, and
+        // keep the direct-children scan as the pre-3895 fallback.
         foreach (var child in main.GetChildren())
             if (child is EnemyActor e) _enemies.Add(e);
+        var visuals = main.GetNodeOrNull<Node3D>("Visuals");
+        if (visuals != null)
+            foreach (var child in visuals.GetChildren())
+                if (child is EnemyActor e && !_enemies.Contains(e)) _enemies.Add(e);
 
         if (_player == null) { Fail("Player node not found in main.tscn"); return; }
         if (_hud == null) { Fail("Hud not found at UI/HudLayer/Hud (WorldDirector UI not built)"); return; }

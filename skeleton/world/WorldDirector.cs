@@ -70,6 +70,12 @@ public partial class WorldDirector : Node3D
     private readonly List<LanguageSignature> _spokenDna = new();
     private readonly List<EnemyActor> _enemies = new();
     private readonly List<EnemyActor> _zoneEnemies = new();
+    // MC 3895: the zone-spawned enemy bodies (and their composed ActorVisual
+    // children) live under one "Visuals" container per playable scene, so the
+    // spawn-visual bridge has a named, enumerable home. Bodies, not detached
+    // meshes: ONE visual-follows-sim mechanism (the body follows the AI), the
+    // container is organization only — transforms identity, no gameplay move.
+    private Node3D _visuals = null!;
     private CompanionFollowBody? _companionBody;
     private int _companionLoyaltyLast;
     private CompanionState _companionStateLast;   // MC 1348 A3: betrayal emits on the transition
@@ -177,6 +183,11 @@ public partial class WorldDirector : Node3D
         // The old hard-coded SpawnEnemies() ring spawned BESIDE that set and
         // registered only in _enemies, so travel never despawned it and the
         // stale boot goblins patrolled the player's re-entry point forever.
+        // MC 3895: the zone-visuals container must exist BEFORE the first
+        // EnterZone below (it drives ApplySpawnSet).
+        _visuals = new Node3D { Name = "Visuals" };
+        AddChild(_visuals);
+
         SpawnCompanion();
         EnterZone(_zone);
         _companionLoyaltyLast = _companionCore.Loyalty;
@@ -313,9 +324,13 @@ public partial class WorldDirector : Node3D
             }
             ai.ApplySpawnStats(health, damage, spawned.Speed);
             var actor = new EnemyActor { Name = $"Spawned{spawned.EntityId}" };
+            // MC 3895: the composed silhouette is derived from the spawned
+            // type + IsBoss flag inside EnemyActor (ActorVisual.Build) — the
+            // old flat per-spawn colour is gone; the body (with its "Visual"
+            // child) hangs under the scene's Visuals container.
             actor.Configure(ai, origin.X + spawned.Position.X, origin.Z + spawned.Position.Z,
-                new Color(0.9f, 0.25f, 0.2f));
-            AddChild(actor);
+                spawned.IsBoss);
+            _visuals.AddChild(actor);
             _enemies.Add(actor);
             _zoneEnemies.Add(actor);
             if (spawned.IsBoss) _boss = actor;
