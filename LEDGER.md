@@ -109,14 +109,17 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   verdicts DA SHIP / ARCH-c2 PASS / TEST PASS; orchestrator re-ran build+gates and visually
   verified a live capture (player moves, companion follows, HUD intact). Evidence:
   .audits/202610012100-char-art/evidence.md + player-companion-walk.png.
-- MC 3888 OPEN (fix cycle 1 of 3, awaiting wave 2): per-zone sky/light (2831aad), 12 Kenney GLB
-  decor props/zone (55a8d6b), procedural-sky v2 after panorama dropped runtime terrain on
-  software GL (3afc3d1; equirect claim recorded BLOCKED pending hardware-GPU check). Cycle 1
-  history: DA F1 "props buried" = FALSE POSITIVE (PIL clips 16-bit PNG heightmaps); the
-  engine-authoritative AnchorProbe (run by producer AND orchestrator: worst grounding delta
-  -0.09/-0.04/-0.08 m) proves all 34 props correctly sunk 2-9 cm. F2 wording + F3 citation fixes
-  landed; ARCH assets_packs doc row landed (20651de/b509dc3/11df6ce). Wave 2: DA-c2 (PIL
-  forbidden, engine decode) + ARCH-c2 + TEST-c2.
+- MC 3888 CLOSED (completed_unverified, DONE-gate requested; wave-2 verdicts TEST-c2 PASS /
+  DA-c2 SHIP / ARCH-c2 closed via 702c7db): per-zone sky/light (2831aad), 36 Kenney GLB decor
+  instances from 24 pack files, 12/zone (55a8d6b), procedural-sky v2 after panorama dropped
+  runtime terrain on software GL (3afc3d1; equirect claim recorded BLOCKED pending hardware-GPU
+  check). Cycle 1 history: DA F1 "props buried" = FALSE POSITIVE (PIL clips 16-bit PNG
+  heightmaps); engine-authoritative AnchorProbe (run by producer, DA-c2 and orchestrator: worst
+  grounding delta -0.09/-0.04/-0.08 m) proves all 34 props correctly sunk 2-9 cm. F2 wording +
+  F3 citation fixes landed; ARCH assets_packs doc row landed (20651de/b509dc3/11df6ce + 702c7db
+  measured 4096x2048 skybox fix). DoD by orchestrator's own runs at 702c7db: export_check 0,
+  export_linux 0, smoke capture 1280x800 1819-color render, zone screenshots visually verified.
+  Evidence: .audits/202610012100-env-art/evidence.md.
 - Known limitations: main_composition gate RED on this host — pre-existing capture/quit timing
   race (baseline df8ff23 fails identically; proof: /tmp/la-baseline run); fix card MC 3896 filed
   (keep marker assertions, prove red on planted-bad). Ruins zone intentionally dark; canyon reads
