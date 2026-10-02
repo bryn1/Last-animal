@@ -45,7 +45,9 @@ the composition root (see §3).
   production site that constructs gameplay systems and binds them into
   `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
   (`EnemyActor.cs`, `CompanionFollowBody.cs`, `CompanionVisual.cs`,
-  `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  `ActorVisual.cs` — MC 3895 composed per-type enemy silhouettes, boss scaled;
+  spawned zone enemies parent under the director's `Visuals` Node3D on
+  `main.tscn`), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
