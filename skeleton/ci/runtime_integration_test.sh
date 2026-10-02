@@ -125,10 +125,14 @@ LOGB="$(LA_GATE_MODE=boss_phase timeout 240 "$GODOT" --headless --path "$PROJ" -
 
 # (G) death recovery (MC 1348 N1): dead player's shell must stop moving, and
 # the F9 load path must restore health + movement from the death state.
+# MC 3910 (DA W2): the leg also greps DEATH_SAVE_OWNED — the mode deletes the
+# ONE shared user://savegame.json before its own write and stamps health, so
+# the resurrection can never pass off a stale save from a sibling mode.
 run_mode death_load pass "DEATH_LOAD_RESURRECTED" "$PROOF_ZB"
 LOGD="$(LA_GATE_MODE=death_load timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF_ZB" 2>&1)" || true
 [[ "$LOGD" == *'DEATH_MOVEMENT_STOPPED'* ]] || fail "death_load: expected DEATH_MOVEMENT_STOPPED"
 [[ "$LOGD" == *'DEATH_MOVEMENT_RESTORED'* ]] || fail "death_load: expected DEATH_MOVEMENT_RESTORED"
+[[ "$LOGD" == *'DEATH_SAVE_OWNED'* ]] || fail "death_load: expected DEATH_SAVE_OWNED (phase must own its save — delete-then-write, health stamped; MC 3910)"
 
 # (H) MC 1348 P1 gameplay-bug regressions (A2/A3/A4/A5), one mode per finding
 # in ci_proofs/P1FixProof.cs. Each mode reproduces its audited bug against the

@@ -1,3 +1,4 @@
+// SIZE: >400 (419 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file); ONE SceneTree state machine per MC 3895 DA P2-1.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -26,8 +27,12 @@ using System.Collections.Generic;
 //   death_load — MC 1348 N1: save while alive (F5 path), kill the player
 //     through the model, assert the SHELL stops moving (dead = no input
 //     movement), then LoadGame() (F9 path) must restore health, clear IsDead
-//     and make movement work again. Markers: DEATH_MOVEMENT_STOPPED,
-//     DEATH_LOAD_RESURRECTED, DEATH_MOVEMENT_RESTORED.
+//     and make movement work again. MC 3910 (DA W2): the phase OWNS its save
+//     — the ONE shared user://savegame.json is deleted before the DEATH_SAVE
+//     leg and the loaded health must equal this run's health stamp, so a
+//     stale file from a sibling mode can never pass off. Markers:
+//     DEATH_SAVE_OWNED, DEATH_MOVEMENT_STOPPED, DEATH_LOAD_RESURRECTED,
+//     DEATH_MOVEMENT_RESTORED.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/ZoneBossProof.cs
 public partial class ZoneBossProof : SceneTree
@@ -36,6 +41,13 @@ public partial class ZoneBossProof : SceneTree
     private const int PressFrames = 6;      // press-travel settle window
     private const int BossThreshold = 4;    // EcosystemSpawner.BossThreshold
     private const int PhaseStepTarget = 6;  // observed count that crosses a phase step
+    // MC 3910: death_load stamps the saved PlayerHealth with this value (via
+    // TakeDamage, the model's only damage entry) so the load below asserts
+    // content written by THIS run, not a sibling mode's stale save (DA W2:
+    // one shared user://savegame.json + existence-only save check = stale
+    // resurrection). Ownership is provable because the file is deleted
+    // immediately before this write; the stamp makes the LOAD assert it too.
+    private const int DeathHealthStamp = 42;
 
     private EventBus? _bus;
     private WorldDirector? _director;
@@ -209,15 +221,25 @@ public partial class ZoneBossProof : SceneTree
                     PressTravel();   // pool dry — the next entry fields a fresh set
                 break;
 
-            // ---- death_load: save alive, kill, shell must stop, load rescues
+            // ---- death_load: own the save, save alive, kill, shell must stop,
+            // load rescues. MC 3910 (DA W2): every gate mode shares the ONE
+            // user://savegame.json, and the old existence-only check passed on
+            // a stale file written by an earlier mode — the load then rescued
+            // THAT content (order-dependent red/green). This phase now owns its
+            // save: delete the path before the write, stamp health so the
+            // RESURRECTED check below asserts content written by THIS run.
             case 30:
                 {
-                    _healthBeforeSave = _director!.PlayerModel.Health;
-                    _director.SaveGame();
                     var store = new GodotSaveStore();
+                    if (System.IO.File.Exists(store.SavePath))
+                        System.IO.File.Delete(store.SavePath);
+                    _director!.PlayerModel.TakeDamage(_director.PlayerModel.MaxHealth - DeathHealthStamp);
+                    _healthBeforeSave = _director.PlayerModel.Health;
+                    _director.SaveGame();
                     Check("DEATH_SAVE_WRITTEN: save file exists at the globalized user:// path",
                           System.IO.File.Exists(store.SavePath), $"path={store.SavePath}");
                     if (_failed) return true;
+                    GD.Print($"LA_GATE: DEATH_SAVE_OWNED — stale save removed, this write stamped health={_healthBeforeSave}");
                     // Kill through the model (the only damage entry point).
                     _director.PlayerModel.TakeDamage(_healthBeforeSave);
                     Check("player dead after lethal damage", _director.PlayerModel.IsDead,

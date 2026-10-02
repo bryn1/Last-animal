@@ -1,3 +1,4 @@
+// SIZE: >400 (566 l) — CI proof harness, test-class ceiling 600 (MC 3910 header-only; body splits owned by later waves).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
