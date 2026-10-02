@@ -1,4 +1,6 @@
-// SIZE: inherited >400 (518 l) — reasons per MC 3895 DA P2-1; see SIZE REASON block below (THE single composition root).
+// SIZE: inherited >400 (501 l after the MC 3943 2g move — was 539; the live
+// companion loop left for world/WorldDirector.Roster.cs) — reasons per MC 3895
+// DA P2-1; see SIZE REASON block below (THE single composition root).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -68,6 +70,10 @@ public partial class WorldDirector : Node3D
     private SalarySystem _salary = null!;
     private BetrayalSystem _betrayal = null!;
 
+    // MC 3943 stage 2g: the live companion loop + its per-follower diffs moved
+    // to world/WorldDirector.Roster.cs (TickRoster); the singleton body/loyalty/
+    // state diff fields died with it (they are per-follower now).
+
     private readonly List<LanguageSignature> _spokenDna = new();
     private readonly List<EnemyActor> _enemies = new();
     private readonly List<EnemyActor> _zoneEnemies = new();
@@ -77,9 +83,6 @@ public partial class WorldDirector : Node3D
     // meshes: ONE visual-follows-sim mechanism (the body follows the AI), the
     // container is organization only — transforms identity, no gameplay move.
     private Node3D _visuals = null!;
-    private CompanionFollowBody? _companionBody;
-    private int _companionLoyaltyLast;
-    private CompanionState _companionStateLast;   // MC 1348 A3: betrayal emits on the transition
     private string _zone = EcosystemSpawner.DefaultZone;
     private Vector3 _spawnOrigin;
     private EnemyActor? _boss;
@@ -106,7 +109,11 @@ public partial class WorldDirector : Node3D
     public PlayerController PlayerModel => _player;
     public CombatSystem Combat => _combat;
     public IReadOnlyList<LanguageSignature> SpokenDna => _spokenDna;
-    public CompanionStateMachine Companion => _companion;
+    /// <summary>The bootstrap-visible machine: roster[0]'s while the roster has
+    /// a follower (at boot this IS the bound instance — identity preserved);
+    /// the boot machine otherwise (MC 3943 2g read-surface honesty).</summary>
+    public CompanionStateMachine Companion =>
+        _roster != null && _roster.Count > 0 ? _roster[0].Machine : _companion;
     public string CurrentZone => _zone;
     public int Progression => _saveLoad.Progression;
     public bool HasLiveBoss => _boss != null && !_boss.IsDead;
@@ -202,9 +209,8 @@ public partial class WorldDirector : Node3D
         _visuals = new Node3D { Name = "Visuals" };
         AddChild(_visuals);
 
-        SpawnCompanion();
+        InitRoster();   // MC 3943 2g: boot companion = roster[0] (Roster partial)
         EnterZone(_zone);
-        _companionLoyaltyLast = _companionCore.Loyalty;
         GD.Print($"W3DBG: director ready (composition root) player={(Player != null)} uicanvas={(UICanvas != null)} enemies={_enemies.Count} origin={origin}");
     }
 
@@ -231,48 +237,14 @@ public partial class WorldDirector : Node3D
             _hud.UpdateLife(_player.Health);
         }
 
-        // Companion loop (M03 -> M05): tick needs + the machine the visible
-        // entity is wired to. Settlement policy (MC 1348 A3): a wage is the
-        // PLAYER's decision — pay it with the pay_wage action while it is due;
-        // a wage left unpaid for a full pay interval is one skipped cycle (the
-        // skip arm runs, M03 drains loyalty) until betrayal fires at loyalty 0.
-        _needs.TickAccompaniment(delta);
-        var state = _companion.Tick();
-        if (state != CompanionState.Betrayed)
-        {
-            if (_needs.SalaryDue && Input.IsActionJustPressed("pay_wage"))
-            {
-                _companion.Pay();
-                NotifyWageSettled();   // MC 3904 2c: WagePaid rides the settle (Story partial)
-            }
-            else if (_needs.ConsumeUnpaidInterval())
-                _companion.SkipPayment();
-        }
-
-        int loy = _companionCore.Loyalty;
-        if (loy != _companionLoyaltyLast)
-        {
-            _bus.EmitLoyaltyChanged(new CompanionId(_companion.Name), loy);
-            _companionLoyaltyLast = loy;
-        }
-        // C7 precondition path (MC 1348 A3): the machine mirrored M03's
-        // CheckBetrayal (loyalty 0 while bonded) — execute the betrayal: break
-        // the bond, land the betrayal damage, emit C2 Betrayal ONCE on the
-        // transition (not every frame).
-        if (state == CompanionState.Betrayed && _companionStateLast != CompanionState.Betrayed)
-        {
-            BetrayalResult? result = _betrayal.ExecuteBetrayal(_companionCore);
-            if (result != null)
-            {
-                _player.TakeDamage(result.DamageDealt);
-                _hud.UpdateLife(_player.Health);
-            }
-            _bus.EmitBetrayal(new CompanionId(_companion.Name), new TargetId("player"));
-        }
-        _companionStateLast = state;
-
-        // The visible companion body ticks the SAME machine (the integration fix).
-        _companionBody?.Entity.Advance();
+        // MC 3943 stage 2g: the companion loop (M03 -> M05) MOVED to
+        // world/WorldDirector.Roster.cs as TickRoster — per follower over the
+        // CompanionRoster (cap 3, owner D1): needs, machine, the pay/skip arms,
+        // unique-key loyalty deltas THEN the roster-mean LAST under the
+        // reserved "roster" key (D6), the C7 betrayal transition and the
+        // bodies' Advance(). The roster-of-one is its minimal case — the MC
+        // 1348 A3 settlement policy is unchanged.
+        TickRoster(delta);
 
         if (Input.IsActionJustPressed("attack"))
             TryAttack();
@@ -387,20 +359,8 @@ public partial class WorldDirector : Node3D
         GD.Print($"W3: travel -> zone '{next}' (player repositioned, SpawnSet re-applied)");
     }
 
-    private void SpawnCompanion()
-    {
-        // The machine-wired companion: CompanionEntity (rig + animation driven
-        // by the director's machine) inside the follow body — one companion,
-        // not a visible body plus a phantom machine.
-        var hook = new CompanionAnimationHook("walkBaked", "walkBaked", "walkBaked");
-        _companionBody = new CompanionFollowBody(_companion, hook)
-        {
-            Name = "Companion",
-            Target = Player,
-            Y = 0.55f,
-        };
-        AddChild(_companionBody);
-    }
+    // MC 3943 stage 2g: SpawnCompanion moved to world/WorldDirector.Roster.cs
+    // (InitRoster spawns the boot body; recruited/restored followers add theirs).
 
     private void TryAttack()
     {
@@ -442,11 +402,10 @@ public partial class WorldDirector : Node3D
         Node3D? npc = null;
         int npcId = 0;
         float best = TalkRange;
-        if (_companionBody != null)
-        {
-            float d = (_companionBody.GlobalPosition - ppos).Length();
-            if (d <= best) { best = d; npc = _companionBody; npcId = _companionCore.CompanionEntityId; }
-        }
+        // MC 3943 2g: the nearest-FOLLOWER scan moved to the Roster partial —
+        // it covers every follower body AND the wild creatures (interacting
+        // with a wild one marks the standing recruit offer, plan §B 2g).
+        TryRosterNpc(ppos, ref best, ref npc, ref npcId);
         foreach (var e in _enemies)
         {
             if (e.IsDead) continue;
@@ -465,16 +424,17 @@ public partial class WorldDirector : Node3D
 
     /// <summary>
     /// Open/close the Empathy Book (MC 1348 A4): the C13 surface becomes
-    /// reachable in play. The book action opens the panel on the companion's
-    /// LIVE M04 entry (C9 Query — hidden state, summary, hint); pressing it
-    /// again dismisses the panel.
+    /// reachable in play. The book action opens the panel on the SELECTED
+    /// follower's LIVE M04 entry (C9 Query — hidden state, summary, hint);
+    /// pressing it again dismisses the panel. MC 3943 2g: selection pages
+    /// with the cycle_follower action (Roster partial).
     /// </summary>
     private void ToggleEmpathyBook()
     {
         if (_empathy.Visible)
             _empathy.Close();
-        else
-            _empathy.Open(EmpathyBook.Query(_companionCore));
+        else if (_roster != null && _roster.Count > 0)
+            _empathy.Open(EmpathyBook.Query(_roster.Selected.Component));
         GD.Print($"W3: book action -> EmpathyPanel {( _empathy.Visible ? "opened (C9 Query)" : "closed")}");
     }
 
@@ -522,8 +482,10 @@ public partial class WorldDirector : Node3D
     /// <summary>Restore the saved state and re-enter the saved zone (F9).</summary>
     public void LoadGame()
     {
+        // MC 3943 2g: the delta reset moved to the Roster partial (per follower)
+        // — a restore emits no phantom loyalty deltas.
         if (_saveLoad.Load())
-            _companionLoyaltyLast = _companionCore.Loyalty;   // no phantom loyalty delta after a restore
+            ResetRosterDeltas();
     }
 
     // ---- gate seams (design §4.2): one-line bool guards, no gameplay logic --

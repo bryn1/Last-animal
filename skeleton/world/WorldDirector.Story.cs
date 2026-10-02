@@ -30,8 +30,10 @@ public partial class WorldDirector
     /// <summary>Read-only surface the runtime proofs read (proof-only, no logic).</summary>
     public QuestLog Quests => _quests;
 
-    /// <summary>Proof seam: is a wage currently due? (read-only, no logic).</summary>
-    public bool WageDueNow => _needs.SalaryDue;
+    /// <summary>Proof seam: is a wage currently due? (read-only, no logic).
+    /// MC 3943 2g (ARCH W2): re-keyed from the singleton read to ANY roster
+    /// follower — the roster-of-one answers exactly as before.</summary>
+    public bool WageDueNow => _roster != null && _roster.AnyWageDue;
 
     /// <summary>
     /// Root seam, called from _Ready right after the SaveLoadController is
@@ -80,18 +82,24 @@ public partial class WorldDirector
     }
 
     /// <summary>
-    /// The WagePaid seam (root pay arm, plan §B 2c ≤3 lines there): fires the
+    /// The WagePaid seam (plan §B 2c ≤3 lines there): fires the
     /// batched WagePaid signal ONLY on a landed settle (Pay() made SalaryDue
     /// fall — the machine's Needing->Following transition), keyed by the quest
     /// the wage SERVES — resolved per still-Active wage row (DA-verdict P3: a
     /// Completed row collects no settles; with no Active wage row the settle
     /// simply rides no quest signal). No settle, no signal — no second wage
     /// path.
+    ///
+    /// MC 3943 2g (ARCH W2, was a singleton read): the settle check moved to
+    /// the CALLER — TickRoster (world/WorldDirector.Roster.cs) invokes this
+    /// only for a follower whose own SalaryDue just fell, so EACH paying
+    /// follower settles its own wage and emits its own WagePaid (q_wage counts
+    /// events; target 1 stays fine). A stale singleton read here would mute
+    /// every non-boot follower's settle.
     /// </summary>
     private void NotifyWageSettled()
     {
         if (_quests == null || !_storyHooksEnabled) return;
-        if (_needs.SalaryDue) return;   // Pay() did not settle this tick
         var wageQuestId = _quests.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid);
         if (wageQuestId == null) return;   // no quest is being served right now
         _bus.EmitWagePaid(new QuestId(wageQuestId));

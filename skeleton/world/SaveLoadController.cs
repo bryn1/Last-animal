@@ -81,6 +81,16 @@ public sealed class SaveLoadController
     public Func<int>? MannaWrite { get; set; }
     public Action<int>? MannaRestore { get; set; }
 
+    // Followers seams (MC 3943 2g): the v3 Followers list exists since 2b as a
+    // roster-of-one (BuildFollowers below). The WorldDirector Roster partial
+    // injects these to fill N — every bonded follower, and a load RESTORES N
+    // through the roster's own rebuild (the roster owns stack objects + visible
+    // bodies; this controller stays vocabulary-free, same injection idiom).
+    // Unset (a composition without the roster seam) keeps the v2 semantics:
+    // the single companion is Followers[0].
+    public Func<List<FollowerEntry>>? FollowersWrite { get; set; }
+    public Action<List<FollowerEntry>>? FollowersRestore { get; set; }
+
     public SaveLoadController(
         List<LanguageSignature> spokenDna,
         CompanionComponent companion,
@@ -128,7 +138,9 @@ public sealed class SaveLoadController
             DnaEventCount = _hud?.DnaMeter ?? 0,
             // v3 (MC 3901 2b): the roster-of-one — the companion, when it
             // exists, is Followers[0]; an empty roster means no follower.
-            Followers = BuildFollowers(),
+            // MC 3943 2g: the roster seam fills N (every bonded follower);
+            // unset keeps the roster-of-one.
+            Followers = FollowersWrite?.Invoke() ?? BuildFollowers(),
             // MC 1348 N1: health is part of the snapshot so a load can rescue
             // a dead player.
             PlayerHealth = _playerHealth(),
@@ -171,11 +183,17 @@ public sealed class SaveLoadController
         MannaRestore?.Invoke(loaded.Manna);
         // v3 (MC 3901 2b): restore the roster-of-one from Followers[0].
         // An empty roster restores the no-companion defaults (the same
-        // -1/50 the v2 defaults carried). Stage 2g grows this to N; the
-        // single live companion object stays authoritative until then.
-        var follower = loaded.Followers.Count > 0 ? loaded.Followers[0] : new FollowerEntry();
-        _companion.CompanionEntityId = follower.EntityId;
-        _companion.Loyalty = follower.Loyalty;
+        // -1/50 the v2 defaults carried). MC 3943 2g: the roster seam restores
+        // N (the Roster partial rebuilds stacks + bodies); unset keeps the
+        // v2 single-companion restore.
+        if (FollowersRestore != null)
+            FollowersRestore(loaded.Followers);
+        else
+        {
+            var follower = loaded.Followers.Count > 0 ? loaded.Followers[0] : new FollowerEntry();
+            _companion.CompanionEntityId = follower.EntityId;
+            _companion.Loyalty = follower.Loyalty;
+        }
         // MC 1405 N6: HUD restore is guarded — a no-UI composition has no
         // meter or life gauge to update.
         _hud?.UpdateDnaMeter(loaded.DnaEventCount);

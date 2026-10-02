@@ -35,6 +35,9 @@
     <Compile Include="src/companion/CompanionNeeds.cs" />
     <Compile Include="src/companion/CompanionAnimationHook.cs" />
     <Compile Include="src/companion/CompanionEntity.cs" />
+    <!-- Compile MC 3943 stage 2g roster source (the pure follower roster:
+         cap 3, unique bus keys, the roster-mean-last emit-order contract). -->
+    <Compile Include="src/companion/CompanionRoster.cs" />
     <!-- Compile M04 empathy-book pure-logic source. -->
     <Compile Include="src/empathy/EmpathyBook.cs" />
     <!-- Compile M10 ui-hud source (C13: Hud, DialogueSystem, EmpathyPanel). -->
@@ -67,6 +70,11 @@
     <Compile Include="world/WorldDirector.Ui.cs" />
     <Compile Include="tests/ui/SkillsPanelTest.cs" />
     <Compile Include="tests/ui/SkillsPanelCaptureTest.cs" />
+    <!-- Compile MC 3943 stage 2g follower roster (the live-loop composition
+         partial the root's companion loop moved into + the roster runtime
+         proof; modes roster_follow / roster_neg). -->
+    <Compile Include="world/WorldDirector.Roster.cs" />
+    <Compile Include="ci_proofs/RosterIntegrationProof.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

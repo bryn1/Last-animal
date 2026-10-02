@@ -214,3 +214,18 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   wording + cap-location reword; G2 §2/§3/input-map rows; G3 tests/ui csproj exception).
   Comment-only residuals carried to MC 3915 (G4 518->539, G5 1280x720, F2 --wait, DA F1
   director-DNA gate leg). 7-gate battery green at 23472da on my runs.
+- MC 3943 stage 2g DELIVERED (code, 2026-10-02, this commit): follower roster cap 3
+  (owner D1 "All rec", 4th REFUSED) — src/companion/CompanionRoster.cs (pure) +
+  world/WorldDirector.Roster.cs (live loop MOVED from root 539->501l, SIZE honest);
+  recruit = interact-wild + FIRST wage via existing pay_wage; INDEPENDENT per-follower
+  wages, wage seam re-keyed off singleton (W2, each settle emits own WagePaid); UNIQUE
+  bus keys <name>-<EntityId> deltas first + roster-mean LAST under reserved "roster"
+  (D6, no Hud edit; F2 key-ignored pinned on real QuestLog); cycle_follower/break_bond
+  actions, Forgive/PermanentBreak glue in Roster partial only (EmpathyPanel untouched);
+  save Followers fills N, load restores N; roster[0] visible (boot machine IS roster[0]).
+  Gates all 0 on this tree: ci/roster_test.sh two-pass (14 green, self-test red), full
+  runtime_integration_test.sh incl. RosterIntegrationProof roster_follow + roster_neg
+  (NEG_ROSTER), 14 regression gates, planted-bad x2 RED-named + byte-identical revert.
+  Deviation: standalone ci_proofs/RosterIntegrationProof.cs (RuntimeIntegrationProof.cs
+  2g-forbidden, partial cannot register modes; Godot file==class rule). Verdict board:
+  parent's wave. Docs (docs/ARCHITECTURE.md roster row + input map C/J) owed at close.

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Last Animal — MC 3943 stage 2g roster test project (code, 2026-10-02).
+       Standalone xunit project (the exact shape of tests/skill/): compiles
+       the engine-free roster sources plus the pure quest sources the F2
+       reserved-key regression rides, so `dotnet test` runs the roster suite
+       headless without the Godot SDK. The engine project compiles the same
+       files for the live scene. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- Assembly name must not collide with the Godot project's assembly. -->
+    <AssemblyName>LastAnimalRosterTests</AssemblyName>
+    <RootNamespace>LastAnimal.Tests</RootNamespace>
+    <!-- Compile ONLY the explicitly listed files below (same rule as every
+         per-feature test csproj: the explicit list is the source of truth). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Roster + the companion/npc sources it composes (engine-free I3). -->
+    <Compile Include="../../src/companion/CompanionRoster.cs" />
+    <Compile Include="../../src/companion/CompanionStateMachine.cs" />
+    <Compile Include="../../src/companion/CompanionNeeds.cs" />
+    <Compile Include="../../src/npc/SalarySystem.cs" />
+    <Compile Include="../../src/npc/BetrayalSystem.cs" />
+    <Compile Include="../../src/npc/CompanionComponent.cs" />
+    <!-- F2 reserved-key regression rides the REAL quest sources (consumed,
+         never edited — src/story/* is on the 2g forbidden list). -->
+    <Compile Include="../../src/story/QuestTable.cs" />
+    <Compile Include="../../src/story/QuestLog.cs" />
+    <!-- The test files themselves (EnableDefaultCompileItems=false). The two-
+         sided calibration self-test is compiled conditionally so the gate
+         script can drop it with /p:IncludeHarness=false — the ci/skill_test.sh
+         pattern (works with the explicit list above). -->
+    <Compile Include="RosterTests.cs" />
+    <Compile Include="RosterHarnessSelfTest.cs" Condition="'$(IncludeHarness)' != 'false'" />
+  </ItemGroup>
+
+</Project>

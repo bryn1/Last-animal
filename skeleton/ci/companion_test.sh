@@ -66,5 +66,17 @@ echo "COMPANION_TEST: run 2 — Failed=$FAILED2 Passed=$PASSED2 Total=$TOTAL2"
 [ "$PASSED2" != "" ] || fail "run 2: no passed count found in output"
 [ "$TOTAL1" = "$((TOTAL2 + 1))" ] || fail "total mismatch: run1=$TOTAL1 run2=$TOTAL2 (expected run1 = run2 + 1)"
 
-echo "COMPANION_TEST: GATE PASS — harness self-test went red (1 failure), real suite green ($PASSED2 passed, 0 failed)"
+# (3) MC 3943 stage 2g extension — the move is real and the root stays moved:
+# the live companion loop now LIVES in world/WorldDirector.Roster.cs (the
+# roster's TickRoster), so the composition root must NOT re-grow a loyalty
+# emit or a machine tick of its own (proof of absence: this leg goes red the
+# moment a second companion loop reappears in the root file).
+[ -f "$PROJ/world/WorldDirector.Roster.cs" ] || fail "2g: world/WorldDirector.Roster.cs missing (the roster partial)"
+if grep -q "EmitLoyaltyChanged" "$PROJ/world/WorldDirector.cs"; then
+  fail "2g: WorldDirector.cs emits LoyaltyChanged again — the loop must live in WorldDirector.Roster.cs only"
+fi
+grep -q "TickRoster" "$PROJ/world/WorldDirector.cs" || fail "2g: WorldDirector.cs no longer calls TickRoster (the root seam is gone)"
+grep -q "TickRoster" "$PROJ/world/WorldDirector.Roster.cs" || fail "2g: TickRoster missing from WorldDirector.Roster.cs"
+
+echo "COMPANION_TEST: GATE PASS — harness self-test went red (1 failure), real suite green ($PASSED2 passed, 0 failed); 2g loop-move leg holds (no loyalty emit in the root)"
 exit 0

@@ -37,6 +37,26 @@ public partial class CompanionFollowBody : Node3D
     /// <summary>The machine-wired entity (rig + animation), ticked by the director.</summary>
     public CompanionEntity Entity { get; }
 
+    // --- MC 3943 stage 2g: roster fields on the body (flags + ids only, no
+    // gameplay logic — the roster semantics live in WorldDirector.Roster.cs).
+
+    /// <summary>MC 3943 2g: TRUE while this is a WILD creature — not yet in the
+    /// CompanionRoster. A wild body stands its ground (Target is null) until
+    /// recruited (interact offers, pay_wage pays the FIRST wage; owner D1 cap).</summary>
+    public bool Wild { get; set; }
+
+    /// <summary>MC 3943 2g: the creature's world entity id (interact/speak +
+    /// dialogue target; becomes the follower's bond id on recruit).</summary>
+    public int EntityId { get; set; } = -1;
+
+    /// <summary>MC 3943 2g: set by the interact scan when the player spoke to
+    /// this WILD creature — the standing recruit offer the next pay_wage consumes.</summary>
+    public bool RecruitOffered { get; set; }
+
+    /// <summary>MC 3943 2g: the roster stack built for this body (moved in on
+    /// recruit; null only for bodies composed outside the roster path).</summary>
+    public LastAnimal.Companion.CompanionRoster.Follower? BoundFollower { get; set; }
+
     public CompanionFollowBody(CompanionStateMachine machine, CompanionAnimationHook hook)
     {
         Entity = new CompanionEntity(machine, hook) { Name = "Entity" };

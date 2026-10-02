@@ -193,5 +193,29 @@ LOGSK="$(LA_GATE_MODE=skill_use timeout 300 "$GODOT" --headless --path "$PROJ" -
 [[ "$LOGSK" == *'SKILL_USED mend'* ]] || fail "skill_use: expected SKILL_USED mend on the bus"
 run_mode skill_neg fail "NEG_SKILL"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; skill economy green, skill_neg red; non-blank render)"
+# (K) MC 3943 stage 2g follower roster (ci_proofs/RosterIntegrationProof.cs):
+# recruit WILD creatures in play (interact-offer + FIRST wage via the existing
+# pay_wage), followers follow, INDEPENDENT per-follower wages each emitting
+# their own WagePaid (ARCH W2), save->load restores N=3 (LOAD_RESTORED
+# extended), cycle_follower + Forgive + break_bond arms drive the Empathy Book
+# (one follower betrays, the others keep following), and the hearts MEAN rides
+# the LAST LoyaltyChanged of the frame under the reserved "roster" key — the
+# emit-order contract is asserted on the real wire order. roster_neg proves
+# the cap: the 4th recruit is REFUSED (owner ruling D1) — red with NEG_ROSTER.
+PROOF_ROSTER="res://ci_proofs/RosterIntegrationProof.cs"
+[ -f "$PROJ/ci_proofs/RosterIntegrationProof.cs" ] || fail "RosterIntegrationProof.cs not found"
+run_mode roster_follow pass "ROSTER_RECRUITED" "$PROOF_ROSTER"
+LOGR="$(LA_GATE_MODE=roster_follow timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF_ROSTER" 2>&1)" || true
+[[ "$LOGR" == *'ROSTER_TWO_RECRUITED'* ]] || fail "roster_follow: expected ROSTER_TWO_RECRUITED"
+[[ "$LOGR" == *'FOLLOWERS_FOLLOW'* ]] || fail "roster_follow: expected FOLLOWERS_FOLLOW (two recruited bodies trail the player)"
+[[ "$LOGR" == *'WAGE_INDEPENDENT_A'* ]] || fail "roster_follow: expected WAGE_INDEPENDENT_A (only the DUE follower settled)"
+[[ "$LOGR" == *'WAGE_INDEPENDENT_B'* ]] || fail "roster_follow: expected WAGE_INDEPENDENT_B (non-boot follower settled its OWN wage + WagePaid — singleton read would mute it)"
+[[ "$LOGR" == *'ROSTER_RESTORED'* ]] || fail "roster_follow: expected ROSTER_RESTORED (load restores N=3)"
+[[ "$LOGR" == *'CYCLE_SELECTED'* ]] || fail "roster_follow: expected CYCLE_SELECTED (cycle_follower action)"
+[[ "$LOGR" == *'FORGIVE_APPLIED'* ]] || fail "roster_follow: expected FORGIVE_APPLIED (book-open pay_wage = Forgive, not a wage)"
+[[ "$LOGR" == *'BREAK_BOND_SELECTED'* ]] || fail "roster_follow: expected BREAK_BOND_SELECTED (one betrays, others keep following)"
+[[ "$LOGR" == *'HEARTS_MEAN_LAST'* ]] || fail "roster_follow: expected HEARTS_MEAN_LAST (mean emitted LAST under the reserved key)"
+run_mode roster_neg fail "NEG_ROSTER" "$PROOF_ROSTER"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, roster_neg cap red; non-blank render)"
 exit 0
