@@ -154,8 +154,9 @@ run_mode zone_travel_boot pass "BOOT_SET_CLEARED" "$PROOF_P1"
 # headlessly through the REAL scene — boot zone fact -> speak -> the pay_wage
 # settle riding WagePaid (QUEST_OBJECTIVE on q_wage) -> four extractions ->
 # the zone-boss finale (QUEST_COMPLETED, owner ruling D6); quest progress
-# surviving save->load in the live scene (QUEST_PERSIST); and the
-# SetQuestHooksEnabled gate seam going red (NEG_QUEST).
+# surviving save->load in the live scene (QUEST_PERSIST) plus the DA-P1
+# EVIDENCE-REWIND leg (one post-load extraction cascades nothing —
+# QUEST_REWIND); and the SetQuestHooksEnabled gate seam going red (NEG_QUEST).
 run_mode quest_arc pass "QUEST_COMPLETED"
 LOGQ="$(LA_GATE_MODE=quest_arc timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 [[ "$LOGQ" == *'QUEST_STARTED'* ]] || fail "quest_arc: expected QUEST_STARTED"
@@ -163,7 +164,10 @@ LOGQ="$(LA_GATE_MODE=quest_arc timeout 240 "$GODOT" --headless --path "$PROJ" --
 [[ "$LOGQ" == *'WAGE_PAID for q_wage'* ]] || fail "quest_arc: expected WAGE_PAID for q_wage on the bus"
 [[ "$LOGQ" == *'QUEST_COMPLETED q_boss'* ]] || fail "quest_arc: expected QUEST_COMPLETED q_boss (zone-boss finale)"
 run_mode quest_persist pass "QUEST_PERSIST"
+LOGP="$(LA_GATE_MODE=quest_persist timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGP" == *'QUEST_REWIND_ARMED'* ]] || fail "quest_persist: evidence-rewind leg never armed (wage/farm drift broken)"
+[[ "$LOGP" == *'QUEST_REWIND —'* ]] || fail "quest_persist: expected QUEST_REWIND (one post-load extraction, zero cascading completes — DA P1)"
 run_mode quest_neg fail "NEG_QUEST"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc + persist green, quest_neg red; non-blank render)"
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; non-blank render)"
 exit 0

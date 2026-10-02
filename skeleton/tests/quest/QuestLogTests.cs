@@ -182,6 +182,26 @@ public class QuestLogTests
         Assert.Equal(QuestStatus.Completed, log.Status("q_a"));
     }
 
+    [Fact]
+    public void WageAttribution_ResolvesTheActiveWageRowOnly()
+    {
+        // DA-verdict P3 (ed4a5b2): the settle seam resolves "the quest the
+        // wage serves" via the ACTIVE row — a Completed row collects nothing.
+        var log = DefaultLog();
+        log.SetBossDeadProvider(() => false);
+        Assert.Null(log.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid));
+        log.Start("q_intro");
+        log.ObserveZoneEntered("meadow");        // -> q_speak
+        log.ObserveSpoken();                     // -> q_wage ACTIVE
+        Assert.Equal("q_wage", log.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid));
+        log.ObserveWagePaid("q_wage");           // completes it
+        Assert.Equal(QuestStatus.Completed, log.Status("q_wage"));
+        Assert.Null(log.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid));
+        // Table-wide lookup still names the (now completed) row — proving the
+        // attribution fix moved to the ACTIVE-row API, not the table query.
+        Assert.Equal("q_wage", log.Table.FindIdByObjectiveKind(QuestObjectiveKind.WagePaid));
+    }
+
     // ------------------------------------------------------------------
     // F2 ruling — the reserved "roster" LoyaltyChanged key is never a
     // per-follower predicate input

@@ -48,11 +48,16 @@ public partial class WorldDirector
 
         if (!_storyHooksEnabled) return;   // gate seam (design §4.2)
 
-        _bus.DnaSpoken += _ => _quests.ObserveSpoken();
-        _bus.DnaExtracted += _ => _quests.ObserveKill();
-        _bus.WagePaid += questId => _quests.ObserveWagePaid(questId);
-        _bus.LoyaltyChanged += (companion, loyalty) => _quests.ObserveLoyalty(companion, loyalty);
-        _ecosystem.ZoneEntered += (zoneId, _) => _quests.ObserveZoneEntered(zoneId);
+        // DA-verdict P3 (ed4a5b2): the seam is an HONEST no-op even when
+        // flipped after _Ready — every hook re-checks _storyHooksEnabled at
+        // delivery, not just at subscribe time.
+        _bus.DnaSpoken += _ => { if (_storyHooksEnabled) _quests.ObserveSpoken(); };
+        _bus.DnaExtracted += _ => { if (_storyHooksEnabled) _quests.ObserveKill(); };
+        _bus.WagePaid += questId => { if (_storyHooksEnabled) _quests.ObserveWagePaid(questId); };
+        _bus.LoyaltyChanged += (companion, loyalty) =>
+        { if (_storyHooksEnabled) _quests.ObserveLoyalty(companion, loyalty); };
+        _ecosystem.ZoneEntered += (zoneId, _) =>
+        { if (_storyHooksEnabled) _quests.ObserveZoneEntered(zoneId); };
         if (_dialogue != null)
             _quests.SetDialogueNodeProvider(() => _dialogue.ActiveNode);
         _quests.SetBossDeadProvider(() => _boss != null && _boss.IsDead);
@@ -78,14 +83,17 @@ public partial class WorldDirector
     /// The WagePaid seam (root pay arm, plan §B 2c ≤3 lines there): fires the
     /// batched WagePaid signal ONLY on a landed settle (Pay() made SalaryDue
     /// fall — the machine's Needing->Following transition), keyed by the quest
-    /// the wage serves. No settle, no signal — no second wage path.
+    /// the wage SERVES — resolved per still-Active wage row (DA-verdict P3: a
+    /// Completed row collects no settles; with no Active wage row the settle
+    /// simply rides no quest signal). No settle, no signal — no second wage
+    /// path.
     /// </summary>
     private void NotifyWageSettled()
     {
         if (_quests == null || !_storyHooksEnabled) return;
         if (_needs.SalaryDue) return;   // Pay() did not settle this tick
-        var wageQuestId = _quests.Table.FindIdByObjectiveKind(QuestObjectiveKind.WagePaid);
-        if (wageQuestId == null) return;
+        var wageQuestId = _quests.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid);
+        if (wageQuestId == null) return;   // no quest is being served right now
         _bus.EmitWagePaid(new QuestId(wageQuestId));
     }
 

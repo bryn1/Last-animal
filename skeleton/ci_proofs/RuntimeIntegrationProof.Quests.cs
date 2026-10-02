@@ -20,14 +20,18 @@ using System.Collections.Generic;
 //     finale kills the live zone boss -> QUEST_COMPLETED (owner ruling D6).
 //   quest_persist — after two completed quests: SaveGame(), diverge the LIVE
 //     log (FromSaveRows corruption seam), LoadGame() must restore the saved
-//     rows onto the live scene -> QUEST_PERSIST. Live-scene progress survives
-//     save->load through the REAL SaveLoadController + GodotSaveStore path.
+//     rows onto the live scene -> QUEST_PERSIST. THEN the rewind leg (DA P1):
+//     keep playing past the loaded point (settle a wage, save with q_kills
+//     ACTIVE at 0/4, farm four live kills), LOAD the rewind save, and drive
+//     exactly ONE post-load extraction — zero QUEST_COMPLETED emits and
+//     q_kills still Active -> QUEST_REWIND (evidence rewinds with the save;
+//     stale counters must never cascade the arc).
 //   quest_neg — the SetQuestHooksEnabled(false) gate seam is set on the
 //     instantiated root BEFORE AddChild (no_spawn idiom): the arc must not
 //     advance; detection prints NEG_QUEST and exits non-zero.
 public partial class RuntimeIntegrationProof : SceneTree
 {
-    private const int QuestFrameBudget = 12000;   // quest_arc only (wage wait + farm + boss)
+    private const int QuestFrameBudget = 12000;   // quest_arc/quest_persist (wage wait + farm + boss)
 
     private int _qPhase;
     private int _qFrames;
@@ -37,6 +41,11 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _qTravelToggle;
     private bool _qSubscribed;
     private List<string> _qSavedRows = new();
+    // Post-load cascade counters (the DA-P1 gate hole: the old persist leg
+    // checked statuses and stopped — NO observation after LoadGame).
+    private bool _qCounting;
+    private int _qCompletedAfterLoad;
+    private int _qExtractsAfterLoad;
 
     /// <summary>Stage-50 dispatch (called from the main file's stage switch).</summary>
     private void RunQuestStage()
@@ -57,8 +66,13 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (_bus == null || _director == null) return false;
         _bus.QuestStarted += id => GD.Print($"LA_GATE: QUEST_STARTED {id}");
         _bus.QuestObjective += id => GD.Print($"LA_GATE: QUEST_OBJECTIVE {id}");
-        _bus.QuestCompleted += id => GD.Print($"LA_GATE: QUEST_COMPLETED {id}");
+        _bus.QuestCompleted += id =>
+        {
+            GD.Print($"LA_GATE: QUEST_COMPLETED {id}");
+            if (_qCounting) _qCompletedAfterLoad++;
+        };
         _bus.WagePaid += id => GD.Print($"LA_GATE: WAGE_PAID for {id}");
+        _bus.DnaExtracted += _ => { if (_qCounting) _qExtractsAfterLoad++; };
         _qSubscribed = true;
         return true;
     }
@@ -264,7 +278,76 @@ public partial class RuntimeIntegrationProof : SceneTree
                       $"[{string.Join(",", _director.Quests.ToSaveRows())}]");
                 if (_failed) return;
                 GD.Print("LA_GATE: QUEST_PERSIST — live-scene quest progress survived save -> load (v3 QuestStates)");
-                GD.Print("LA_GATE: PASS — quest persistence verified");
+                NextPhase();
+                break;
+
+            case 3:   // rewind leg (DA P1): continue LIVE past the loaded point —
+                      // settle a wage, so q_kills becomes the save's Active row
+                if (QStatus("q_wage") == QuestStatus.Completed)
+                {
+                    GD.Print("LA_GATE: QUEST_REWIND_LIVE — wage settled live; q_kills now Active pre-save");
+                    NextPhase();
+                    break;
+                }
+                if (_qFrames > QuestFrameBudget) Fail("quest_persist: rewind leg never settled a wage");
+                if (_director!.WageDueNow) QPress("pay_wage", ref _qPayToggle);
+                break;
+
+            case 4:   // the rewind save: rows now carry q_kills ACTIVE at 0/4
+                _qSavedRows = _director!.Quests.ToSaveRows();
+                Check("rewind save taken with q_kills Active (0/4)",
+                      _qSavedRows.Contains("q_wage:completed") &&
+                      _qSavedRows.Contains("q_kills:active"),
+                      string.Join(",", _qSavedRows));
+                if (_failed) return;
+                _director.SaveGame();
+                GD.Print($"LA_GATE: QUEST_REWIND_SAVED [{string.Join(",", _qSavedRows)}]");
+                NextPhase();
+                break;
+
+            case 5:   // live drift: farm 4 extractions — q_kills completes live
+                if (QStatus("q_kills") == QuestStatus.Completed)
+                {
+                    GD.Print("LA_GATE: QUEST_REWIND_DRIFT — four live extractions completed q_kills");
+                    NextPhase();
+                    break;
+                }
+                if (_qFrames > QuestFrameBudget) Fail("quest_persist: rewind leg never farmed the kills");
+                if (!QKillLoop()) QPressTravel();
+                break;
+
+            case 6:   // LOAD the rewind save: q_kills goes back to Active 0/4.
+                      // THE gate hole: arm the marker counters and keep playing.
+                _director!.LoadGame();
+                Check("rewind save reapplied: q_kills Active again, q_boss NotStarted",
+                      QStatus("q_kills") == QuestStatus.Active &&
+                      QStatus("q_boss") == QuestStatus.NotStarted &&
+                      _director.Quests.ToSaveRows().Count == _qSavedRows.Count,
+                      $"[{string.Join(",", _director.Quests.ToSaveRows())}]");
+                if (_failed) return;
+                _qCounting = true;
+                GD.Print("LA_GATE: QUEST_REWIND_ARMED — ONE post-load observation follows; zero completes allowed");
+                NextPhase();
+                break;
+
+            case 7:   // ONE observation after the load: a single extraction.
+                      // Stale evidence (DA P1 pre-fix) would read 4/4 here and
+                      // cascade QUEST_COMPLETED q_kills + start q_boss in one
+                      // pass — the counters below catch it.
+                if (_qExtractsAfterLoad < 1)
+                {
+                    if (_qFrames > 2400) Fail("quest_persist: rewind leg observed no kill after the load (inconclusive)");
+                    if (!QKillLoop()) QPressTravel();
+                    break;
+                }
+                Check("post-load evidence rewound: ONE extraction met nothing, cascaded nothing",
+                      _qCompletedAfterLoad == 0 &&
+                      QStatus("q_kills") == QuestStatus.Active &&
+                      QStatus("q_boss") == QuestStatus.NotStarted,
+                      $"completesAfterLoad={_qCompletedAfterLoad} kills={QStatus("q_kills")} boss={QStatus("q_boss")}");
+                if (_failed) return;
+                GD.Print("LA_GATE: QUEST_REWIND — post-load observation re-earned 1/4; zero cascading completes (DA P1 closed)");
+                GD.Print("LA_GATE: PASS — quest persistence + evidence rewind verified");
                 _asserted = true;
                 _stage = 6;
                 _stageFrames = 0;

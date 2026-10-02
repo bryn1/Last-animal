@@ -25,9 +25,12 @@ using System.Collections.Generic;
 //
 // Persistence (D2: v3 fields live): ToSaveRows/FromSaveRows speak the
 // GameState.QuestStates "id:status" wire format (lower-case status tokens;
-// "q_intro:active" style matches GameState.Representative). Restore sets
-// states directly — the save is authoritative, the legality guards protect
-// PLAY transitions — and emits no Changed events (a load is not a game beat).
+// "q_intro:active" style matches GameState.Representative). A restore is the
+// FULL snapshot rewind — statuses AND the non-persisted evidence counters
+// (DA P1 fix): after a load, rows re-earn progress through real
+// observations. Restore sets states directly — the save is authoritative, the
+// legality guards protect PLAY transitions — and emits no Changed events (a
+// load is not a game beat).
 namespace LastAnimal.Story;
 
 /// <summary>The four legal quest states (the wire vocabulary is the lower-case name).</summary>
@@ -99,6 +102,18 @@ public sealed class QuestLog
                 if (_status[q.Id] != QuestStatus.Completed) return false;
             return _table.Count > 0;
         }
+    }
+
+    /// <summary>Id of the first still-Active row whose objective is of this
+    /// kind, or null. A wage settle resolves attribution through THIS (not
+    /// QuestTable.FindIdByObjectiveKind): a Completed row never keeps
+    /// collecting settles — "the quest the settle serves" must still be
+    /// serving it (DA-verdict P3, ed4a5b2 review).</summary>
+    public string? FindActiveIdByObjectiveKind(QuestObjectiveKind kind)
+    {
+        foreach (var q in _table.Entries)
+            if (_status[q.Id] == QuestStatus.Active && q.Objective.Kind == kind) return q.Id;
+        return null;
     }
 
     // --- transitions (the legal chain; every other move throws) -----------
@@ -197,11 +212,13 @@ public sealed class QuestLog
 
     /// <summary>Apply loaded wire rows onto the log as the FULL snapshot the
     /// save is: the table resets to NotStarted first (a row absent from the
-    /// save is genuinely un-started again), then states are set directly — the
-    /// save is authoritative (no play-transition legality) and no Changed
-    /// events fire (a load is not a game beat). Unknown ids are skipped (2d
-    /// swaps content rows; a stale save must not poison the current table);
-    /// malformed rows throw.</summary>
+    /// save is genuinely un-started again), the in-memory evidence counters
+    /// rewind with the statuses (the save persists no evidence — stale live
+    /// counters must not fast-forward the arc on the next observation, see
+    /// DA-verdict P1), then states are set directly — the save is authoritative
+    /// (no play-transition legality) and no Changed events fire (a load is not
+    /// a game beat). Unknown ids are skipped (2d swaps content rows; a stale
+    /// save must not poison the current table); malformed rows throw.</summary>
     public void FromSaveRows(IEnumerable<string> rows)
     {
         if (rows == null) throw new ArgumentNullException(nameof(rows));
@@ -210,6 +227,16 @@ public sealed class QuestLog
         {
             foreach (var q in _table.Entries)
                 _status[q.Id] = QuestStatus.NotStarted;   // load REPLACES state
+            // DA-verdict P1 (ed4a5b2): the FULL snapshot rewind includes the
+            // non-persisted evidence — after a load the player must re-earn
+            // progress with real observations, not have the loaded save's
+            // unplayed rows cascade met->complete off pre-load counters.
+            _wagesPaidFor.Clear();
+            _followerLoyalty.Clear();
+            _zonesSeen.Clear();
+            _nodesSeen.Clear();
+            _spoken = 0;
+            _kills = 0;
             foreach (var row in rows)
             {
                 if (row == null) throw new ArgumentException("null quest-state row", nameof(rows));

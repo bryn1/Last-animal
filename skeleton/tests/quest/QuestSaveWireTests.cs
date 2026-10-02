@@ -15,6 +15,8 @@ using LastAnimal.Story;
 //   * round-trip: driven log -> rows -> save -> load -> fresh log = same
 //     statuses (including a resting objective_met row);
 //   * load REPLACES: a row missing from the save is NotStarted again;
+//   * restore REWINDS THE EVIDENCE (DA P1 fix): post-load observations
+//     re-earn progress; stale live counters cascade nothing;
 //   * malformed rows throw (loud, never half-loaded);
 //   * unknown ids are skipped (2d content swaps must not poison a load).
 namespace LastAnimal.Tests.Quest;
@@ -122,5 +124,57 @@ public class QuestSaveWireTests
         log.FromSaveRows(new[] { "q_old_drafted_arc:completed", "q_intro:active" });
         Assert.Equal(QuestStatus.Active, log.Status("q_intro"));
         Assert.Equal(QuestStatus.NotStarted, log.Status("q_speak"));
+    }
+
+    // --- evidence rewind on restore (DA-verdict P1, ed4a5b2 review) ----------
+    // The save persists statuses ONLY; FromSaveRows must therefore also clear
+    // the in-memory evidence counters. Without it, the live session's stale
+    // counters fast-forward the arc: one post-load observation runs ONE
+    // EvaluatePass that chains met->complete through the table, silently
+    // re-skipping gameplay the loaded save says was never played. These tests
+    // pin the rewind through the two counter shapes (kill counter + spoken
+    // counter); the deliberate in-session catch-up (QuestLogTests
+    // LateObjective_StartTimeReEvaluationCatchesUp) stays green — that catch-
+    // up uses facts observed AFTER Start, never a restore.
+
+    [Fact]
+    public void FromSaveRows_RewindsEvidence_OnePostLoadKillDoesNotCascadeTheKillsRow()
+    {
+        // DA P1 reproduction: evidence accrues live, the save leaves the kills
+        // row Active at 0/4, the player loads and observes ONE kill. Stale
+        // counters (pre-fix) would read 4/4 and cascade q_kills met->complete
+        // and q_boss NotStarted->Active in the same pass.
+        var log = new QuestLog(QuestTable.Default());
+        log.SetBossDeadProvider(() => false);
+        log.Start("q_intro");
+        log.ObserveKill(); log.ObserveKill(); log.ObserveKill();   // live 3/4
+        int beatsAfterLoad = 0;
+        log.Changed += (_, _, _) => beatsAfterLoad++;
+        log.FromSaveRows(new[]
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed", "q_kills:active",
+        });
+        log.ObserveKill();   // the ONE post-load observation
+        Assert.Equal(QuestStatus.Active, log.Status("q_kills"));      // 1/4, re-earned
+        Assert.Equal(QuestStatus.NotStarted, log.Status("q_boss"));   // no chain
+        Assert.Equal(0, beatsAfterLoad);                              // no cascade beats
+    }
+
+    [Fact]
+    public void FromSaveRows_RewindsEvidence_PostLoadFactDoesNotResatisfyARestoredSpokenRow()
+    {
+        // The spoken-counter shape: one live speak, a save that leaves q_speak
+        // ACTIVE; after the load an UNRELATED fact (a zone entry) must not
+        // re-meet q_speak off the stale counter — but a REAL later speak still
+        // legitimately meets it (catch-up through genuine observation holds).
+        var log = new QuestLog(QuestTable.Default());
+        log.Start("q_intro");
+        log.ObserveSpoken();                     // live evidence, row not yet started
+        log.FromSaveRows(new[] { "q_intro:completed", "q_speak:active" });
+        log.ObserveZoneEntered("nowhere-quest"); // neutral trigger for one pass
+        Assert.Equal(QuestStatus.Active, log.Status("q_speak"));      // stale spoken gone
+        log.ObserveSpoken();                     // the real post-load fact
+        Assert.Equal(QuestStatus.Completed, log.Status("q_speak"));   // legitimately earned
+        Assert.Equal(QuestStatus.Active, log.Status("q_wage"));
     }
 }
