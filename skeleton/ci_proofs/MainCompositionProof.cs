@@ -18,6 +18,14 @@ using LastAnimal.World;
 // presses the input BEFORE any early-return path so a failed assert can never leave
 // _Process running with the input unpressed (the stale-proof failure mode).
 //
+// MC 3896 capture/quit race: the gate's graphical leg runs THIS proof under
+// graphical-test-helper, whose contract is "captured mid-run then killed during
+// cleanup" after --wait seconds. The proof used to quit(0) ~1s in — the window died
+// before the 6s capture and the helper saw a black Xvfb backdrop (stddev 0). Fix:
+// in a non-headless run the proof keeps the window alive rendering after PASS, so
+// the helper's capture lands on a painted frame and its cleanup kills the process
+// (the headless leg's assertions and immediate quit(0) are untouched).
+//
 // A SceneTree `--script` run does NOT instantiate engine autoloads, so we instance
 // main.tscn ourselves and drive the Player node directly; main.tscn/Player.cs do not
 // depend on autoload singletons in _Ready, so this runs clean. Any missing marker
@@ -34,10 +42,22 @@ public partial class MainCompositionProof : SceneTree
     private Vector3 _camStart;
     private bool _asserted;
     private bool _failed;
+    private bool _guiLeg;
+    private double _guiHoldElapsed;
+
+    // Safety cap for a GUI leg started WITHOUT the helper (manual run): without it
+    // a bare window would never close. The helper kills the process long before.
+    private const double GuiHoldSeconds = 30.0;
 
     public override void _Initialize()
     {
         GD.Print("MAIN_COMPOSITION_PROOF: start");
+
+        // MC 3896: the gate's capture leg runs this same proof WITHOUT --headless.
+        // Detect that so only that leg enters the post-PASS hold (see _Process).
+        _guiLeg = DisplayServer.GetName() != "headless";
+        if (_guiLeg)
+            GD.Print($"MAIN_COMPOSITION_PROOF: display='{DisplayServer.GetName()}' — GUI leg, will hold {GuiHoldSeconds}s after PASS for the helper capture");
 
         // --- RG2: confirm the entry scene is main.tscn, not preflight ---------
         var cfg = new ConfigFile();
@@ -104,6 +124,21 @@ public partial class MainCompositionProof : SceneTree
         if (_failed || _body == null || _camera == null)
             return true;    // a failed assert already quit(1); do nothing further
 
+        // MC 3896 GUI hold: assertions already passed — keep painting the window so
+        // graphical-test-helper's --wait capture lands on a rendered frame; its
+        // cleanup kills us. Return false = stay in the loop (SceneTree contract).
+        if (_asserted)
+        {
+            _guiHoldElapsed += delta;
+            if (_guiHoldElapsed >= GuiHoldSeconds)
+            {
+                GD.Print("MAIN_COMPOSITION_PROOF: GUI_HOLD complete — quit(0)");
+                Quit(0);
+                return true;
+            }
+            return false;
+        }
+
         // First live frame: the nodes are inside the tree now — capture the real
         // spawn baselines (GlobalPosition is invalid during _Initialize).
         if (_frames == 0)
@@ -154,6 +189,12 @@ public partial class MainCompositionProof : SceneTree
         Input.ActionRelease("move_right");
         GD.Print("MAIN_COMPOSITION_PROOF: PASS — playable composition root verified (RG2 + RG3 + C10 + C17)");
         _asserted = true;
+        if (_guiLeg)
+        {
+            // MC 3896: do NOT quit yet — the helper captures at --wait, then kills.
+            GD.Print("MAIN_COMPOSITION_PROOF: GUI_HOLD — window stays alive for capture");
+            return false;
+        }
         Quit(0);
         return true;
     }
