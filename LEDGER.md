@@ -133,11 +133,22 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   UNVERIFIED (DNA=0 boot cannot spawn boss; boss build-path proven via boss_phase gate leg),
   P4-5 "449"-string nit in DONE N2 (true 451, substance unchanged).
   Evidence: .audits/20261002-enemy-art/evidence.md, checker dir .audits/202610020155-86f82502/.
-- Known limitations: main_composition gate RED on this host — pre-existing capture/quit timing
-  race (baseline df8ff23 fails identically; proof: /tmp/la-baseline run); fix card MC 3896 filed
-  (keep marker assertions, prove red on planted-bad). MC 3897 filed: bridge proof counts bodies,
-  not Visual-subtree content (mutation probe P2 from 3895 TEST). Ruins zone intentionally dark;
-  canyon reads hazy — polish-pass register.
-- Next increments queued: story/quest + skills plan
-  (seeds map .tmp/increment2-brief-notes.md: extend DialogueSystem/dna mutation/AdaptationSystem/
-  empathy loyalty, no parallel mechanisms).
+- MC 3896 CLOSED (completed_unverified, DONE-gate requested): main_composition capture/quit race
+  fixed — proof detects the GUI leg and holds its painted window for the graphical-test-helper's
+  capture-then-kill contract (+41 lines, MainCompositionProof.cs only, headless leg untouched;
+  1a5f382 + docs 3d6e813). Orchestrator: GATE PASS x3 consecutive + runtime_integration +
+  bridge green; producer reproduced pre-fix RED and two distinct red-capability legs (planted
+  camera bug, forced early quit) reverted clean. Evidence: .audits/20261002-3896/.
+- INCREMENT 1 EXIT CRITERION MET (2026-10-02 03:57): full ci sweep at 3d6e813 — 12 ci/*_test.sh
+  + smoke + export_check ALL exit 0; tools/export_linux.sh PASS (81MB zip) and its packaged-
+  binary smoke capture shows the NEW ART (player, gold companion, goblins, Kenney trees,
+  procedural sky, HUD). The 15th gate path in LEDGER prose (ci/export_linux) actually lives at
+  skeleton/tools/export_linux.sh — registered here so the path is never hunted again.
+- Known limitations: ruins zone intentionally dark; canyon reads hazy — polish-pass register.
+  MC 3897 filed: bridge proof counts bodies, not Visual-subtree content (mutation probe P2
+  from 3895 TEST) — still queued.
+- Increment 2 PLANNED (.audits/20261002-inc2-plan/PLAN.md, 8 stages 2a-2h: story data layer +
+  quest core, DNA-mutation skills on the dead Manna seam, follower ROSTER of the existing
+  companion stack, save v2->v3 one ratified break; 8 owner decisions D1-D8 pending "rec";
+  DA gate running). Two seed-notes claims refuted against code: no "6 weapon types" exist
+  (grep weapon = 0 hits), AdaptationSystem is really src/dna/EcosystemAdaptation.cs.
