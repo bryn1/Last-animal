@@ -95,7 +95,10 @@ the composition root (see §3).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs`),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
-`ZoneBossProof.cs`). Tests live in `skeleton/tests/` (per-module csproj files:
+`ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
+framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
+after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
+non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
 combat, dna_npc, ecosystem, companion, empathy, runtime, save, ui).
 
 ## 7. Docs map (`skeleton/docs/`)
