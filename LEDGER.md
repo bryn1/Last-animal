@@ -120,10 +120,24 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   measured 4096x2048 skybox fix). DoD by orchestrator's own runs at 702c7db: export_check 0,
   export_linux 0, smoke capture 1280x800 1819-color render, zone screenshots visually verified.
   Evidence: .audits/202610012100-env-art/evidence.md.
+- MC 3895 CLOSED (completed_unverified, DONE-gate requested; final wave TEST-c2 PASS / DA-c2
+  SHIP / ARCH PASS, all three pinned 50caf2d3): per-type composed enemy silhouettes
+  (ActorVisual.cs static builder riding the ONE existing visual-rides-sim-body mechanism,
+  ccb5cd9) — goblin green / orc brown / skeleton arcane violet (0.62,0.45,0.90, sky-collision
+  0 @tol28) / player blue / companion gold; spawn wiring through the existing
+  WorldDirector.ApplySpawnSet (253020d); docs census (1a40bde); SIZE headers + ruins capture
+  (00ca870). Boss 2.75x + emissive via isBoss; runtime-captured frames for goblin (meadow),
+  orc (canyon), skeleton (ruins, Life 0/100 = combat real); planted-bad cycle proves the pixel
+  gate can fail (778→0→777 px). Fix cycle 1 history at .audits/202610020330-verdict3895/
+  (DA c1 FIX: SIZE headers + P3 capture gap — both closed). Honest rows: boss-in-frame
+  UNVERIFIED (DNA=0 boot cannot spawn boss; boss build-path proven via boss_phase gate leg),
+  P4-5 "449"-string nit in DONE N2 (true 451, substance unchanged).
+  Evidence: .audits/20261002-enemy-art/evidence.md, checker dir .audits/202610020155-86f82502/.
 - Known limitations: main_composition gate RED on this host — pre-existing capture/quit timing
   race (baseline df8ff23 fails identically; proof: /tmp/la-baseline run); fix card MC 3896 filed
-  (keep marker assertions, prove red on planted-bad). Ruins zone intentionally dark; canyon reads
-  hazy — polish-pass register.
-- Next increments queued: MC 3895 enemy silhouettes + boss presence; story/quest + skills plan
+  (keep marker assertions, prove red on planted-bad). MC 3897 filed: bridge proof counts bodies,
+  not Visual-subtree content (mutation probe P2 from 3895 TEST). Ruins zone intentionally dark;
+  canyon reads hazy — polish-pass register.
+- Next increments queued: story/quest + skills plan
   (seeds map .tmp/increment2-brief-notes.md: extend DialogueSystem/dna mutation/AdaptationSystem/
   empathy loyalty, no parallel mechanisms).
