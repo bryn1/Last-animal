@@ -1,4 +1,4 @@
-# Last Animal — build LEDGER (updated 2026-10-01, VM350 standby seat; M00 chain below: svarkor-session MC 1344)
+ # Last Animal — build LEDGER (updated 2026-10-02, VM350 standby seat; M00 chain below: svarkor-session MC 1344)
 
 Goal: Godot 4 C# ARPG 'Last Animal' — owner DoD (card 1344, verbatim): "spelbart spel utan buggar
 som går att köra på en windowsdator" — a playable, bug-free game that runs on a Windows computer,
@@ -162,3 +162,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   asserts EXACT painted text for an authored node, runtime dna_speak DIALOGUE_SHOWN + bridge
   regression green, planted-bad (removed authored node) went RED naming it, reverted clean.
   Evidence: .audits/20261002-2a/evidence.md, checker dir .audits/202610020519-e9b6c9c6/out/.
+- MC 3901 stage 2b CLOSED (orchestrator-verified, 2026-10-02): save schema v3 at ff2786c —
+  GameState v3 fields QuestStates ("id:status") / Manna / Followers{EntityId,Loyalty}; single-
+  companion fields removed at the one ratified break ("All rec", D2); no LearnedMutations
+  (absence pinned by wire test); CurrentVersion 2->3, rejection logged both directions;
+  NEG_SAVE_VERSION leg version-relative (plan §G D9). Orchestrator battery green at ff2786c
+  (save/runtime/bridge). W1 verdict wave (dir .audits/202610020519-e9b6c9c6, pin 49c70e52):
+  TEST PASS / ARCH PASS / DA FIX -> both DA P2s trail-level and now fixed (this LEDGER row +
+  evidence-form addendum in .audits/20261002-2b/evidence.md). Map amendment (ARCH F-1):
+  SaveLoadController.cs QuestStates persistence joins 2c's file set (W2 solo).
+- Follow-up registered (ARCH F-2 P3): skeleton/docs/player-guide.md:64-67 still describes
+  dialogue text as hardcoded DialogueFor — rewrite lands with stage 2d.
