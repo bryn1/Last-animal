@@ -70,10 +70,15 @@ public sealed class CompanionRoster
         public CompanionState StateLast { get; set; }
 
         /// <summary>
-        /// DA-c2 D6: the UNIQUE bus key "<name>-<EntityId>" — the live bond id,
-        /// so no two followers (wild or boot) ever share a LoyaltyChanged line.
+        /// DA-c2 D6 + DA W5 F2: the UNIQUE bus key "<name>-<EntityId>" —
+        /// LATCHED at construction (identity-frozen). The bond id is set on the
+        /// component on EVERY spawn path BEFORE the Follower is built (boot:
+        /// SetCompanion(7) in the root; wild: SetCompanion(eid); restored:
+        /// CompanionEntityId = entry.EntityId). A LIVE-computed key would drift
+        /// every betrayer to "&lt;name&gt;--1" once BreakCompanion flips the bond
+        /// id — two betrayed recruits would then share one LoyaltyChanged line.
         /// </summary>
-        public string BusKey => Name + "-" + Component.CompanionEntityId;
+        public string BusKey { get; }
 
         public Follower(string name, CompanionComponent component,
                         CompanionNeeds needs, CompanionStateMachine machine)
@@ -84,6 +89,7 @@ public sealed class CompanionRoster
             Machine = machine;
             LoyaltyLast = component.Loyalty;
             StateLast = machine.State;
+            BusKey = name + "-" + component.CompanionEntityId;
         }
     }
 
@@ -151,6 +157,9 @@ public sealed class CompanionRoster
     /// due and return the followers whose settle actually LANDED (their
     /// SalaryDue fell). The caller emits WagePaid ONCE per settled follower —
     /// each paying follower settles its own wage and owns its WagePaid emit.
+    /// DA W5 F1: a BROKEN bond is UNPAYABLE — the betrayed follower's wage
+    /// clock keeps ticking (as before the move), but it never settles: no
+    /// WagePaid source, no loyalty drift on a dead bond.
     /// </summary>
     public List<Follower> PayDueFollowers()
     {
@@ -158,6 +167,11 @@ public sealed class CompanionRoster
         foreach (var f in _followers)
         {
             if (!f.Needs.SalaryDue) continue;
+            // DA W5 F1 (the guard the move lost, MC 1348 A3): M03's HasCompanion
+            // bond flag is the authority; the Betrayed machine state is the
+            // defensive net. A betrayer takes no money on a dead bond.
+            if (!f.Component.HasCompanion) continue;
+            if (f.Machine.State == CompanionState.Betrayed) continue;
             f.Machine.Pay();
             if (!f.Needs.SalaryDue) settled.Add(f);   // landed (M03 PaySalary true)
         }
@@ -165,8 +179,16 @@ public sealed class CompanionRoster
     }
 
     /// <summary>Forgive (Empathy Book glue, applied only in the director partial):
-    /// the loyalty bonus on the SELECTED follower. M03 owns the clamp.</summary>
-    public void Forgive(Follower follower) => follower.Component.ModifyLoyalty(ForgiveBonus);
+    /// the loyalty bonus on a BONDED follower. DA W5 F1: FALSE — no bonus at all
+    /// — when the bond is broken (the same guard as the pay arm; the Empathy
+    /// Book never forges affection for a betrayer). M03 owns the clamp.</summary>
+    public bool Forgive(Follower follower)
+    {
+        if (!follower.Component.HasCompanion) return false;
+        if (follower.Machine.State == CompanionState.Betrayed) return false;
+        follower.Component.ModifyLoyalty(ForgiveBonus);
+        return true;
+    }
 
     /// <summary>The follower's own betrayal execution (M03 C7). Returns null when
     /// the bond is already broken — break_bond is per-selected-follower only.</summary>

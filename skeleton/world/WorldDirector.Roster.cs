@@ -1,3 +1,7 @@
+// SIZE: 422 l — crossed the 400 ceiling ONLY through the DA W5 F1/F3/F4 fix
+// guards (forgive-refusal caller arm, restore-cap drop marker, allocator
+// seed); the root WorldDirector.cs must NOT grow, so the guards live HERE.
+// Reason-per-MC 3895 idiom; split is owed before any further growth here.
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core.Framework;
@@ -80,10 +84,13 @@ public partial class WorldDirector
         {
             // I4 glue (plan §B 2g): pay_wage while the Empathy Book is OPEN is
             // Forgive — the loyalty bonus on the SELECTED follower. The panel
-            // itself never mutates; no wage settles under the book.
+            // itself never mutates; no wage settles under the book. DA W5 F1:
+            // the roster REFUSES the bonus on a broken bond — no zombie affection.
             var forgiven = _roster.Selected;
-            _roster.Forgive(forgiven);
-            GD.Print($"ROSTER: Forgive -> {forgiven.BusKey} (+{CompanionRoster.ForgiveBonus} loyalty)");
+            if (_roster.Forgive(forgiven))
+                GD.Print($"ROSTER: Forgive -> {forgiven.BusKey} (+{CompanionRoster.ForgiveBonus} loyalty)");
+            else
+                GD.Print($"ROSTER: Forgive refused on {forgiven.BusKey} — bond broken (DA W5 F1)");
         }
         else if (payPressed)
         {
@@ -311,7 +318,14 @@ public partial class WorldDirector
             comp, needs, _salary, _betrayal);
         var follower = new CompanionRoster.Follower(index == 0 ? "companion" : "follower",
             comp, needs, machine);
-        _roster.TryAdd(follower);   // restore stays honest to the cap
+        if (!_roster.TryAdd(follower))
+        {
+            // DA W5 F4: oversized hand-edited save — the roster cap is
+            // AUTHORITATIVE on load: the surplus entry drops WITH A MARKER
+            // and no frozen orphan body is ever composed for it.
+            GD.Print($"ROSTER: restored entry id {entry.EntityId} DROPPED — roster cap {CompanionRoster.Cap} is authoritative on load (DA W5 F4)");
+            return;
+        }
 
         var hook = new CompanionAnimationHook("walkBaked", "walkBaked", "walkBaked");
         var body = new CompanionFollowBody(machine, hook)
@@ -379,6 +393,15 @@ public partial class WorldDirector
         }
         while (_roster.Count > entries.Count)
             RemoveFollowerAt(_roster.Count - 1);
+
+        // DA W5 F3: seed the wild-id allocator past max(restored bond ids, 20)
+        // — a fresh-run wild must never allocate an id a restored follower
+        // already holds (shared BusKey + shared interact id, latent collision).
+        for (int i = 0; i < _roster.Count; i++)
+        {
+            int bid = _roster[i].Component.CompanionEntityId;
+            if (bid >= _nextWildEntityId) _nextWildEntityId = bid + 1;
+        }
 
         ResetRosterDeltas();
         GD.Print($"ROSTER: load restored N={_roster.Count}");

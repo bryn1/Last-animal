@@ -214,6 +214,7 @@ LOGR="$(LA_GATE_MODE=roster_follow timeout 300 "$GODOT" --headless --path "$PROJ
 [[ "$LOGR" == *'CYCLE_SELECTED'* ]] || fail "roster_follow: expected CYCLE_SELECTED (cycle_follower action)"
 [[ "$LOGR" == *'FORGIVE_APPLIED'* ]] || fail "roster_follow: expected FORGIVE_APPLIED (book-open pay_wage = Forgive, not a wage)"
 [[ "$LOGR" == *'BREAK_BOND_SELECTED'* ]] || fail "roster_follow: expected BREAK_BOND_SELECTED (one betrays, others keep following)"
+[[ "$LOGR" == *'PAY_AFTER_BREAK_REFUSED'* ]] || fail "roster_follow: expected PAY_AFTER_BREAK_REFUSED (pay press on a broken bond must never settle — DA W5 F1)"
 [[ "$LOGR" == *'HEARTS_MEAN_LAST'* ]] || fail "roster_follow: expected HEARTS_MEAN_LAST (mean emitted LAST under the reserved key)"
 run_mode roster_neg fail "NEG_ROSTER" "$PROOF_ROSTER"
 

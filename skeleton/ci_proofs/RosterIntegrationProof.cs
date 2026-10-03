@@ -1,5 +1,5 @@
-// SIZE: CI proof harness (545 l) — test-class ceiling 600, same classification
-// as RuntimeIntegrationProof.cs's header (MC 3943 2g).
+// SIZE: CI proof harness (583 l) — test-class ceiling 600, same classification
+// as RuntimeIntegrationProof.cs's header (MC 3943 2g; DA W5 F1 leg added).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core;
@@ -34,6 +34,10 @@ using System.Collections.Generic;
 //     FORGIVE_APPLIED       pay_wage under the book = Forgive bonus, NOT a wage
 //     BREAK_BOND_SELECTED   break_bond betrays ONLY the selected follower; the
 //                           others keep following (still bonded, no betrayal for them)
+//     PAY_AFTER_BREAK_REFUSED  (DA W5 F1) the betrayer's wage clock is driven
+//                           DUE, then pay_wage is pressed: the broken bond must
+//                           settle NOTHING — no WagePaid, no loyalty drift, the
+//                           wage stays due (the guard the 2g move had lost)
 //     HEARTS_MEAN_LAST      the emit-order contract: per-follower deltas FIRST
 //                           (roster order), roster-mean LAST under the reserved
 //                           "roster" key — and the Hud hearts read the mean
@@ -70,6 +74,7 @@ public partial class RosterIntegrationProof : SceneTree
     private int _pressCount;
     private int _loyaltyBeforeForgive;
     private int _wageBeforeStage;
+    private int _loyaltyBeforePayLeg;
     private int _healthBeforeBreak;
     private int _betrayalBeforeBreak;
     private int _heartsBaselineA, _heartsBaselineB;
@@ -474,7 +479,38 @@ public partial class RosterIntegrationProof : SceneTree
                 }
                 break;
 
-            case 14:  // HEARTS_MEAN_LAST: starve followers 0 and 2 with the skip arm — NO pay press
+            case 14:  // PAY_AFTER_BREAK_REFUSED (DA W5 F1): drive the betrayer's OWN
+                      // wage clock DUE, then press pay — the broken bond must settle
+                      // NOTHING: no WagePaid, no loyalty drift, the wage STAYS due.
+                {
+                    var betrayer = roster[1];
+                    if (_sub == 0)
+                    {
+                        while (!betrayer.Needs.SalaryDue) AdvanceClock(betrayer, 1.0);
+                        _wageBeforeStage = _wagePaidCount;
+                        _loyaltyBeforePayLeg = betrayer.Component.Loyalty;   // 0 (bond broken)
+                        _sub = 1;
+                    }
+                    Press("pay_wage", ref _payToggle);
+                    if (_stageFrames < 30) break;                  // several pay edges get a chance
+                    Input.ActionRelease("pay_wage");
+                    // The AUTHORITATIVE invariant is the broken bond (M03's flag):
+                    // on this manual break_bond path loyalty was still positive at
+                    // the break, so the machine legitimately rests at Needing —
+                    // CheckBetrayal (loyalty<=0) never fires after the bond is gone.
+                    Check("pay press on the BROKEN bond settles nothing: no WagePaid, no loyalty drift, wage stays due",
+                          _wagePaidCount == _wageBeforeStage
+                          && betrayer.Component.Loyalty == _loyaltyBeforePayLeg
+                          && !betrayer.Component.HasCompanion
+                          && betrayer.Needs.SalaryDue,
+                          $"wages+{_wagePaidCount - _wageBeforeStage} loyalty={betrayer.Component.Loyalty} bond={betrayer.Component.HasCompanion} due={betrayer.Needs.SalaryDue}");
+                    if (_failed) return;
+                    GD.Print("LA_GATE: PAY_AFTER_BREAK_REFUSED — the betrayed follower's live wage clock never settles (no WagePaid, no drift) — DA W5 F1 guard live");
+                    Next(15);
+                    break;
+                }
+
+            case 15:  // HEARTS_MEAN_LAST: starve followers 0 and 2 with the skip arm — NO pay press
                 {
                     AdvanceClock(roster[0], 2.0);
                     AdvanceClock(roster[2], 2.0);
@@ -502,7 +538,7 @@ public partial class RosterIntegrationProof : SceneTree
                           $"hearts={_hud.CompanionHearts} mean={mean}");
                     if (_failed) return;
                     GD.Print($"LA_GATE: HEARTS_MEAN_LAST — last LoyaltyChanged = (\"roster\", {mean}); Hud hearts={_hud.CompanionHearts} from the mean");
-                    GD.Print("LA_GATE: PASS — roster chain verified end-to-end (recruit, follow, independent wages per follower, save/load N, cycle/forgive/break, mean-last emit order)");
+                    GD.Print("LA_GATE: PASS — roster chain verified end-to-end (recruit, follow, independent wages per follower, save/load N, cycle/forgive/break, pay-after-break refusal, mean-last emit order)");
                     Quit(0);
                     return;
                 }

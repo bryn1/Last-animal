@@ -324,4 +324,117 @@ public class CompanionRosterTests
         while (!bootNeeds.SalaryDue) bootNeeds.TickAccompaniment(1);
         Assert.True(roster.AnyWageDue);
     }
+
+    // --- DA W5 F1/F2/F4 regression pins (fix round 2026-10-03) -----------------
+
+    [Fact]
+    public void BetrayedFollower_IsNeverSettled_NoWagePaid_NoLoyaltyDrift()
+    {
+        // F1: the betrayer's wage clock stays live (SalaryDue TRUE — the very
+        // state betrayal arrives in), yet EVERY pay press must settle nothing:
+        // the settled list is the WagePaid source (TickRoster maps it 1:1), so
+        // exclusion = no WagePaid; loyalty never moves = no drift, no quest
+        // credit, no rising hearts on a hostile follower (DA W5 F1 chain 1-4).
+        var roster = new CompanionRoster();
+        var a = NewFollower("companion", 7);
+        var b = NewFollower("follower", 21);
+        roster.TryAdd(a); roster.TryAdd(b);
+
+        DrainToZero(b);
+        Assert.Equal(CompanionState.Betrayed, b.Machine.Tick());
+        Assert.NotNull(roster.ExecuteBetrayal(b));
+        Assert.True(b.Needs.SalaryDue);                            // clock still live
+
+        // Drain the BETRAYAL's own delta the way TickRoster does every frame
+        // (50 -> 0 is a legit betrayal emit); the pins below are about what the
+        // pay presses add on top — which must be NOTHING.
+        var emits = new List<CompanionRoster.LoyaltyEmit>();
+        Assert.True(roster.CollectLoyaltyEmits(emits));
+
+        for (int press = 0; press < 3; press++)                   // repeated pay presses
+        {
+            var settled = roster.PayDueFollowers();
+            Assert.DoesNotContain(b, settled);                    // never a settle -> no WagePaid
+            Assert.Equal(0, b.Component.Loyalty);                 // no loyalty drift
+            Assert.True(b.Needs.SalaryDue);                       // never consumed
+            Assert.Equal(CompanionState.Betrayed, b.Machine.State);
+        }
+        Assert.False(roster.CollectLoyaltyEmits(emits));          // pay presses moved NOTHING
+
+        // Per-follower guard only: the BONDED follower still settles normally.
+        while (!a.Needs.SalaryDue) a.Needs.TickAccompaniment(1);
+        var s2 = roster.PayDueFollowers();
+        Assert.Single(s2);
+        Assert.Same(a, s2[0]);
+        Assert.Equal(55, a.Component.Loyalty);
+        Assert.Equal(0, b.Component.Loyalty);                     // betrayer untouched
+    }
+
+    [Fact]
+    public void Forgive_OnBetrayer_IsRefused_NoBonusNoDrift()
+    {
+        // F1 (Forgive arm): the Empathy Book must not forge +5 affection on a
+        // permanently-broken bond; bonded followers keep the bonus.
+        var roster = new CompanionRoster();
+        var a = NewFollower("companion", 7);
+        var b = NewFollower("follower", 21);
+        roster.TryAdd(a); roster.TryAdd(b);
+
+        DrainToZero(b);
+        Assert.Equal(CompanionState.Betrayed, b.Machine.Tick());
+        Assert.NotNull(roster.ExecuteBetrayal(b));
+
+        Assert.False(roster.Forgive(b));                          // refused: no bonus
+        Assert.Equal(0, b.Component.Loyalty);                     // no drift on a dead bond
+        Assert.True(roster.Forgive(a));                           // bonded path intact
+        Assert.Equal(55, a.Component.Loyalty);
+    }
+
+    [Fact]
+    public void TwoBetrayedRecruits_DistinctBusKeys()
+    {
+        // F2: BreakCompanion flips BOTH bond ids to -1; a LIVE-computed key
+        // would drift both betrayers to "follower--1" (the D6 no-cross-key
+        // contract violated in a reachable state). The key is identity-frozen
+        // at construction, so post-break lines stay distinct.
+        var roster = new CompanionRoster();
+        var a = NewFollower("follower", 21);
+        var b = NewFollower("follower", 22);
+        roster.TryAdd(a); roster.TryAdd(b);
+
+        DrainToZero(a); Assert.Equal(CompanionState.Betrayed, a.Machine.Tick());
+        Assert.NotNull(roster.ExecuteBetrayal(a));
+        DrainToZero(b); Assert.Equal(CompanionState.Betrayed, b.Machine.Tick());
+        Assert.NotNull(roster.ExecuteBetrayal(b));
+
+        Assert.False(a.Component.HasCompanion);                   // both bond ids are -1 NOW
+        Assert.False(b.Component.HasCompanion);
+        Assert.Equal("follower-21", a.BusKey);                    // frozen — no "--1" drift
+        Assert.Equal("follower-22", b.BusKey);
+        Assert.NotEqual(a.BusKey, b.BusKey);
+    }
+
+    [Fact]
+    public void OversizedFollowersList_TruncatedToCap()
+    {
+        // F4: a hand-edited oversized save feeds MORE entries than the cap on
+        // load. The world-side restore drops every REFUSED entry with a marker
+        // and composes no body for it — this pins the contract that guard
+        // stands on: TryAdd returns FALSE for every add past the cap, the
+        // roster keeps exactly the first Cap entries, in order.
+        var roster = new CompanionRoster();
+        var accepted = new List<CompanionRoster.Follower>();
+        for (int i = 0; i < 5; i++)                               // 5 entries, cap 3
+        {
+            var f = NewFollower(i == 0 ? "companion" : "follower", i == 0 ? 7 : 20 + i);
+            bool ok = roster.TryAdd(f);
+            if (!ok) continue;                                    // the drop-marker arm's signal
+            Assert.True(ok);
+            accepted.Add(f);
+        }
+        Assert.Equal(CompanionRoster.Cap, roster.Count);
+        Assert.Equal(3, accepted.Count);
+        for (int i = 0; i < accepted.Count; i++)
+            Assert.Same(accepted[i], roster[i]);                  // order intact, nothing swapped in
+    }
 }
