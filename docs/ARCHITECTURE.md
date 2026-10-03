@@ -35,7 +35,7 @@ the composition root (see §3).
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
 | `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1). Engine-free (MC 3900 2a, MC 3904 2c). |
-| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies), dialogue, empathy panel, TAB skills panel (MC 3933 2f). |
+| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies), dialogue (`Show(nodeId, fromReward=false)` — the MC 3915 reward-beat flag `ActiveNodeIsReward`, one-arg callers unchanged), empathy panel, TAB skills panel (MC 3933 2f). |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
 
@@ -54,7 +54,10 @@ the composition root (see §3).
   spawned zone enemies parent under the director's `Visuals` Node3D on
   `main.tscn`), `WorldDirector.Story.cs` (partial: the quest root seam —
   `InitStory` wiring, observation-hook delivery, wage-settle → `WagePaid`
-  attribution to the ACTIVE wage row; wiring only, quest rules live in the pure
+  attribution to the ACTIVE wage row, and the MC 3915 reward-beat emitter on
+  Completed (the row's `Reward` node shown through the dialogue view flagged
+  reward-shown, `REWARD_SHOWN` gate marker) with the observation provider
+  riding the guarded `QuestDialogueNodeNow` seam; wiring only, quest rules live in the pure
   `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
   `InitSkills` wiring, Q/R input poll, Manna save seams + the single armed-damage
   wrap at the one `DealDamage` call; wiring only, economy lives in the engine-free
@@ -117,7 +120,11 @@ the composition root (see §3).
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
-`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`;
+`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+(MC 3915: quest_arc also carries the reward-beat view Checks — `intro`/`wage_duty`/`counters`/`boss_fallen`
+reward nodes asserted on screen flagged reward-shown, plus the q_speak leg pinning the
+interact-path replacement — and the named `REWARD_GUARD` leg; gate section (I) greps
+`REWARD_SHOWN` x5 + `REWARD_GUARD`);
 `RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content

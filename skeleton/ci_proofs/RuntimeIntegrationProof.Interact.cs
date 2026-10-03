@@ -43,14 +43,17 @@ public partial class RuntimeIntegrationProof : SceneTree
         {
             if (_mode == "no_interact")
             {
-                // The seam is off: no DnaSpoken AND no dialogue is the
-                // DETECTED break (the control must be able to fail).
-                if (_dialogue!.IsOpen)
+                // The seam is off: no DnaSpoken AND no INTERACT-path dialogue
+                // is the DETECTED break (the control must be able to fail).
+                // MC 3915: the boot q_intro REWARD beat legitimately opens the
+                // box at scene start — only the interact path's own npc_ node
+                // can signal a live seam (dna_speak mode proves it shows one).
+                if (_dialogue!.IsOpen && _dialogue.ActiveNode.StartsWith("npc_"))
                 {
                     Fail("no_interact: dialogue opened despite the interact seam disabled — the negative control is broken");
                     return;
                 }
-                GD.Print("LA_GATE: NEG_INTERACT: interact pressed near the NPC but no DnaSpoken fired and no dialogue opened (seam disabled) — break detected");
+                GD.Print("LA_GATE: NEG_INTERACT: interact pressed near the NPC but no DnaSpoken fired and no interact-path dialogue opened (seam disabled) — break detected");
                 Quit(1);
                 return;
             }

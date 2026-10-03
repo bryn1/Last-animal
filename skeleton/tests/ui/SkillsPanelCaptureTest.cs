@@ -78,7 +78,7 @@ public partial class SkillsPanelCaptureTest : SceneTree
             _released = true;
         }
 
-        // Verdict well before the helper's --wait 4 capture, so the marker
+        // Verdict well before the helper's --wait 6 capture, so the marker
         // is in the gate log beside the PNG the pixels are measured from.
         if (!_verdictPrinted && _t >= 0.8)
         {

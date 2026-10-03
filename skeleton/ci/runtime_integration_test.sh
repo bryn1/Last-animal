@@ -161,12 +161,21 @@ run_mode zone_travel_boot pass "BOOT_SET_CLEARED" "$PROOF_P1"
 # surviving save->load in the live scene (QUEST_PERSIST) plus the DA-P1
 # EVIDENCE-REWIND leg (one post-load extraction cascades nothing —
 # QUEST_REWIND); and the SetQuestHooksEnabled gate seam going red (NEG_QUEST).
+# MC 3915 adds the reward-beat legs to quest_arc: every Completed transition
+# shows the row's Reward node through the dialogue view (REWARD_SHOWN marker
+# x5, view state asserted in-proof) and the named REWARD_GUARD leg proves a
+# reward-shown node never satisfies a DialogueShown objective while a normal
+# show of the same node does.
 run_mode quest_arc pass "QUEST_COMPLETED"
 LOGQ="$(LA_GATE_MODE=quest_arc timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 [[ "$LOGQ" == *'QUEST_STARTED'* ]] || fail "quest_arc: expected QUEST_STARTED"
 [[ "$LOGQ" == *'QUEST_OBJECTIVE q_wage'* ]] || fail "quest_arc: expected QUEST_OBJECTIVE q_wage (WagePaid arm driven)"
 [[ "$LOGQ" == *'WAGE_PAID for q_wage'* ]] || fail "quest_arc: expected WAGE_PAID for q_wage on the bus"
 [[ "$LOGQ" == *'QUEST_COMPLETED q_boss'* ]] || fail "quest_arc: expected QUEST_COMPLETED q_boss (zone-boss finale)"
+for q in q_intro q_speak q_wage q_kills q_boss; do
+  [[ "$LOGQ" == *"REWARD_SHOWN $q "* ]] || fail "quest_arc: expected REWARD_SHOWN $q (reward beat emitter, MC 3915)"
+done
+[[ "$LOGQ" == *'REWARD_GUARD'* ]] || fail "quest_arc: expected REWARD_GUARD (reward beats never feed DialogueShown — MC 3915)"
 run_mode quest_persist pass "QUEST_PERSIST"
 LOGP="$(LA_GATE_MODE=quest_persist timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 [[ "$LOGP" == *'QUEST_REWIND_ARMED'* ]] || fail "quest_persist: evidence-rewind leg never armed (wage/farm drift broken)"

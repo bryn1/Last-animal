@@ -30,7 +30,7 @@ namespace LastAnimal.Ui;
 /// </summary>
 public partial class SkillsPanel : Control
 {
-    /// <summary>Panel rect on the 1280x720 play screen (fixed, deterministic:
+    /// <summary>Panel rect on the 1152x648 play screen (fixed, deterministic:
     /// the ui_test.sh framebuffer leg crops exactly this region).</summary>
     public const int RegionX = 8;
     public const int RegionY = 440;

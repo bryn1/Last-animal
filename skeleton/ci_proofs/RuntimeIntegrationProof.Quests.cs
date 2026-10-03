@@ -18,6 +18,15 @@ using System.Collections.Generic;
 //     settle and meets q_wage's objective (QUEST_OBJECTIVE marker leg);
 //     kills (also crossing the boss-spawn DNA threshold) meet q_kills; the
 //     finale kills the live zone boss -> QUEST_COMPLETED (owner ruling D6).
+//     MC 3915 reward-beat legs: each completion branch asserts the REAL
+//     dialogue-view state — the row's Reward node on screen flagged
+//     reward-shown (q_speak's leg pins the honest end state: the interact
+//     path's own npc-node show replaces the first_speak beat in the SAME
+//     call, clearing the flag — REWARD_SHOWN q_speak on the log is that
+//     beat's marker). Case 6 is the named REWARD_GUARD leg: while the
+//     boss_fallen reward is on screen, a fresh DialogueShown probe on the
+//     director's OWN guarded seam (QuestDialogueNodeNow) must stay Active;
+//     the same node shown as a NORMAL dialogue satisfies it (non-vacuous).
 //   quest_persist — after two completed quests: SaveGame(), diverge the LIVE
 //     log (FromSaveRows corruption seam), LoadGame() must restore the saved
 //     rows onto the live scene -> QUEST_PERSIST. THEN the rewind leg (DA P1):
@@ -151,6 +160,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                 {
                     Check("boot zone entry completed q_intro and auto-started q_speak",
                           true, "intro=completed speak=active");
+                    Check("MC 3915: q_intro reward beat on screen",
+                          _director!.DialogueUi.ActiveNode == "intro" && _director!.DialogueUi.ActiveNodeIsReward,
+                          $"node={_director.DialogueUi.ActiveNode}");
+                    if (_failed) return;
                     GD.Print("LA_GATE: QUEST_ACTIVE q_speak — boot zone fact drove the intro quest");
                     NextPhase();
                 }
@@ -161,6 +174,17 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 1:   // speak: teleport to the companion, press interact
                 if (QStatus("q_speak") == QuestStatus.Completed)
                 {
+                    // MC 3915 view leg, honest reading: the first_speak reward
+                    // beat rides the Completed transition INSIDE EmitDnaSpoken,
+                    // and the interact path's own dialogue show (WorldDirector
+                    // .cs TryInteract, untouched by MC 3915) replaces it in the
+                    // SAME call — the real end-of-call view state is the npc
+                    // node with the reward flag cleared (a one-arg Show resets
+                    // it). REWARD_SHOWN q_speak on the log is the beat itself.
+                    Check("MC 3915: q_speak completion rode the reward beat; the interact's own show owns the view now (npc node, reward flag cleared)",
+                          _director!.DialogueUi.ActiveNode.StartsWith("npc_") && !_director!.DialogueUi.ActiveNodeIsReward,
+                          $"node={_director.DialogueUi.ActiveNode}");
+                    if (_failed) return;
                     GD.Print("LA_GATE: QUEST_SPOKE — interact drove q_speak through the bus");
                     NextPhase();
                     break;
@@ -173,6 +197,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 2:   // wage: wait for the due clock (grace 20s), then press pay_wage
                 if (QStatus("q_wage") == QuestStatus.Completed)
                 {
+                    Check("MC 3915: q_wage reward beat on screen",
+                          _director!.DialogueUi.ActiveNode == "wage_duty" && _director!.DialogueUi.ActiveNodeIsReward,
+                          $"node={_director.DialogueUi.ActiveNode}");
+                    if (_failed) return;
                     GD.Print("LA_GATE: QUEST_WAGE — WagePaid rode the pay settle and met q_wage");
                     NextPhase();
                     break;
@@ -184,6 +212,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 3:   // kills: farm non-boss enemies (travelling when dry) to 4 extractions
                 if (QStatus("q_kills") == QuestStatus.Completed)
                 {
+                    Check("MC 3915: q_kills reward beat on screen",
+                          _director!.DialogueUi.ActiveNode == "counters" && _director!.DialogueUi.ActiveNodeIsReward,
+                          $"node={_director.DialogueUi.ActiveNode}");
+                    if (_failed) return;
                     GD.Print("LA_GATE: QUEST_KILLS — four extractions met the counters quest");
                     NextPhase();
                     break;
@@ -202,22 +234,45 @@ public partial class RuntimeIntegrationProof : SceneTree
                 else QPressTravel();
                 break;
 
-            case 5:   // kill the boss: the arc ends at QUEST_COMPLETED (owner ruling D6)
+            case 5:   // kill the boss: the arc ends at QUEST_COMPLETED (owner ruling D6),
+                      // then the MC 3915 REWARD_GUARD leg (case 6) runs on the live view.
                 if (QStatus("q_boss") == QuestStatus.Completed && _director!.Quests.IsArcComplete)
                 {
                     Check("the zone-boss finale completed the arc", _director.Quests.IsArcComplete,
                           "all five rows Completed");
                     if (_failed) return;
+                    Check("MC 3915: q_boss reward beat on screen",
+                          _director!.DialogueUi.ActiveNode == "boss_fallen" && _director!.DialogueUi.ActiveNodeIsReward,
+                          $"node={_director.DialogueUi.ActiveNode}");
+                    if (_failed) return;
                     GD.Print("LA_GATE: QUEST_COMPLETED q_boss — FULL 5-QUEST ARC COMPLETE at the zone boss");
                     GD.Print("LA_GATE: PASS — quest arc verified (intro->speak->wage->kills->boss through ONE composition root)");
-                    _asserted = true;
-                    _stage = 6;
-                    _stageFrames = 0;
-                    _holdStartPhys = _physFrames;
-                    return;
+                    NextPhase();
+                    break;
                 }
                 if (_qFrames > QuestFrameBudget) Fail("quest_arc: the boss never died (finale wire broken)");
                 QBossAttackLoop();
+                break;
+
+            case 6:   // MC 3915 REWARD_GUARD: the boss_fallen reward is STILL on
+                      // screen. A fresh DialogueShown probe wired through the
+                      // director's OWN guarded seam must not credit the reward;
+                      // the same node shown as a normal dialogue must (non-vacuous).
+                var probe = new QuestLog(new QuestTable(new[] { new QuestDef("g_shown", "Reward-Guard Probe",
+                    new QuestObjective(QuestObjectiveKind.DialogueShown, 1, "boss_fallen"), "boss_fallen") }));
+                probe.SetDialogueNodeProvider(() => _director!.QuestDialogueNodeNow);  // the seam the director itself wires
+                probe.Start("g_shown");   // EvaluatePass polls the provider WHILE the boss_fallen reward is on screen
+                bool rewardGuarded = probe.Status("g_shown") == QuestStatus.Active;      // reward fed nothing (guard)
+                _director!.DialogueUi.Show("boss_fallen");                               // a NORMAL dialogue, same node
+                probe.ObserveSpoken(0);                                                  // re-evaluation nudge, same seam
+                bool shownSatisfies = probe.Status("g_shown") == QuestStatus.Completed;  // channel is live (non-vacuous)
+                Check("REWARD_GUARD: reward-shown node never satisfies DialogueShown; a normal show does",
+                      rewardGuarded && shownSatisfies,
+                      $"rewardOnScreenGuarded={rewardGuarded} normalShowCompletes={shownSatisfies}");
+                if (_failed) return;
+                GD.Print("LA_GATE: REWARD_GUARD — boss_fallen as reward satisfied nothing; as dialogue it satisfies");
+                GD.Print("LA_GATE: PASS — quest arc verified (full arc + reward beats + DialogueShown guard, MC 3915)");
+                _asserted = true; _stage = 6; _stageFrames = 0; _holdStartPhys = _physFrames;
                 break;
         }
     }

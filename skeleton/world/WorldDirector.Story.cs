@@ -1,5 +1,7 @@
+using Godot;
 using LastAnimal.Core.Framework;
 using LastAnimal.Story;
+using LastAnimal.Ui;
 
 // Last Animal — stage 2c story/quest wiring (MC 3904, code, 2026-10-02).
 //
@@ -20,6 +22,12 @@ using LastAnimal.Story;
 //
 // Gate seam (design §4.2 idiom): SetQuestHooksEnabled — one bool, no gameplay
 // logic; the quest_neg runtime mode proves the arc cannot advance without it.
+//
+// MC 3915 reward beat: the Completed arm shows the row's Reward node through
+// the EXISTING dialogue view, flagged reward-shown (DialogueSystem.Show
+// fromReward) so it never feeds DialogueShown evidence — the observation
+// provider rides the guarded QuestDialogueNodeNow seam. Save path stays true:
+// restores emit no Changed events, so a LOAD shows no reward beat.
 namespace LastAnimal.World;
 
 public partial class WorldDirector
@@ -34,6 +42,18 @@ public partial class WorldDirector
     /// MC 3943 2g (ARCH W2): re-keyed from the singleton read to ANY roster
     /// follower — the roster-of-one answers exactly as before.</summary>
     public bool WageDueNow => _roster != null && _roster.AnyWageDue;
+
+    /// <summary>Proof-only seam, no logic (MC 3915): the node the quest
+    /// observer may credit as DIALOGUE OBSERVATION — the dialogue view's
+    /// active node, or empty when nothing is open or the node on screen is a
+    /// REWARD beat (a reward is never DialogueShown evidence). This is the
+    /// seam the director itself wires as the DialogueShown provider below.</summary>
+    public string QuestDialogueNodeNow =>
+        _dialogue == null || _dialogue.ActiveNodeIsReward ? string.Empty : _dialogue.ActiveNode;
+
+    /// <summary>Proof-only read seam, no logic (MC 3915): the dialogue view,
+    /// so the runtime proof asserts reward beats on the REAL view state.</summary>
+    public DialogueSystem DialogueUi => _dialogue;
 
     /// <summary>
     /// Root seam, called from _Ready right after the SaveLoadController is
@@ -61,7 +81,7 @@ public partial class WorldDirector
         _ecosystem.ZoneEntered += (zoneId, _) =>
         { if (_storyHooksEnabled) _quests.ObserveZoneEntered(zoneId); };
         if (_dialogue != null)
-            _quests.SetDialogueNodeProvider(() => _dialogue.ActiveNode);
+            _quests.SetDialogueNodeProvider(() => QuestDialogueNodeNow);
         _quests.SetBossDeadProvider(() => _boss != null && _boss.IsDead);
 
         // Authoring order IS arc order: the table's first row starts with the
@@ -77,8 +97,25 @@ public partial class WorldDirector
         {
             case QuestStatus.Active: _bus.EmitQuestStarted(new QuestId(questId)); break;
             case QuestStatus.ObjectiveMet: _bus.EmitQuestObjective(new QuestId(questId)); break;
-            case QuestStatus.Completed: _bus.EmitQuestCompleted(new QuestId(questId)); break;
+            case QuestStatus.Completed:
+                {
+                    _bus.EmitQuestCompleted(new QuestId(questId));
+                    ShowRewardBeat(questId);
+                    break;
+                }
         }
+    }
+
+    /// <summary>MC 3915 reward beat — the row's Reward node is shown by the
+    /// EXISTING dialogue system (ride, no second UI), flagged reward-shown so
+    /// it never feeds DialogueShown evidence; the REWARD_SHOWN line is the
+    /// gate marker (W3 GD.Print idiom, world/WorldDirector.cs).</summary>
+    private void ShowRewardBeat(string questId)
+    {
+        if (!_storyHooksEnabled || _dialogue == null) return;   // gate-seam idiom (SetQuestHooksEnabled)
+        if (!_quests.Table.TryGetEntry(questId, out var def) || def == null) return;
+        _dialogue.Show(def.Reward, fromReward: true);
+        GD.Print($"REWARD_SHOWN {questId} -> {def.Reward}");
     }
 
     /// <summary>

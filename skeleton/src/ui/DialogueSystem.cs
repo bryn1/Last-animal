@@ -5,6 +5,8 @@ using LastAnimal.Story;
 // MC 3900 stage 2a: the text source moved from a private hardcoded switch to
 // the injected engine-free DialogueTable (src/story/); the Show/Close/
 // ActiveNode contract and the never-blank fallback are unchanged.
+// MC 3915: Show gains the fromReward reward-beat flag (ActiveNodeIsReward);
+// the one-arg Show contract is byte-identical for existing callers.
 //
 // C13 (PHASE0.md line 382): `DialogueSystem.Show(nodeId)`.
 // The dialogue box view: a Godot Control that, given a node id, shows that
@@ -26,6 +28,11 @@ public partial class DialogueSystem : Control
     /// <summary>The node id currently on screen, or empty when closed.</summary>
     public string ActiveNode { get; private set; } = string.Empty;
 
+    /// <summary>MC 3915 guard: the node currently on screen was shown as a
+    /// quest REWARD beat, not as dialogue observation — the quest observer
+    /// must never treat a reward beat as a DialogueShown fact.</summary>
+    public bool ActiveNodeIsReward { get; private set; }
+
     /// <summary>
     /// The authored dialogue table this View reads (injected by the
     /// composition root). Null falls back to DialogueTable.Default() so the
@@ -39,10 +46,13 @@ public partial class DialogueSystem : Control
 
     /// <summary>
     /// Open a dialogue node on screen: record it as active and paint its text.
+    /// MC 3915: fromReward marks the show as a quest REWARD beat (the default
+    /// keeps every existing one-arg caller byte-identical).
     /// </summary>
-    public void Show(string nodeId)
+    public void Show(string nodeId, bool fromReward = false)
     {
         ActiveNode = nodeId ?? string.Empty;
+        ActiveNodeIsReward = fromReward;
         BuildIfNeeded();
         EnsureVisible();
         _textLabel!.Text = DialogueFor(ActiveNode);
@@ -52,6 +62,7 @@ public partial class DialogueSystem : Control
     public void Close()
     {
         ActiveNode = string.Empty;
+        ActiveNodeIsReward = false;
         Visible = false;
     }
 
