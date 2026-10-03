@@ -1,5 +1,5 @@
-// SIZE: CI proof harness (583 l) — test-class ceiling 600, same classification
-// as RuntimeIntegrationProof.cs's header (MC 3943 2g; DA W5 F1 leg added).
+// SIZE: CI proof harness (600 l) — AT the test-class ceiling 600 (MC 3943 2g;
+// DA W5 F1 + W5 c3 F-A oversized-save trim leg; split owed before any next leg).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core;
@@ -41,6 +41,7 @@ using System.Collections.Generic;
 //     HEARTS_MEAN_LAST      the emit-order contract: per-follower deltas FIRST
 //                           (roster order), roster-mean LAST under the reserved
 //                           "roster" key — and the Hud hearts read the mean
+//     ROSTER_OVERSIZED_TRIMMED (DA W5 F4) hand-edited 5-entry save loads to N=3, no orphan body
 //   roster_neg — NEG_ROSTER: at the cap of 3 the 4th recruit is REFUSED (the
 //     roster and the wild flag stay unchanged); detected -> named red, exit 1.
 //
@@ -538,9 +539,25 @@ public partial class RosterIntegrationProof : SceneTree
                           $"hearts={_hud.CompanionHearts} mean={mean}");
                     if (_failed) return;
                     GD.Print($"LA_GATE: HEARTS_MEAN_LAST — last LoyaltyChanged = (\"roster\", {mean}); Hud hearts={_hud.CompanionHearts} from the mean");
-                    GD.Print("LA_GATE: PASS — roster chain verified end-to-end (recruit, follow, independent wages per follower, save/load N, cycle/forgive/break, pay-after-break refusal, mean-last emit order)");
-                    Quit(0);
-                    return;
+                    Next(16); return;
+                }
+            case 16:  // OVERSIZED-SAVE RESTORE — the world-side F4 drop-arm pin (TEST W5 c3 F-A)
+                {
+                    if (_sub == 0)
+                    {
+                        var store = new GodotSaveStore(); if (System.IO.File.Exists(store.SavePath)) System.IO.File.Delete(store.SavePath);
+                        var st = new GameState(); foreach (int id in new[] { 7, 21, 22, 23, 24 }) st.Followers.Add(new FollowerEntry { EntityId = id, Loyalty = 60 });
+                        Check("hand-edited OVERSIZED save (5 Followers entries > cap 3) written via the existing save seam", SaveSystem.Save(st, store), $"path={store.SavePath}");
+                        _director.LoadGame();   // the REAL load path: LoadGame -> RestoreFollowers over 5 entries
+                        _sub = 1; return;
+                    }
+                    if (_stageFrames < 5) return;   // let the restore + the deferred QueueFree settle
+                    int bodies = 0; foreach (var c in _director.GetChildren()) if (c is CompanionFollowBody) bodies++;
+                    Check("ROSTER_OVERSIZED_TRIMMED — F4 drop-arm trims the 5-entry restore at the world-side cap: roster N=3 and companion bodies in the scene == 3 (no orphan frozen body); loyalty 60 proves the OVERSIZED save loaded",
+                          roster.Count == CompanionRoster.Cap && bodies == CompanionRoster.Cap && roster[1].Component.Loyalty == 60, $"N={roster.Count} bodies={bodies} f1loy={roster[1].Component.Loyalty}");
+                    if (_failed) return;
+                    GD.Print("LA_GATE: ROSTER_OVERSIZED_TRIMMED — hand-edited 5-entry save: N=3, scene bodies=3, the 2 surplus entries DROPPED with the marker (DA W5 F4)\nLA_GATE: PASS — roster chain verified end-to-end (recruit, follow, independent wages per follower, save/load N, cycle/forgive/break, pay-after-break refusal, mean-last emit order, oversized-save trim)");
+                    Quit(0); return;
                 }
         }
     }

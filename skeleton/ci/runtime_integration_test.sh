@@ -216,6 +216,8 @@ LOGR="$(LA_GATE_MODE=roster_follow timeout 300 "$GODOT" --headless --path "$PROJ
 [[ "$LOGR" == *'BREAK_BOND_SELECTED'* ]] || fail "roster_follow: expected BREAK_BOND_SELECTED (one betrays, others keep following)"
 [[ "$LOGR" == *'PAY_AFTER_BREAK_REFUSED'* ]] || fail "roster_follow: expected PAY_AFTER_BREAK_REFUSED (pay press on a broken bond must never settle — DA W5 F1)"
 [[ "$LOGR" == *'HEARTS_MEAN_LAST'* ]] || fail "roster_follow: expected HEARTS_MEAN_LAST (mean emitted LAST under the reserved key)"
+[[ "$LOGR" == *'ROSTER_OVERSIZED_TRIMMED'* ]] || fail "roster_follow: expected ROSTER_OVERSIZED_TRIMMED (over-cap restore trims: N=3, bodies=N, DROPPED marker)"
+[[ "$LOGR" == *'restored entry id'* && "$LOGR" == *'DROPPED — roster cap'* ]] || fail "roster_follow: expected the F4 DROPPED marker on the over-cap restore (world-side drop-arm silent)"
 run_mode roster_neg fail "NEG_ROSTER" "$PROOF_ROSTER"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, roster_neg cap red; non-blank render)"
