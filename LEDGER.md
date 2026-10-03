@@ -248,3 +248,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   RuntimeIntegrationProof idiom). Carry: NF5/NF6/NF7/NF9 P4 latents (hardening backlog),
   F-A-era P4s endorsed no-action (err RED). Banner + §6 leg enumerations restamped by
   orchestrator at this close.
+- W6 CLOSED (orchestrator-verified, 2026-10-03): MC 3915 reward-beat emitter — c218d3b (emitter on
+  QuestStatus.Completed rides DialogueSystem, fromReward guard skips _nodesSeen so reward chatter can
+  never satisfy DialogueShown objectives) + 7394387 (dna_speak false-green kill: Check now requires the
+  interact path's own npc_ node) + e12eb4e (c3 beat-coalescing doc generalization) + 4e119b0 (c4:
+  player-guide playback truth + coalescing boundary corrected FRAME-granular, pay+attack co-press
+  lost-render case named). Board .audits/20261003-W6wave: TEST-c3 PASS + DA-c3 SHIP + ARCH PASS, ALL
+  THREE on identical hash 0e85c22f at 4e119b0 (c1-c2 caught F-1/F-1c2 doc-lies, closed by c3/c4; TEST-c2
+  proved the false-green class real). Owner ruling (2026-10-03): beats -> "Queue + auto-close box" =
+  NEW FEATURE owed (card under new-board anchor 10026; docs' "pending/planned" wording flips there).
+  Carries: wiring-lambda guard residual (accepted), ci/*.sh mode 644 chmod owed (2h), pending-wording
+  staleness at DLQ card. Banner restamped at this close.
