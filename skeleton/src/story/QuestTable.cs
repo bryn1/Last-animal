@@ -83,10 +83,18 @@ public sealed class QuestDef
     /// Playback (MC 3915): the story seam (world/WorldDirector.Story.cs)
     /// plays this node on completion as a reward beat through DialogueSystem,
     /// flagged reward-shown so it never feeds DialogueShown evidence.
-    /// q_speak exception (MC 3915 DA F1 — recorded limitation, owner call
-    /// pending): that beat plays but is replaced WITHIN THE SAME interact
-    /// call by the npc reply node — it still emits REWARD_SHOWN; only its
-    /// render is clobbered.</summary>
+    /// Beat coalescing (MC 3915 DA F1–F3 — recorded limitation,
+    /// owner call pending): beats emitted within ONE EvaluatePass coalesce —
+    /// the last completed row's beat renders; every beat still emits
+    /// REWARD_SHOWN (the marker is state truth, only the render is
+    /// clobbered). q_speak is the always-case (the npc reply in the same
+    /// interact call replaces it); q_kills completed by the kill that is
+    /// ALSO the boss kill is the kill-ordering case (q_boss's beat replaces
+    /// "counters" in that pass).
+    /// Show is last-writer-wins both ways: a landing beat permanently
+    /// replaces whatever the box showed, incl. an npc reply mid-read — no
+    /// queue; and the boot beat opens the box from scene start until the
+    /// next Show.</summary>
     public string Reward { get; }
 
     public QuestDef(string id, string title, QuestObjective objective, string reward)

@@ -121,11 +121,14 @@ the composition root (see §3).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
 `RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
-(MC 3915: quest_arc also carries the reward-beat view Checks — 4 of 5 reward
-nodes (`intro`/`wage_duty`/`counters`/`boss_fallen`) asserted on screen flagged
-reward-shown; the `q_speak` beat emits `REWARD_SHOWN` but is replaced in-call by
-the interact reply node, its leg pinning that end state (recorded limitation
-MC 3915 DA F1, owner call pending) — and the named `REWARD_GUARD` leg; gate section (I) greps
+(MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
+`intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
+(every completion as its own observation, so no two beats share a pass in the
+gate); in live play every completion emits the state-truth marker
+`REWARD_SHOWN` while the render coalesces — beats within one EvaluatePass go
+last-row-wins (q_speak always; q_kills when its completing kill is also the
+boss kill), `Show` is last-writer-wins both ways; recorded limitation
+MC 3915 DA F1–F3, owner call pending) — and the named `REWARD_GUARD` leg; gate section (I) greps
 `REWARD_SHOWN` x5 + `REWARD_GUARD`);
 `RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
