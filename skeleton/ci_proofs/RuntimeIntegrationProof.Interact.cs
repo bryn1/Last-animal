@@ -27,8 +27,13 @@ public partial class RuntimeIntegrationProof : SceneTree
                   _dnaSpokenCount > 0, $"spoken={_dnaSpokenCount}");
             if (_failed) return;
             GD.Print("LA_GATE: DNA_SPOKEN_EMITTED — interact -> DnaLanguage.Speak -> EventBus.DnaSpoken (real autoload bus)");
-            Check("DialogueSystem opened with a non-empty active node",
-                  _dialogue!.IsOpen && _dialogue.ActiveNode.Length > 0,
+            // MC 3915 DA F2: keyed to the interact path's OWN npc_ node — the
+            // boot q_intro reward beat opens the box at "intro" in every
+            // hooks-on mode, so a generic non-empty node could pass on that
+            // reward instead of the interact Show. WorldDirector.cs TryInteract
+            // shows "npc_{id}"; the no_interact twin below keys the same way.
+            Check("DialogueSystem opened the interact path's own npc_ node",
+                  _dialogue!.IsOpen && _dialogue.ActiveNode.StartsWith("npc_"),
                   $"node='{_dialogue.ActiveNode}'");
             if (_failed) return;
             GD.Print("LA_GATE: DIALOGUE_SHOWN — DialogueSystem.Show rendered the spoken NPC's node");

@@ -82,7 +82,11 @@ public sealed class QuestDef
     /// the reference, so a renamed node fails the gate, not the player.
     /// Playback (MC 3915): the story seam (world/WorldDirector.Story.cs)
     /// plays this node on completion as a reward beat through DialogueSystem,
-    /// flagged reward-shown so it never feeds DialogueShown evidence.</summary>
+    /// flagged reward-shown so it never feeds DialogueShown evidence.
+    /// q_speak exception (MC 3915 DA F1 — recorded limitation, owner call
+    /// pending): that beat plays but is replaced WITHIN THE SAME interact
+    /// call by the npc reply node — it still emits REWARD_SHOWN; only its
+    /// render is clobbered.</summary>
     public string Reward { get; }
 
     public QuestDef(string id, string title, QuestObjective objective, string reward)

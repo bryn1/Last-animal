@@ -27,6 +27,11 @@ using System.Collections.Generic;
 //     boss_fallen reward is on screen, a fresh DialogueShown probe on the
 //     director's OWN guarded seam (QuestDialogueNodeNow) must stay Active;
 //     the same node shown as a NORMAL dialogue satisfies it (non-vacuous).
+//     Guard-coverage residual (MC 3915 DA F3, refactor-watch only): the probe
+//     reads the guarded PROPERTY directly; the production wiring line
+//     (WorldDirector.Story.cs InitStory -> SetDialogueNodeProvider) is a
+//     one-line delegation observed gate-green even unguarded in the planted2
+//     mutation — named residual, not covered by this leg.
 //   quest_persist — after two completed quests: SaveGame(), diverge the LIVE
 //     log (FromSaveRows corruption seam), LoadGame() must restore the saved
 //     rows onto the live scene -> QUEST_PERSIST. THEN the rewind leg (DA P1):
@@ -181,6 +186,11 @@ public partial class RuntimeIntegrationProof : SceneTree
                     // SAME call — the real end-of-call view state is the npc
                     // node with the reward flag cleared (a one-arg Show resets
                     // it). REWARD_SHOWN q_speak on the log is the beat itself.
+                    // PINNED TODAY'S END-STATE (MC 3915 c2): if the owner
+                    // later reorders TryInteract so the first_speak beat is
+                    // visible, THIS CHECK AND THE QuestTable Reward DOC MUST
+                    // BE UPDATED TOGETHER — a correct future fix must not
+                    // silently read as gate-red.
                     Check("MC 3915: q_speak completion rode the reward beat; the interact's own show owns the view now (npc node, reward flag cleared)",
                           _director!.DialogueUi.ActiveNode.StartsWith("npc_") && !_director!.DialogueUi.ActiveNodeIsReward,
                           $"node={_director.DialogueUi.ActiveNode}");
