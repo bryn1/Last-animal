@@ -113,9 +113,11 @@ A quiet five-beat quest arc runs on top of the same systems
 (extract DNA from four creatures) → **The Watcher Falls** (kill the boss the
 zone fields once your spoken DNA crosses its threshold). Quests advance
 automatically as you play; each completion starts the next. A quest's
-reward is a short authored spoken beat rather than loot — a node in the
-dialogue table, recorded as a narrative note: its playback is not wired
-yet, so completing a quest does not speak the beat in this build. There is
+reward is a short authored spoken beat rather than loot: when you
+complete a quest, its beat is spoken in-world in the dialogue box (see
+Dialogue above). The box shows one line at a time — the most recent
+spoken line replaces the previous one, and a line lingers until the
+next replaces it (a fuller queue with auto-close is planned). There is
 no quest log screen yet: the arc happens without menus.
 
 ## Saving and loading

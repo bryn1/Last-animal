@@ -84,13 +84,16 @@ public sealed class QuestDef
     /// plays this node on completion as a reward beat through DialogueSystem,
     /// flagged reward-shown so it never feeds DialogueShown evidence.
     /// Beat coalescing (MC 3915 DA F1–F3 — recorded limitation,
-    /// owner call pending): beats emitted within ONE EvaluatePass coalesce —
-    /// the last completed row's beat renders; every beat still emits
-    /// REWARD_SHOWN (the marker is state truth, only the render is
-    /// clobbered). q_speak is the always-case (the npc reply in the same
-    /// interact call replaces it); q_kills completed by the kill that is
-    /// ALSO the boss kill is the kill-ordering case (q_boss's beat replaces
-    /// "counters" in that pass).
+    /// owner call pending): the coalescing boundary is the FRAME, not the
+    /// EvaluatePass — beats emitted before the next paint coalesce (two
+    /// separate EvaluatePass runs in one frame included) and the last beat
+    /// rendered wins; every beat still emits REWARD_SHOWN (the marker is
+    /// state truth, only the render is clobbered). q_speak is the
+    /// always-case (the npc reply in the same interact call replaces it);
+    /// q_kills completed by the kill that is ALSO the boss kill is the
+    /// kill-ordering case (q_boss's beat replaces "counters"); a
+    /// pay_wage+attack co-press landing in one input frame runs two
+    /// passes and the wage beat loses every painted frame (lost render).
     /// Show is last-writer-wins both ways: a landing beat permanently
     /// replaces whatever the box showed, incl. an npc reply mid-read — no
     /// queue; and the boot beat opens the box from scene start until the

@@ -125,10 +125,12 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
 gate); in live play every completion emits the state-truth marker
-`REWARD_SHOWN` while the render coalesces — beats within one EvaluatePass go
-last-row-wins (q_speak always; q_kills when its completing kill is also the
-boss kill), `Show` is last-writer-wins both ways; recorded limitation
-MC 3915 DA F1–F3, owner call pending) — and the named `REWARD_GUARD` leg; gate section (I) greps
+`REWARD_SHOWN` while the render coalesces — beats emitted within one frame
+coalesce, including two separate evaluation passes in the same frame, and
+the last beat rendered wins (q_speak always; q_kills when its completing
+kill is also the boss kill; a pay_wage+attack same-frame co-press, where the
+wage beat loses every painted frame), `Show` is last-writer-wins both
+ways; recorded limitation MC 3915 DA F1–F3, owner call pending) — and the named `REWARD_GUARD` leg; gate section (I) greps
 `REWARD_SHOWN` x5 + `REWARD_GUARD`);
 `RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
