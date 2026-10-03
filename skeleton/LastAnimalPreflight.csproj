@@ -75,6 +75,10 @@
          proof; modes roster_follow / roster_neg). -->
     <Compile Include="world/WorldDirector.Roster.cs" />
     <Compile Include="ci_proofs/RosterIntegrationProof.cs" />
+    <!-- Compile MC 10036 roster_follow leg: the full-arc stage machine moved
+         VERBATIM out of the proof above into its partial-class half (moves
+         only — class name, modes and dispatch unchanged). -->
+    <Compile Include="ci_proofs/RosterIntegrationProof.Follow.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

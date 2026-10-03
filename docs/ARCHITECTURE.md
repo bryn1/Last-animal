@@ -137,7 +137,10 @@ ways; recorded limitation MC 3915 DA F1–F3, owner call pending) — and the na
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
-`RosterIntegrationProof.cs` (standalone proof — modes `roster_follow`/`roster_neg`:
+`RosterIntegrationProof.cs` (+ partial-class half `RosterIntegrationProof.Follow.cs`
+— MC 10036 moves-only split: the `roster_follow` arc moved verbatim at the 600-l
+proof ceiling; class name, modes and the `_Process` mode switch stay in the entry
+file) — standalone proof — modes `roster_follow`/`roster_neg`:
 recruit-to-cap, per-follower wages, pay-after-break refused, save/restore,
 mean-hearts-last, oversized-save trim with no orphan bodies; a partial cannot
 route new modes — the main proof's stage switch is the only mode router,
