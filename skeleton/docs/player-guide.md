@@ -19,6 +19,8 @@ Verified against the `[input]` map in `project.godot`:
 | Invert Strike (skill) | `Q` |
 | Mend (skill) | `R` |
 | Skills panel (toggle) | `TAB` |
+| Cycle selected follower | `C` |
+| Break bond (selected follower) | `J` |
 | Third skill (reserved; bound but inert) | `F` |
 | Save game | `F5` |
 | Load game | `F9` |
@@ -28,8 +30,9 @@ Verified against the `[input]` map in `project.godot`:
 Six readouts (C13 contract extended by MC 3933, `src/ui/Hud.cs`): **Life**,
 **Manna**, **DNA meter**, **Companion hearts**, **Skills** (what you have
 learned) and the **ACTIVE quest** line. Life drops when enemies hit you. The DNA
-meter tracks your language progress; companion hearts mirror your companion's
-loyalty. **Manna is skill fuel**: every DNA extraction (kill) grants +5 and
+meter tracks your language progress; the hearts show the MEAN loyalty across
+your follower roster (a follower you betrayed no longer counts, and can no
+longer be paid or forgiven). **Manna is skill fuel**: every DNA extraction (kill) grants +5 and
 casting a skill spends it (`SkillState`, `src/skills/`). The gauge moves
 during play, caps at 100, and a save restores the exact saved value on
 load — nothing refills it for free. The skills and their keys are under
@@ -44,20 +47,27 @@ load — nothing refills it for free. The skills and their keys are under
    ecosystem answers with `DnaLanguage.Counter` — it learns from what you have
    said and strikes back with adapted counters (`EcosystemAdaptation`,
    C5). The DNA meter shows how your language stacks up.
-3. **Companions.** A companion follows you (`CompanionFollowBody`), has needs
-   (`CompanionNeeds`) and a loyalty score (`LoyaltyChanged` signal). Loyalty
-   moves with how you treat it; neglect has consequences.
+3. **Companions.** You can lead a roster of up to **three** followers
+   (`CompanionRoster`, MC 3943): recruit by sparing a wild creature and paying
+   its first wage. Each follower follows you (`CompanionFollowBody`), has its
+   own needs (`CompanionNeeds`) and its own loyalty (`LoyaltyChanged` per
+   follower; the HUD shows the mean). Loyalty moves with how you treat each
+   one; neglect has consequences — and one follower's betrayal does not make
+   the others leave. `C` cycles which follower is selected, `J` breaks the
+   bond with the selected one.
 4. **Betrayal and the Empathy Book.** The `BetrayalSystem` (C7) turns a
-   neglected companion against you: when loyalty reaches 0 the bond breaks,
+   neglected follower against you: when its loyalty reaches 0 the bond breaks,
    the betrayal damage lands and the C2 `Betrayal` signal fires. The Empathy
    Book (`src/ui/EmpathyPanel.cs`, logic in `src/empathy/EmpathyBook.cs`, C9)
-   opens with `B` and lets you read a companion's hidden emotional state and
-   route a resolution: **Forgive** or **Permanent break**. Press `B` again to
-   close it.
+   opens with `B` and lets you read the selected follower's hidden emotional
+   state and route a resolution: **Forgive** or **Permanent break** (applies to
+   the `C`-selected follower; a broken bond can never be paid or forgiven).
+   Press `B` again to close it.
 5. **Wages.** The `SalarySystem` (C6) is the economy pressure behind your
-   choices, and paying is **your decision**: the first wage is due after 20 s
-   of companionship and a new one comes due every 30 s thereafter. While a
-   wage is due, press `P` to pay it (+5 loyalty). Ignore it and every full
+   choices, and paying is **your decision**: each follower's first wage is due
+   after 20 s of following and a new one comes due every 30 s thereafter. While
+   any follower's wage is due, press `P` to pay ALL due wages (+5 loyalty to
+   each one paid). Ignore one and every full
    30 s it stays unpaid is one skipped cycle (−3 loyalty) — withhold wages
    long enough and loyalty erodes to 0 and the companion betrays you.
 6. **Zones.** The world is zoned (`zones/`: meadow, canyon, ruins; bluetest and

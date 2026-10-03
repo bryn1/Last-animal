@@ -27,7 +27,7 @@ the composition root (see §3).
 | Module | Files | Concern |
 |---|---|---|
 | `src/combat/` | `CombatSystem.cs`, `CombatVec3.cs`, `EnemyAI.cs`, `PlayerController.cs` | Combat math, enemy AI, player controller. |
-| `src/companion/` | `CompanionEntity.cs`, `CompanionNeeds.cs`, `CompanionStateMachine.cs`, `CompanionAnimationHook.cs` | Companion entity, needs, state machine, animation binding. |
+| `src/companion/` | `CompanionEntity.cs`, `CompanionNeeds.cs`, `CompanionStateMachine.cs`, `CompanionAnimationHook.cs`, `CompanionRoster.cs` | Companion entity, needs, state machine, animation binding; roster (cap 3, per-follower wage settle, unique bus keys latched at add, mean-heart key, broken bonds never settled/forgiven — MC 3943 2g). |
 | `src/dna/` | `DnaLanguage.cs`, `DnaMessage.cs`, `EcosystemAdaptation.cs`, `LanguageSignature.cs`, `PlayerMutations.cs` | DNA language, messages, ecosystem adaptation; `PlayerMutations` = pure unlock authority (consensus `Counters` only, MC 3912 2e). |
 | `src/skills/` | `SkillState.cs` | Manna economy + arm/consume semantics (engine-free; MC 3912 2e). |
 | `src/ecosystem/` | `EcosystemSpawner.cs`, `BossController.cs` | Spawning and the zone boss. |
@@ -60,13 +60,19 @@ the composition root (see §3).
   wrap at the one `DealDamage` call; wiring only, economy lives in the engine-free
   `SkillState`), `WorldDirector.Ui.cs` (partial: the UI root seam — `InitUi`
   wiring of the skills panel + HUD readout providers (live closures, no cached
-  copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
+  (partial: the follower-roster root seam — `TickRoster` per-follower wage/follow/
+  hearts loop moved out of the root verbatim, recruit via wild-interact + first
+  wage, `cycle_follower`/`break_bond` polls, Forgive/PermanentBreak glue, save
+  restore with cap; emits per-follower loyalty deltas under `<name>-<EntityId>`
+  then the roster mean LAST under the reserved key `roster`; wiring only, roster
+  rules live in the engine-free `CompanionRoster`; MC 3943 2g), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
   `redtest/`).
 - **Input map**: WASD + arrows + attack, skill_1..2 (Q/R; F reserved), ui_toggle
-  (TAB), defined in `project.godot`.
+  (TAB), cycle_follower (C), break_bond (J), defined in `project.godot`.
 
 ## 4. Entrypoints
 
@@ -105,7 +111,7 @@ the composition root (see §3).
 `smoke.sh`, `boot_test.sh`, `bridge_mvp_test.sh`, `main_composition_test.sh`,
 `runtime_integration_test.sh`, `combat_test.sh`, `companion_test.sh`,
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
-`story_test.sh`, `quest_test.sh`, `skill_test.sh`,
+`story_test.sh`, `quest_test.sh`, `skill_test.sh`, `roster_test.sh`,
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
@@ -115,7 +121,10 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
-`ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
+`RosterIntegrationProof.cs` (standalone proof — modes `roster_follow`/`roster_neg`:
+recruit-to-cap, per-follower wages, pay-after-break refused, save/restore,
+mean-hearts-last; a partial cannot route new modes — the main proof's stage switch
+is the only mode router, MC 3943 2g), `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
 framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
 after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
@@ -138,7 +147,8 @@ skill; ui tests compile into the main csproj and run via `--script`).
   progression persisted per zone. Schema v3 (MC 3901 2b, one ratified break):
   `QuestStates` ("id:status" rows, persisted/restored through the live-scene
   `SaveLoadController` seams by the story root seam, MC 3904), `Manna`, and the
-  `Followers` roster ({EntityId, Loyalty}); no `LearnedMutations` field (struck
+  `Followers` roster ({EntityId, Loyalty}; cap 3 enforced at load — oversized
+  lists truncated with a marker, MC 3943 2g); no `LearnedMutations` field (struck
   per PLAN §G D2/D4). No external services, no network ports.
 - Build artifacts: `skeleton/build/` (exports + zips) — generated, not source.
 

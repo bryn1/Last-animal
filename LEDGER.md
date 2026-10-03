@@ -229,3 +229,13 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   Deviation: standalone ci_proofs/RosterIntegrationProof.cs (RuntimeIntegrationProof.cs
   2g-forbidden, partial cannot register modes; Godot file==class rule). Verdict board:
   parent's wave. Docs (docs/ARCHITECTURE.md roster row + input map C/J) owed at close.
+- W5 CLOSED (orchestrator-verified): MC 3943 2g roster (0b6df84: CompanionRoster + Roster
+  partial, cap 3, per-follower wages re-keyed off singleton, bus keys <name>-<EntityId> +
+  mean LAST under "roster", cycle_follower C / break_bond J, save N) + fix round (607ac53:
+  DA W5 F1 betrayed-guard lost in move [P1 — betrayers re-payable/forgivable, quest-fed],
+  F2 BusKey latch, F3 id-allocator seed, F4 load cap). DA W5 board: TEST PASS, DA FIX
+  (caught F1 P1), producer fix verified (my battery: roster/companion/quest/save/runtime
+  ALL 0 at 607ac53 incl PAY_AFTER_BREAK_REFUSED leg). Final verdict wave at 607ac53 +
+  docs rows (this commit) owed at close. Docs synced: §2 roster, §3 partial row + input
+  map C/J, §6 roster_test + RosterIntegrationProof, §8 load cap; player-guide roster
+  section + C/J rows + mean-hearts truth.
