@@ -125,13 +125,14 @@ writing, stamps `PlayerHealth=42`, and the load asserts that content
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
 `RosterIntegrationProof.cs` (standalone proof — modes `roster_follow`/`roster_neg`:
 recruit-to-cap, per-follower wages, pay-after-break refused, save/restore,
-mean-hearts-last; a partial cannot route new modes — the main proof's stage switch
-is the only mode router, MC 3943 2g), `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
+mean-hearts-last, oversized-save trim with no orphan bodies; a partial cannot
+route new modes — the main proof's stage switch is the only mode router,
+MC 3943 2g + F-A), `ZoneBossProof.cs`). Proofs run under `graphical-test-helper.sh` capture the
 framebuffer after `--wait` and kill the app, so a proof's GUI leg must STAY ALIVE
 after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on a
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
 combat, dna_npc, ecosystem, companion, empathy, runtime, save, story, quest,
-skill; ui tests compile into the main csproj and run via `--script`).
+skill, roster; ui tests compile into the main csproj and run via `--script`).
 
 ## 7. Docs map (`skeleton/docs/`)
 

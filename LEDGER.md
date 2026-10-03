@@ -239,3 +239,12 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   docs rows (this commit) owed at close. Docs synced: §2 roster, §3 partial row + input
   map C/J, §6 roster_test + RosterIntegrationProof, §8 load cap; player-guide roster
   section + C/J rows + mean-hearts truth.
+- W5 remediation round CLOSED (orchestrator-verified, 2026-10-03): a64e401 (F-A fix — runtime
+  oversized-save leg hand-writes a 5-entry save, real load, asserts N=3 + bodies=3 + DROPPED
+  marker; TEST-c3 F-A closed empirically) + 3ea8c63 (docs truth: hearts-mean counts betrayer
+  at zero until save+load drops it, recruit=E+P, J book-gate, §3 guard-pin note; DA c2 NF1-NF4
+  closed). Final board at 3ea8c63, ALL THREE on identical hash 88b9e623: TEST-c4 PASS + DA-c3
+  SHIP + ARCH PASS. Proof at 600 EXACT ceiling — split owed at next touch (own partial halves,
+  RuntimeIntegrationProof idiom). Carry: NF5/NF6/NF7/NF9 P4 latents (hardening backlog),
+  F-A-era P4s endorsed no-action (err RED). Banner + §6 leg enumerations restamped by
+  orchestrator at this close.
