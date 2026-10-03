@@ -20,7 +20,7 @@ Verified against the `[input]` map in `project.godot`:
 | Mend (skill) | `R` |
 | Skills panel (toggle) | `TAB` |
 | Cycle selected follower | `C` |
-| Break bond (selected follower) | `J` |
+| Break bond (selected follower) | `J` (with the Empathy Book open) |
 | Third skill (reserved; bound but inert) | `F` |
 | Save game | `F5` |
 | Load game | `F9` |
@@ -31,8 +31,10 @@ Six readouts (C13 contract extended by MC 3933, `src/ui/Hud.cs`): **Life**,
 **Manna**, **DNA meter**, **Companion hearts**, **Skills** (what you have
 learned) and the **ACTIVE quest** line. Life drops when enemies hit you. The DNA
 meter tracks your language progress; the hearts show the MEAN loyalty across
-your follower roster (a follower you betrayed no longer counts, and can no
-longer be paid or forgiven). **Manna is skill fuel**: every DNA extraction (kill) grants +5 and
+your whole follower roster (a follower whose bond you broke can no longer be
+paid or forgiven; it stays in the roster — counted in the mean at zero — until
+you save and load, which drops it). **Manna is skill fuel**: every DNA
+extraction (kill) grants +5 and
 casting a skill spends it (`SkillState`, `src/skills/`). The gauge moves
 during play, caps at 100, and a save restores the exact saved value on
 load — nothing refills it for free. The skills and their keys are under
@@ -48,8 +50,8 @@ load — nothing refills it for free. The skills and their keys are under
    said and strikes back with adapted counters (`EcosystemAdaptation`,
    C5). The DNA meter shows how your language stacks up.
 3. **Companions.** You can lead a roster of up to **three** followers
-   (`CompanionRoster`, MC 3943): recruit by sparing a wild creature and paying
-   its first wage. Each follower follows you (`CompanionFollowBody`), has its
+   (`CompanionRoster`, MC 3943): recruit a wild creature by interacting with it
+   (`E`) and paying its first wage (`P`). Each follower follows you (`CompanionFollowBody`), has its
    own needs (`CompanionNeeds`) and its own loyalty (`LoyaltyChanged` per
    follower; the HUD shows the mean). Loyalty moves with how you treat each
    one; neglect has consequences — and one follower's betrayal does not make

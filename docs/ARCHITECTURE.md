@@ -65,8 +65,10 @@ the composition root (see §3).
   hearts loop moved out of the root verbatim, recruit via wild-interact + first
   wage, `cycle_follower`/`break_bond` polls, Forgive/PermanentBreak glue, save
   restore with cap; emits per-follower loyalty deltas under `<name>-<EntityId>`
-  then the roster mean LAST under the reserved key `roster`; wiring only, roster
-  rules live in the engine-free `CompanionRoster`; MC 3943 2g), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  then the roster mean LAST under the reserved key `roster`; wiring plus
+  bond-guard glue only — wage/loyalty/betrayal rules live in the engine-free
+  `CompanionRoster` (the world-side cap-drop guard on restore is pinned by the
+  roster proof, not unit reach); MC 3943 2g), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
