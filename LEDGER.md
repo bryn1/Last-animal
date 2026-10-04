@@ -450,15 +450,23 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   PASS bd4c9255) carries 15 [Signal] delegates — TEST-UPDATED to 6 pre-2c + 5 quest + the 4
   S0 signals NAMED explicitly (DialogueShown/DialogueClosed/PlayerHurt/BossFallen); a
   non-ratified sixth still trips the count (plant RED logged, removed green). (C2 bridge_mvp
-  exit 139: ROOT-CAUSE VERIFIED by experiment matrix — BridgeMvpProof is the C# MainLoop and
-  its live-scene fields root the scene's C# wrappers past native teardown; finalizers then
-  hit freed ObjectDB entries (csharp_script.cpp:179 leaked-unsafe-reference, SEGV at exit).
-  Bisect: deterministic red at 3bfcee5 + a4c7155 (solo, savegate), green at 6db030c and S7
-  f1892f4 (2x each); full-S0-revert control GREEN; Ui.cs-only, EventBus+Bus.cs-only reverts
-  ALL still red — W0 shifted assembly/GC timing past the flush threshold; NOT the TickUi
-  poll, NOT the new signals, NOT the proof split. FIX: ReleaseHeldRefsBeforeQuit() at the
-  PASS Quit — drop the wrapper refs, GC-flush while the ObjectDB is alive. Plant: drop call
-  -> RED (exit 134, leaked lines), restored -> GATE PASS zero leaks, render bar RESULT=PASS.
+  exit 139: MECHANISM VERIFIED — BridgeMvpProof is the C# MainLoop and its live-scene fields
+  root the scene's C# wrappers past native teardown; their finalizers then hit freed ObjectDB
+  entries (csharp_script.cpp:179 leaked-unsafe-reference; abort shape non-deterministic 134
+  or 139). FIX (stands): ReleaseHeldRefsBeforeQuit() at the PASS Quit — all 7 wrapper fields
+  cleared, GC-flush while the ObjectDB is alive; TEST stress 5/5 green zero leaked lines,
+  plant drop-call -> RED detected + RESULT=PASS render bar. WHICH S0 HUNK shifted the GC
+  timing: INFERRED, demoted per DA JUDGED 241cd301 — bisect COLORS are VERIFIED (red at
+  3bfcee5 + a4c7155 deterministic, 2x each; green at 6db030c + S7 f1892f4, 2x each; full-S0
+  revert control green) and two ablations are VALID controls (proof ran, 51 leak lines):
+  PollBusEmits-call-off still red, Ui.cs-only pre-S0 revert still red. But the minus-signals
+  (expC) and the first Ui.cs-revert (expB variant) logs are BUILD-FAILURE logs ("build
+  callback failed", zero leak lines — proof never ran): INVALID controls. "Not the new
+  signals" rests on an invalid control; "not the proof split" was never ablated (sub-reverts
+  don't compile — proof.cs calls the Bus-partial stages); the surviving csproj +2 Compile
+  lines could BE the timing shifter. TEST T-1: plant detection measured 1/4 — a SINGLE green
+  bridge_mvp is weak evidence; run the gate N>=5 in series before trusting a green series.
+  No shipping-scene instance of the pattern: grep-VERIFIED (wall).
   (C3 export_check aborted line 47: NOT reproducible solo — identical command AND the full
   gate exit 0 on a4c7155 and on this branch (PE magic + assembly/GodotSharp/runtimeconfig
   markers, 135.7 MB exe). toolchain.sh TMPDIR guard did NOT fire and was never in play:
