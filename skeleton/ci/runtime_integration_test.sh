@@ -165,7 +165,12 @@ run_mode zone_travel_boot pass "BOOT_SET_CLEARED" "$PROOF_P1"
 # shows the row's Reward node through the dialogue view (REWARD_SHOWN marker
 # x5, view state asserted in-proof) and the named REWARD_GUARD leg proves a
 # reward-shown node never satisfies a DialogueShown objective while a normal
-# show of the same node does.
+# show of the same node does. MC 10026.1 adds the dialogue-lifecycle legs: a
+# direct reply is never starved by a queued beat (DLQ_SPEAK_PRECEDENCE), a
+# same-tick pair drains in strict emission order (DLQ_DRAINED), the queue
+# draining closes the box via the one uniform auto-close (DLQ_CLOSED) and an
+# unauthored direct npc_ line auto-closes too (DLQ_NPC_CLOSED — "All dialogue
+# lines"; R5 itself stays UNCOVERED by these legs — DA wave ruling P3-α).
 run_mode quest_arc pass "QUEST_COMPLETED"
 LOGQ="$(LA_GATE_MODE=quest_arc timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 [[ "$LOGQ" == *'QUEST_STARTED'* ]] || fail "quest_arc: expected QUEST_STARTED"

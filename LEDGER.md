@@ -259,3 +259,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   NEW FEATURE owed (card under new-board anchor 10026; docs' "pending/planned" wording flips there).
   Carries: wiring-lambda guard residual (accepted), ci/*.sh mode 644 chmod owed (2h), pending-wording
   staleness at DLQ card. Banner restamped at this close.
+- DLQ CLOSED (orchestrator-verified, 2026-10-04): MC 10026.1 dialogue lifecycle — 4fece21 (DialogueSystem
+  FIFO _pending queue: Show R1-R5 first-match, R3 head-take re-queues old head for full dwell; ONE pop
+  point; uniform auto-close as the ONLY _Process Close (rev-4 F-M); RewardLineFrames=240 painted-tick TTL;
+  ClearPresentation() on load restore, queue never persisted) + quest_arc 4 legs w/ named planted-bads
+  (owner rulings "Queue + auto-close box" + "All dialogue lines" — DA P3-α: R5 stays UNCOVERED by the
+  legs, disclosed in gate banner). Wave .audits/20261003-DLQwave at 4fece21: TEST PASS (own battery +
+  falsifiability a/b/c2/d each exit-1 named-FAIL + green-after-revert, determinism 44-marker cmp
+  byte-identical, units 46/46 + ui + story 14/14) + DA SHIP (all 8 axes re-derived; R3 Add+RemoveAt ==
+  MoveItem proven) + ARCH PASS (docs = code truth, stale-claim sweep clean), pins fa41ada0/18ad2292
+  reproduced by orchestrator on clean tree. No P0-P2. Rides: P3-beta design rationale wording (design
+  pinned), P3-gamma SPEAK-leg latch hardening recipe (future wave), 4xP4; NF5-9 latents unchanged.
