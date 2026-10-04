@@ -59,6 +59,10 @@ public class SkillEconomyTests
         Assert.True(skills.TryInvertStrike(unlocked: true));
         int armed = skills.ConsumeArmedDamage(player.MeleeDamage);
         Assert.Equal(player.MeleeDamage * SkillState.InvertStrikeMultiplier, armed);
+        // S7 F-4 (TEST-verdict-10030 F-1): the VALUE pinned as a literal — the
+        // assert above DERIVES from the same constant, so a silent config drift
+        // 3→4 passed it. This line is what makes the balance change gate-red.
+        Assert.Equal(3, SkillState.InvertStrikeMultiplier);
     }
 
     [Fact]

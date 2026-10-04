@@ -1,4 +1,4 @@
-// SIZE: >400 (~520 l) — CI proof partial (the quest stage machine), test-class ceiling 600 (MC 10029 header note; body splits owed to later waves).
+// SIZE: >400 (~560 l) — CI proof partial (the quest stage machine), test-class ceiling 600 (MC 10029 header note; body splits owed to later waves).
 using Godot;
 using LastAnimal.Story;
 using LastAnimal.Ui;
@@ -69,6 +69,8 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _qExtractsAfterLoad;
     // MC 10026.1 DLQ leg sub-state (case 1 SPEAK poll, case 7 drain/close).
     private int _qSpeakLeg, _qSpeakLegFrames, _q7, _q7Frames;
+    // P3-γ latches (DA DLQ-verdict, recipe pinned): (a)-pass gate on (b), and intro's paint.
+    private bool _qSpeakA, _qSpeakIntro;
 
     /// <summary>Stage-50 dispatch (called from the main file's stage switch).</summary>
     private void RunQuestStage()
@@ -196,17 +198,31 @@ public partial class RuntimeIntegrationProof : SceneTree
                     if (_qSpeakLeg == 1)
                     {
                         if (_qSpeakLegFrames == DialogueSystem.RewardLineFrames - 1)
+                        {
+                            bool ownsBox = ui.ActiveNode.StartsWith("npc_") && !ui.ActiveNodeIsReward;
                             Check("DLQ_SPEAK_PRECEDENCE(a): the fresh reply owns the box one tick before its TTL (never starved)",
-                                  ui.ActiveNode.StartsWith("npc_") && !ui.ActiveNodeIsReward, $"node={ui.ActiveNode} at dwell=239");
-                        if (ui.ActiveNode == "first_speak" && ui.ActiveNodeIsReward)
+                                  ownsBox, $"node={ui.ActiveNode} at dwell=239");
+                            // P3-γ(i) latch (DA DLQ-verdict recipe): (b) may not start unless
+                            // (a) PASSED — a mutation that drains the queue before frame 239
+                            // used to SKIP the check, never fail it, and rode through green.
+                            _qSpeakA = ownsBox;
+                        }
+                        if (_qSpeakA && ui.ActiveNode == "first_speak" && ui.ActiveNodeIsReward)
                             _qSpeakLeg = 2;   // (b) the queued beat drains after the reply
                     }
-                    else if (!ui.IsOpen)
+                    else
                     {
-                        Check("DLQ_SPEAK_PRECEDENCE(c): the box auto-closed after the full drain (intro last)",
-                              !ui.Visible, "no external Close call");
-                        GD.Print("LA_GATE: DLQ_SPEAK_PRECEDENCE — reply read in full; first_speak -> intro drained in order; box auto-closed (MC 10026.1)");
-                        NextPhase();
+                        // P3-γ(ii) latch: intro's paint must be SEEN (the marker text below
+                        // claims "intro drained in order" — before this latch nothing asserted
+                        // intro was ever painted, only that the box was shut).
+                        if (ui.ActiveNode == "intro" && ui.ActiveNodeIsReward) _qSpeakIntro = true;
+                        if (!ui.IsOpen)
+                        {
+                            Check("DLQ_SPEAK_PRECEDENCE(c): the box auto-closed after the full drain (intro last)",
+                                  !ui.Visible && _qSpeakIntro, "no external Close call; intro paint latched");
+                            GD.Print("LA_GATE: DLQ_SPEAK_PRECEDENCE — reply read in full; first_speak -> intro drained in order; box auto-closed (MC 10026.1)");
+                            NextPhase();
+                        }
                     }
                     break;
                 }

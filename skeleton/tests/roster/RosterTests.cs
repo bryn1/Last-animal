@@ -428,9 +428,12 @@ public class CompanionRosterTests
         {
             var f = NewFollower(i == 0 ? "companion" : "follower", i == 0 ? 7 : 20 + i);
             bool ok = roster.TryAdd(f);
-            if (!ok) continue;                                    // the drop-marker arm's signal
-            Assert.True(ok);
-            accepted.Add(f);
+            // NF9 repair (was `if (!ok) continue; Assert.True(ok);` — the True was
+            // unreachable, so the guard could return anything past the cap without
+            // going red). The per-iteration contract pinned instead: the first Cap
+            // adds return TRUE, EVERY add past the cap returns FALSE.
+            Assert.Equal(i < CompanionRoster.Cap, ok);
+            if (ok) accepted.Add(f);
         }
         Assert.Equal(CompanionRoster.Cap, roster.Count);
         Assert.Equal(3, accepted.Count);

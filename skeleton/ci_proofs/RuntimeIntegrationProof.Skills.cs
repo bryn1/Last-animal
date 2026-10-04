@@ -234,7 +234,8 @@ public partial class RuntimeIntegrationProof : SceneTree
                     break;
                 }
                 Check("armed hit damage == MeleeDamage x multiplier THROUGH the single DealDamage site",
-                      HitDelta() == player.MeleeDamage * SkillState.InvertStrikeMultiplier,
+                      HitDelta() == player.MeleeDamage * SkillState.InvertStrikeMultiplier
+                      && SkillState.InvertStrikeMultiplier == 3,   // S7 F-4 (TEST-verdict-10030 F-1): literal-3 balance pin — drift 3→4 goes RED here, not silently
                       $"delta={HitDelta()} expected={player.MeleeDamage * SkillState.InvertStrikeMultiplier}");
                 if (_failed) return;
                 GD.Print($"LA_GATE: ARMED_HIT_MULTIPLIED — one hit dealt {player.MeleeDamage * SkillState.InvertStrikeMultiplier} (x{SkillState.InvertStrikeMultiplier})");
