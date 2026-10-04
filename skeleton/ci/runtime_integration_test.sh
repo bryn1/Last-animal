@@ -1,22 +1,31 @@
 #!/usr/bin/env bash
-# runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10).
+# runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
+# grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
+# full battery below).
 #
 # Proves the ONE authoritative runtime path (design 1256.2 §4.1/§4.2): the
 # playable main.tscn scene drives the REAL pure-logic systems through ONE
-# composition root (WorldDirector), and the gate itself can fail — each of the
-# four negative controls surgically breaks one link and the proof must exit
+# composition root (WorldDirector), and the gate itself can fail — each
+# negative control below surgically breaks one link and the proof must exit
 # non-zero with its named NEG_* marker.
 #
 # Mirrors ci/main_composition_test.sh's FIXED pattern:
 #   - one-time --import when .godot/imported is empty (clean-clone first run),
 #   - build through the pinned engine (--build-solutions),
 #   - headless proof run -> markers asserted via bash substring checks,
-#   - graphical-test-helper render bar at --wait 15 (positive mode holds the
-#     live scene after PASS so 15s lands on real scene content).
+#   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
+#     the live scene after PASS so 15s lands on real scene content).
 #
-# Runs the proof 8x: positive (must PASS) + no_bus / no_spawn / no_controller /
-# no_dna / save_bad_version / no_interact (each must FAIL with its marker) +
-# save + dna_speak (must PASS).
+# Battery at this HEAD: 25 run_mode legs = 15 positive modes + 10 negative
+# controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
+# no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
+# classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/skill/
+# calm legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
+# P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
+# and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
+# re-run their proof a second time to grep extra inline markers, so total
+# proof invocations exceed the 25-leg count; the (E) framebuffer render bar
+# runs once more through graphical-test-helper.
 #
 # Usage:
 #   GODOT=/path/to/godot ./ci/runtime_integration_test.sh [project_dir]
