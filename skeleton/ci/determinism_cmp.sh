@@ -22,6 +22,10 @@
 #          (legit body-movers, e.g. S8 ring-slots, declare their numeric-hunk
 #          divergence there).
 # Exit 0 prints "DETERMINISM: IDENTICAL"; any RED exits 1 naming the delta.
+# Content guards (MC 10111, DA P2-1) run BEFORE the classes at cmp_pair entry:
+# a harness FAIL banner on either side is RED (exit-code equality alone is
+# not proof — _Finalize prints FAIL without Quit(1)), and a side that keys
+# zero lines is RED (an empty-vs-empty diff is vacuously IDENTICAL).
 #
 # SAVE-TOUCHING: proof runs read/write user://savegame.json — run ONLY while
 # holding the savegate mutex (mkdir /tmp/la-savegate.lock); this script never
@@ -38,6 +42,9 @@ PROOF_DEFAULT="res://ci_proofs/RuntimeIntegrationProof.cs"
 
 fail() { echo "DETERMINISM_CMP: RED: $*" >&2; exit 1; }
 MASK='s/[0-9]+(\.[0-9]+)?/#/g'                       # numeric-token mask (F4-CMP (ii))
+# Literal harness FAIL banner — copied from ci_proofs/RuntimeIntegrationProof.cs
+# :409 (_Finalize, PrintErr, NO Quit(1)) and :442 (Fail()); grep the text, never exit code.
+FAIL_BANNER='LA_GATE: FAIL — '
 # (ii) stream = ^LA_GATE lines carrying a dist/position field. Keyed on FIELD
 # NAMES, not float shape: the engine's 0.### format renders 3.997 as "4" when
 # the value lands on an integer, so shape-keying flips a line between classes
@@ -48,16 +55,26 @@ stream_i()  { grep -E '^(ROSTER|REWARD_SHOWN|LA_GATE)' "$1" | grep -vE "$II_KEY"
 
 # --- classification per F4-CMP, applied to two captured logs ------------------
 cmp_pair() {  # cmp_pair <logA> <logB>
-  local a b
+  local a b ra rb
+  # Content guards (MC 10111, DA P2-1 — .audits/202610041758-1e37b441/DA-verdict.md).
+  # (b) The proof harness _Finalize prints its FAIL banner via PrintErr and never
+  # Quit(1) (RuntimeIntegrationProof.cs:408-409), so an identical FAIL-pair exits
+  # equal — an exit-code-only gate compares a broken battery GREEN. (a) With zero
+  # keyed lines both sides, diff finds empty==empty: "0 lines, IDENTICAL" is a
+  # vacuous pass. Both --cmp and live A/A route through here, one guard each.
+  grep -qF "$FAIL_BANNER" "$1" && fail "log A ($1) carries the harness FAIL banner: $(grep -m1 -F "$FAIL_BANNER" "$1")"
+  grep -qF "$FAIL_BANNER" "$2" && fail "log B ($2) carries the harness FAIL banner: $(grep -m1 -F "$FAIL_BANNER" "$2")"
   a="$(stream_i "$1")"; b="$(stream_i "$2")"
+  ra="$(stream_ii "$1")"; rb="$(stream_ii "$2")"
+  { [ -n "$a" ] || [ -n "$ra" ]; } || fail "log A ($1) keys ZERO lines — empty-vs-empty is vacuous, not a determinism result"
+  { [ -n "$b" ] || [ -n "$rb" ]; } || fail "log B ($2) keys ZERO lines — empty-vs-empty is vacuous, not a determinism result"
   if [[ "$a" == "$b" ]]; then
     echo "DETERMINISM_CMP: (i) byte-stable stream: $(printf '%s\n' "$a" | grep -c . ) lines, IDENTICAL"
   else
     diff <(printf '%s\n' "$a") <(printf '%s\n' "$b") | sed 's/^/  (i) /' >&2
     fail "(i)-delta in the byte-stable stream (see diff above)"
   fi
-  local ra rb ma mb n
-  ra="$(stream_ii "$1")"; rb="$(stream_ii "$2")"
+  local ma mb n
   ma="$(printf '%s\n' "$ra" | sed -E "$MASK")"; mb="$(printf '%s\n' "$rb" | sed -E "$MASK")"
   n="$(printf '%s\n' "$ma" | grep -c . )"
   if [[ "$ma" == "$mb" ]]; then
