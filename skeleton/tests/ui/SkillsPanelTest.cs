@@ -86,6 +86,7 @@ public partial class SkillsPanelTest : SceneTree
                       $"visible={_panel.Visible}");
                 CheckRow("StrikeRow", "SkillsPanelRoot/StrikeRow", "Invert Strike — locked");
                 CheckRow("MendRow", "SkillsPanelRoot/MendRow", "Mend — locked");
+                CheckRow("CalmRow", "SkillsPanelRoot/CalmRow", "Calming Speak — locked");   // MC 10031 third row
                 CheckRow("panel MannaRow floor", "SkillsPanelRoot/MannaRow", "Manna: 100/100");
                 CheckHud("SkillsGauge floor", "SkillsGauge", "Skills: none");
                 CheckHud("QuestGauge active-quest line", "QuestGauge", "Quest: Arrival — Reach meadow");
@@ -108,6 +109,9 @@ public partial class SkillsPanelTest : SceneTree
                                    : "Invert Strike — locked");
                 CheckRow("mend row mirrors live authority", "SkillsPanelRoot/MendRow",
                     u.Mend ? $"Mend — {SkillState.MendCost} Manna" : "Mend — locked");
+                CheckRow("calm row mirrors live authority", "SkillsPanelRoot/CalmRow",
+                    u.CalmingSpeak ? $"Calming Speak — {SkillState.CalmingSpeakCost} Manna"
+                                   : "Calming Speak — locked");   // MC 10031: the 6-mer clears rule 3 too
                 CheckHud("HUD learned-skill names follow the live authority", "SkillsGauge",
                     u.Ids.Count == 0 ? "Skills: none"
                         : "Skills: " + string.Join(", ", System.Array.ConvertAll(

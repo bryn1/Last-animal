@@ -210,6 +210,24 @@ LOGSK="$(LA_GATE_MODE=skill_use timeout 300 "$GODOT" --headless --path "$PROJ" -
 [[ "$LOGSK" == *'SKILL_USED mend'* ]] || fail "skill_use: expected SKILL_USED mend on the bus"
 run_mode skill_neg fail "NEG_SKILL"
 
+# (J2) MC 10031 Calming Speak: the skill→recruitment bridge on the REAL
+# scene — a cast spends 12 AFTER a target scan (refusals spend ZERO), opens
+# the SAME RecruitOffered flag with a 600-frame window, the pay-first wage
+# path stays the SOLE join authority (pay-in-window joins, expiry joins
+# nobody), E's standing offer is never downgraded and outlives the window,
+# and the load-restore seam kills every window with its body (no save-scum
+# economy rollback). calm_neg proves the gate seam leaks nothing.
+run_mode calm_use pass "CALM_CAST"
+LOGCLM="$(LA_GATE_MODE=calm_use timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGCLM" == *'UNLOCK_CALMING_SPEAK'* ]] || fail "calm_use: expected UNLOCK_CALMING_SPEAK (live third-rule authority)"
+[[ "$LOGCLM" == *'CALM_PAY_IN_WINDOW'* ]] || fail "calm_use: expected CALM_PAY_IN_WINDOW (the unchanged wage path joined)"
+[[ "$LOGCLM" == *'CALM_REFUSE_SHORT'* ]] || fail "calm_use: expected CALM_REFUSE_SHORT (short balance spent nothing)"
+[[ "$LOGCLM" == *'CALM_REFUSE_STANDING'* ]] || fail "calm_use: expected CALM_REFUSE_STANDING (E's standing offer refused, zero spend)"
+[[ "$LOGCLM" == *'CALM_E_STANDS'* ]] || fail "calm_use: expected CALM_E_STANDS (window retired under E, offer outlives it)"
+[[ "$LOGCLM" == *'CALM_WINDOW_EXPIRES'* ]] || fail "calm_use: expected CALM_WINDOW_EXPIRES (expiry withdrew the offer, pay joined nobody)"
+[[ "$LOGCLM" == *'CALM_LOAD_CLEARED'* ]] || fail "calm_use: expected CALM_LOAD_CLEARED (real load_game press cleared the window, kept the standing offer)"
+run_mode calm_neg fail "NEG_CALM"
+
 # (K) MC 3943 stage 2g follower roster (ci_proofs/RosterIntegrationProof.cs):
 # recruit WILD creatures in play (interact-offer + FIRST wage via the existing
 # pay_wage), followers follow, INDEPENDENT per-follower wages each emitting

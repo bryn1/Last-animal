@@ -1,4 +1,4 @@
-// SIZE: >400 (566 l) — CI proof harness, test-class ceiling 600 (MC 3910 header-only; body splits owned by later waves).
+// SIZE: >400 (591 l) — CI proof harness, test-class ceiling 600 (MC 3910 header-only; body splits owned by later waves).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -58,6 +58,11 @@ using System.Linq;
 //                     hit, rejection, Mend (RuntimeIntegrationProof.Skills.cs).
 //   skill_neg       — the SetSkillActionsEnabled gate seam is off; kills and
 //                     presses must move nothing (NEG_SKILL), exit non-zero.
+//   calm_use        — MC 10031 Calming Speak end-to-end: cast spend-after-scan,
+//                     pay-in-window join, refusals, expiry, E-stands,
+//                     load-cleared (RuntimeIntegrationProof.CalmingSpeak.cs).
+//   calm_neg        — the same seam off: a funded unlocked calm press leaks
+//                     nothing (NEG_CALM), exit non-zero.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -145,6 +150,9 @@ public partial class RuntimeIntegrationProof : SceneTree
         // skill_neg: the skill gate seam (MC 3912 2e) must be off BEFORE
         // _Ready runs InitSkills — same set-before-AddChild idiom.
         if (_mode == "skill_neg" && main is WorldDirector dsk) dsk.SetSkillActionsEnabled(false);
+        // calm_neg: the calm cast + window ride the SAME seam (MC 10031) —
+        // off before _Ready; the NEG_CALM leg proves a funded press leaks zero.
+        if (_mode == "calm_neg" && main is WorldDirector dcm) dcm.SetSkillActionsEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -233,6 +241,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // calm_use / calm_neg (MC 10031): the calming-speak chain drives its
+        // own input (farm + calm casts + pay/interact/save/load presses);
+        // skip the movement press and route to stage 70 — stage bodies live
+        // in RuntimeIntegrationProof.CalmingSpeak.cs.
+        if (_mode is "calm_use" or "calm_neg")
+        {
+            _stage = 70;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (calm mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -267,7 +287,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "skill_use" or "skill_neg" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -513,6 +533,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- skill_use / skill_neg (MC 3912 2e): stage bodies live in
             // RuntimeIntegrationProof.Skills.cs (partial).
             case 60: RunSkillStage(); break;
+
+            // ---- calm_use / calm_neg (MC 10031): stage bodies live in
+            // RuntimeIntegrationProof.CalmingSpeak.cs (partial).
+            case 70: RunCalmStage(); break;
         }
         return false;
     }
@@ -525,6 +549,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         Input.ActionRelease("travel");       // MC 3912 2e: skill modes travel too
         Input.ActionRelease("skill_1");
         Input.ActionRelease("skill_2");
+        Input.ActionRelease("skill_3");      // MC 10031: the calming-speak arm
         Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
         if (!_asserted && !_failed && _mode is "positive" or "save")
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");

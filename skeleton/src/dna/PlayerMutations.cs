@@ -20,8 +20,9 @@ using System.Collections.Generic;
 // not asserted hopefully: same consensus in -> same unlocks out.
 //
 // Thresholds (tunable inside this pure fn per the plan):
-//   Invert Strike — >= 1 position carries a learned counter.
-//   Mend          — >= 2 positions.
+//   Invert Strike  — >= 1 position carries a learned counter.
+//   Mend           — >= 2 positions.
+//   Calming Speak  — >= 3 positions (MC 10031; same Counters-only authority).
 //
 // Deliberately NOT here (plan §G D4): NO LearnedMutations save field, NO HUD
 // cache. The panel/HUD read Unlocked(...) LIVE; there is no cache to go
@@ -41,10 +42,14 @@ public readonly struct SkillUnlocks : IEquatable<SkillUnlocks>
     /// <summary>Mend unlocked (>= 2 learned positions).</summary>
     public bool Mend { get; }
 
-    public SkillUnlocks(bool invertStrike, bool mend)
+    /// <summary>Calming Speak unlocked (>= 3 learned positions, MC 10031).</summary>
+    public bool CalmingSpeak { get; }
+
+    public SkillUnlocks(bool invertStrike, bool mend, bool calmingSpeak)
     {
         InvertStrike = invertStrike;
         Mend = mend;
+        CalmingSpeak = calmingSpeak;
     }
 
     /// <summary>Unlocked skill ids in authoring order (the panel read idiom).</summary>
@@ -52,26 +57,28 @@ public readonly struct SkillUnlocks : IEquatable<SkillUnlocks>
     {
         get
         {
-            var ids = new List<string>(2);
+            var ids = new List<string>(3);
             if (InvertStrike) ids.Add(PlayerMutations.InvertStrikeId);
             if (Mend) ids.Add(PlayerMutations.MendId);
+            if (CalmingSpeak) ids.Add(PlayerMutations.CalmingSpeakId);
             return ids;
         }
     }
 
     public bool Equals(SkillUnlocks other) =>
-        InvertStrike == other.InvertStrike && Mend == other.Mend;
+        InvertStrike == other.InvertStrike && Mend == other.Mend
+        && CalmingSpeak == other.CalmingSpeak;
 
     public override bool Equals(object? obj) => obj is SkillUnlocks u && Equals(u);
 
     public override int GetHashCode() =>
-        (InvertStrike, Mend).GetHashCode();
+        (InvertStrike, Mend, CalmingSpeak).GetHashCode();
 
     public static bool operator ==(SkillUnlocks a, SkillUnlocks b) => a.Equals(b);
     public static bool operator !=(SkillUnlocks a, SkillUnlocks b) => !a.Equals(b);
 
     public override string ToString() =>
-        $"SkillUnlocks[invert_strike:{InvertStrike}, mend:{Mend}]";
+        $"SkillUnlocks[invert_strike:{InvertStrike}, mend:{Mend}, calming_speak:{CalmingSpeak}]";
 }
 
 /// <summary>
@@ -86,11 +93,18 @@ public static class PlayerMutations
     /// <summary>Stable SkillUsed wire id — Mend (owner ruling D4).</summary>
     public const string MendId = "mend";
 
+    /// <summary>Stable SkillUsed wire id — Calming Speak (MC 10031, rides the
+    /// same string-Id carrier as the 2c batch; no bus edit).</summary>
+    public const string CalmingSpeakId = "calming_speak";
+
     /// <summary>Learned positions required for Invert Strike.</summary>
     public const int InvertStrikePositions = 1;
 
     /// <summary>Learned positions required for Mend.</summary>
     public const int MendPositions = 2;
+
+    /// <summary>Learned positions required for Calming Speak (MC 10031).</summary>
+    public const int CalmingSpeakPositions = 3;
 
     /// <summary>
     /// The unlock authority. Reads profile.Counters.Length (how many
@@ -103,7 +117,8 @@ public static class PlayerMutations
         int positions = profile?.Counters.Length ?? 0;
         return new SkillUnlocks(
             positions >= InvertStrikePositions,
-            positions >= MendPositions);
+            positions >= MendPositions,
+            positions >= CalmingSpeakPositions);
     }
 
     /// <summary>Single-skill convenience (same authority, live read).</summary>
@@ -112,6 +127,7 @@ public static class PlayerMutations
         {
             InvertStrikeId => Unlocked(profile).InvertStrike,
             MendId => Unlocked(profile).Mend,
+            CalmingSpeakId => Unlocked(profile).CalmingSpeak,
             _ => false,   // unknown id is never unlocked
         };
 }

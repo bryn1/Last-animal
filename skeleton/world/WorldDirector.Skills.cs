@@ -1,4 +1,5 @@
 using Godot;
+using LastAnimal.Companion;
 using LastAnimal.Core.Framework;
 using LastAnimal.Dna;
 using LastAnimal.Skills;
@@ -10,7 +11,8 @@ using LastAnimal.Skills;
 // ONE director-owned PlayerController, injects the v3 Manna save seams into
 // SaveLoadController, rides the kill-manna gain on the EXISTING
 // OnDnaExtracted handler site (via the bus forward that handler emits — NO
-// second kill hook exists here), polls the two skill input arms, and wraps
+// second kill hook exists here), polls the skill input arms (MC 10031 adds
+// the third: Calming Speak + its frame-bounded calm-window sweep), and wraps
 // the melee damage VALUE at the single _combat.DealDamage call site (root
 // ConsumeSkillDamage hunk) so an armed Invert Strike multiplies damage
 // THROUGH the one kill path (plan §B 2e grep leg stays exactly 1).
@@ -70,15 +72,15 @@ public partial class WorldDirector
 
     /// <summary>
     /// Input arms (root _Process seam, one line): skill_1 = Invert Strike
-    /// (arm), skill_2 = Mend (heal). The unlock verdict is read LIVE at
-    /// press time; a locked or shortfunded press spends NOTHING. skill_3 is
-    /// reserved in the input map (third launch skill = Calming Speak, a
-    /// follow-up card after 2g per owner ruling D4) — no handler here by
-    /// design.
+    /// (arm), skill_2 = Mend (heal), skill_3 = Calming Speak (MC 10031 — the
+    /// third press arm; skill_3's input-map binding was reserved at 2e and is
+    /// now live, map ZERO-diff). The unlock verdict is read LIVE at press
+    /// time; a locked or shortfunded press spends NOTHING.
     /// </summary>
     private void PollSkillActions()
     {
         if (!_skillHooksEnabled || _skills == null) return;
+        TickCalmWindows();   // MC 10031: the sweep runs BEFORE the press chain (§2 frame contract)
         if (Input.IsActionJustPressed("skill_1"))
         {
             var unlocked = PlayerMutations.Unlocked(
@@ -98,6 +100,87 @@ public partial class WorldDirector
                 _bus.EmitSkillUsed(new SkillId(PlayerMutations.MendId));
                 if (_hud != null) _hud.UpdateLife(_player.Health);
                 GD.Print($"W3: skill_2 -> Mend (HP={_player.Health}, Manna={_player.Manna})");
+            }
+        }
+        else if (Input.IsActionJustPressed("skill_3"))
+        {
+            TryCastCalmingSpeak();   // MC 10031: the third launch skill (Q wins over F on one frame — chain order)
+        }
+    }
+
+    // Calming Speak tunables (MC 10031 design §2): the WINDOW is frame
+    // arithmetic on one int (zero wallclock, zero Timer); the range mirrors
+    // the reach of the offer mechanic it bridges (talk range 4.5, a cast
+    // reaches a bit further — the skill is the reach option, never the join).
+    private const int CalmingSpeakWindowFrames = 600;   // 600 frames @ 60 fps = 10 s
+    private const float CalmingSpeakRange = 9.0f;
+
+    /// <summary>
+    /// skill_3 = Calming Speak (MC 10031). The rule machine, EXACT order
+    /// (design §1.2): gate seam (PollSkillActions guard above) → unlock read
+    /// LIVE → TARGET SCAN BEFORE ANY SPEND → the single TrySpend path → on
+    /// success, in this order: open offer → set window AFTER the open (the
+    /// open retires a prior window) → SkillUsed marker → print. Join NEVER
+    /// happens here: pay_wage → TryRecruitOfferedWild stays the SOLE join
+    /// authority (PLAN:118 pay-first, RATIFIED). A refusal NEVER spends.
+    /// </summary>
+    private void TryCastCalmingSpeak()
+    {
+        var unlocked = PlayerMutations.Unlocked(
+            EcosystemAdaptation.ModelPlayerDna(_spokenDna));
+        if (!unlocked.CalmingSpeak) return;   // step 2: locked spends nothing (2e idiom)
+
+        // Step 3: the scan runs BEFORE any spend (DA-c1 P1-1). A fresh wild
+        // or one already inside a window is castable; an E-STANDING offer
+        // (offered, window 0) is NOT — F must never downgrade E's standing.
+        CompanionFollowBody? target = null;
+        float best = CalmingSpeakRange;
+        Vector3 ppos = Player!.GlobalPosition;
+        foreach (var w in _wild)
+        {
+            if (w.RecruitOffered && w.CalmedWindowFrames <= 0) continue;
+            float d = (w.GlobalPosition - ppos).Length();
+            if (d <= best) { best = d; target = w; }
+        }
+        if (target == null)
+        {
+            GD.Print("W3: skill_3 -> Calming Speak REFUSED — no castable target (nothing spent)");
+            return;
+        }
+
+        // Step 4: the ONE spend path; a short balance refuses and spends zero.
+        if (!_skills.TryCalmingSpeak(unlocked.CalmingSpeak))
+        {
+            GD.Print($"W3: skill_3 -> Calming Speak REFUSED — short balance (Manna={_player.Manna}, nothing spent)");
+            return;
+        }
+
+        // Step 5: open → window AFTER the open → marker → print. The offer
+        // rides the SAME RecruitOffered flag E opens; the chime + panel ride
+        // the existing SkillUsed subscription (zero new assets/signals).
+        OpenRecruitOffer(target);
+        target.CalmedWindowFrames = CalmingSpeakWindowFrames;
+        _bus.EmitSkillUsed(new SkillId(PlayerMutations.CalmingSpeakId));
+        GD.Print($"W3: skill_3 -> Calming Speak on wild id {target.EntityId} (Manna={_player.Manna}, window {CalmingSpeakWindowFrames}f)");
+    }
+
+    /// <summary>Calm-window decay sweep (design §1.1): every _Process frame,
+    /// BEFORE the press chain, each open window decays by exactly 1; at the
+    /// frame it reaches 0 the offer is withdrawn through the ONE closer.
+    /// Gate seam: the sweep sits behind the _skillHooksEnabled guard — a
+    /// mid-window flip FREEZES windows exactly like it stalls the 2e economy
+    /// (skill_neg semantics, §2). E-standing offers (window 0) are untouched
+    /// by construction.</summary>
+    private void TickCalmWindows()
+    {
+        foreach (var w in _wild)
+        {
+            if (w.CalmedWindowFrames <= 0) continue;
+            w.CalmedWindowFrames--;
+            if (w.CalmedWindowFrames == 0)
+            {
+                CloseRecruitOffer(w);
+                GD.Print($"ROSTER: calm window EXPIRED on wild id {w.EntityId} — offer withdrawn");
             }
         }
     }

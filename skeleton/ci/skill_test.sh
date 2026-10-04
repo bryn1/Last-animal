@@ -88,11 +88,14 @@ for ACT in \
   F4_unarmed_hit_damage_is_base_MeleeDamage \
   F5_arm_flag_is_consumed_after_one_hit \
   F6_insufficient_Manna_is_rejected_without_spending \
+  F7_calm_cost_spend_once \
+  F8_calm_refuse_no_spend \
+  F9_calm_unlock_positions \
   N2_unlock_from_consensus_after_roundtrip_equals_unlock_live
 do
   printf '%s\n' "$LIST" | grep -q "$ACT" || fail "named F-act missing from the suite: $ACT"
 done
-echo "SKILL_TEST: named F-acts present (F1..F6 + N2 round-trip guard)"
+echo "SKILL_TEST: named F-acts present (F1..F6 + F7..F9 calm rows (MC 10031) + N2 round-trip guard)"
 
 echo "SKILL_TEST: GATE PASS — harness self-test went red (1 failure), real suite green ($PASSED2 passed, 0 failed), named F-acts present"
 exit 0

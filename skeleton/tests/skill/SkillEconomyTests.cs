@@ -129,4 +129,32 @@ public class SkillEconomyTests
         Assert.False(skills.TrySpend(-1));
         Assert.Equal(5, player.Manna);
     }
+
+    // MC 10031 Calming Speak economy legs (design §4 unit list). The TARGET
+    // SCAN lives in the director (runtime calm_use legs); here the economy
+    // shape is pinned: cost 12, ONE payment per success, refuse spends zero.
+
+    [Fact]
+    public void F7_calm_cost_spend_once()
+    {
+        var (player, skills) = Fresh(manna: 30);
+        Assert.Equal(12, SkillState.CalmingSpeakCost);   // between Q=10 and R=15
+        Assert.True(skills.TryCalmingSpeak(unlocked: true));
+        Assert.Equal(30 - SkillState.CalmingSpeakCost, player.Manna);   // exactly one drop
+        Assert.True(skills.TryCalmingSpeak(unlocked: true));            // re-cast pays AGAIN (no cooldown, D3)
+        Assert.Equal(30 - 2 * SkillState.CalmingSpeakCost, player.Manna);
+    }
+
+    [Fact]
+    public void F8_calm_refuse_no_spend()
+    {
+        // Locked AND short-balance rejections both spend NOTHING (the design's
+        // one money rule — a refusal never spends, spend-after-scan or not).
+        var (player, skills) = Fresh(manna: 100);
+        Assert.False(skills.TryCalmingSpeak(unlocked: false));
+        Assert.Equal(100, player.Manna);
+        player.Manna = SkillState.CalmingSpeakCost - 1;
+        Assert.False(skills.TryCalmingSpeak(unlocked: true));
+        Assert.Equal(SkillState.CalmingSpeakCost - 1, player.Manna);
+    }
 }

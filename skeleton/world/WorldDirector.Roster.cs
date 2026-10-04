@@ -193,6 +193,40 @@ public partial class WorldDirector
         GD.Print($"ROSTER: break_bond -> betrayal executed on {key} (damage {res.DamageDealt})");
     }
 
+    // --- offer helpers (MC 10031, design §3): the ONE pair of mutation points
+    // for RecruitOffered. The flag keeps exactly two writers through these two
+    // helpers (interact-E + the calm cast open; expiry, the recruit join and
+    // the load seam close — the load seam clears THROUGH CloseRecruitOffer).
+
+    /// <summary>Open (or refresh) the standing recruit offer: prints the
+    /// OFFERED line ONLY on the false→true flip and RETIRES any calm window —
+    /// the standing offer is time-unbounded (E's semantics, unchanged; the
+    /// skill's window can never downgrade it). Replaces the inline offer
+    /// block the interact scan used to carry (§3).</summary>
+    private void OpenRecruitOffer(CompanionFollowBody w)
+    {
+        if (!w.RecruitOffered)
+            GD.Print($"ROSTER: recruit OFFERED to wild id {w.EntityId} — pay the first wage (pay_wage)");
+        w.RecruitOffered = true;
+        if (w.CalmedWindowFrames > 0)
+        {
+            w.CalmedWindowFrames = 0;
+            GD.Print($"ROSTER: calm window RETIRED on wild id {w.EntityId} — the standing offer outlives it");
+        }
+    }
+
+    /// <summary>Close the offer AND zero the window (belt, DA-c1 P4-2: a
+    /// recruited follower must never carry a stale window). Used by the calm
+    /// expiry path, the recruit join (replaces the bare flag clear) and the
+    /// load seam's ClearCalmWindows (§3).</summary>
+    private void CloseRecruitOffer(CompanionFollowBody w)
+    {
+        if (!w.RecruitOffered && w.CalmedWindowFrames == 0) return;
+        w.RecruitOffered = false;
+        w.CalmedWindowFrames = 0;
+        GD.Print($"ROSTER: recruit offer CLEARED on wild id {w.EntityId}");
+    }
+
     /// <summary>Recruit arm (pay_wage): the nearest OFFERED wild creature inside
     /// talk range joins with its FIRST wage paid by this press. Cap 3 (D1): the
     /// 4th join is REFUSED, the roster unchanged, the offer stands. Returns true
@@ -219,7 +253,7 @@ public partial class WorldDirector
 
         _wild.Remove(wild);
         wild.Wild = false;
-        wild.RecruitOffered = false;
+        CloseRecruitOffer(wild);   // §3(c): flag + window belt (the join may not carry a stale window)
         wild.Target = Player;
         wild.Name = $"Companion{wild.EntityId}";
         _bodies.Add(wild);
@@ -278,11 +312,7 @@ public partial class WorldDirector
             if (d <= best)
             {
                 best = d; npc = w; npcId = w.EntityId;
-                if (!w.RecruitOffered)
-                {
-                    w.RecruitOffered = true;
-                    GD.Print($"ROSTER: recruit OFFERED to wild id {w.EntityId} — pay the first wage (pay_wage)");
-                }
+                OpenRecruitOffer(w);   // §3: replaces the inline offer block (helper = the ONE opener)
             }
         }
     }
@@ -405,6 +435,21 @@ public partial class WorldDirector
 
         ResetRosterDeltas();
         GD.Print($"ROSTER: load restored N={_roster.Count}");
+        ClearCalmWindows();   // §3 load seam (ONE caller, R9 mirror): calm state is runtime-only
+    }
+
+    /// <summary>MC 10031 R9 mirror (design §1.1): a save/load must not roll the
+    /// Manna economy back under a live calm window (save-scum repeatably-FREE
+    /// calming). Every _wild body with an open window is closed THROUGH
+    /// CloseRecruitOffer; E-standing offers (window 0) are untouched — by this
+    /// seam and by the decay sweep alike. Called ONLY at the end of
+    /// RestoreFollowers, so BOTH load entries (the player load_game key AND
+    /// proof-only LoadGame) clear through it (DA-c2 F-1).</summary>
+    private void ClearCalmWindows()
+    {
+        foreach (var w in _wild)
+            if (w.CalmedWindowFrames > 0)
+                CloseRecruitOffer(w);
     }
 
     /// <summary>Reset every per-follower loyalty/state diff (root LoadGame seam +

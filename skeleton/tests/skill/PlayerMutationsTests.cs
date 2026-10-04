@@ -86,6 +86,25 @@ public class PlayerMutationsTests
         var ids = PlayerMutations.Unlocked(profile).Ids;
         Assert.Equal(new[] { "invert_strike", "mend" }, ids);
         Assert.True(PlayerMutations.IsUnlocked("invert_strike", profile));
-        Assert.False(PlayerMutations.IsUnlocked("calming_speak", profile));   // unknown id
+        Assert.False(PlayerMutations.IsUnlocked("calming_speak", profile));   // 2 < CalmingSpeakPositions=3 (MC 10031 rule 3)
+        Assert.False(PlayerMutations.IsUnlocked("not_a_real_skill", profile));   // genuinely unknown id → never unlocked
+    }
+
+    [Fact]
+    public void F9_calm_unlock_positions()
+    {
+        // The third rule of the frozen authority: >= 3 learned positions
+        // unlocks Calming Speak; 2 does NOT (the 2-position row above keeps
+        // its outcome — DA P3-b: gained, never flipped). Counters-only: the
+        // ObservedCount-independence trap above covers the read discipline.
+        var two = new CounterProfile(new[] { 1, 1 }, new[] { 1, 1 }, 1);
+        var three = new CounterProfile(new[] { 1, 1, 1 }, new[] { 1, 1, 1 }, 1);
+        Assert.False(PlayerMutations.Unlocked(two).CalmingSpeak);
+        Assert.True(PlayerMutations.Unlocked(three).CalmingSpeak);
+        Assert.True(PlayerMutations.Unlocked(three).InvertStrike);
+        Assert.True(PlayerMutations.Unlocked(three).Mend);
+        // Authoring order rides the Ids list (the panel/HUD read idiom).
+        Assert.Equal(new[] { "invert_strike", "mend", "calming_speak" },
+            PlayerMutations.Unlocked(three).Ids);
     }
 }

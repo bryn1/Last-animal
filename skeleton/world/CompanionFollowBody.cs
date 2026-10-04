@@ -53,6 +53,12 @@ public partial class CompanionFollowBody : Node3D
     /// this WILD creature — the standing recruit offer the next pay_wage consumes.</summary>
     public bool RecruitOffered { get; set; }
 
+    /// <summary>MC 10031: frames left on the calm window a calming_speak cast
+    /// opened (decayed by the Skills partial's sweep; the E interact retires
+    /// it — the standing offer is time-unbounded). Runtime-only: the load
+    /// seam clears every window with its body (CALM_LOAD_CLEARED).</summary>
+    public int CalmedWindowFrames { get; set; }
+
     /// <summary>MC 3943 2g: the roster stack built for this body (moved in on
     /// recruit; null only for bodies composed outside the roster path).</summary>
     public LastAnimal.Companion.CompanionRoster.Follower? BoundFollower { get; set; }

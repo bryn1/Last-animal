@@ -40,6 +40,7 @@ public partial class SkillsPanel : Control
     private Label? _headerLabel;
     private Label? _strikeLabel;
     private Label? _mendLabel;
+    private Label? _calmLabel;
     private Label? _mannaLabel;
 
     // 2f live sources (plan §G D4): invoked at every Refresh, never copied.
@@ -120,6 +121,8 @@ public partial class SkillsPanel : Control
                                     SkillState.InvertStrikeCost);
         _mendLabel!.Text = RowFor(PlayerMutations.MendId, unlocks.Mend,
                                   SkillState.MendCost);
+        _calmLabel!.Text = RowFor(PlayerMutations.CalmingSpeakId, unlocks.CalmingSpeak,
+                                  SkillState.CalmingSpeakCost);
         _mannaLabel!.Text = $"Manna: {manna}/100";
     }
 
@@ -134,6 +137,7 @@ public partial class SkillsPanel : Control
     {
         PlayerMutations.InvertStrikeId => "Invert Strike",
         PlayerMutations.MendId => "Mend",
+        PlayerMutations.CalmingSpeakId => "Calming Speak",
         _ => skillId,
     };
 
@@ -154,8 +158,9 @@ public partial class SkillsPanel : Control
         _headerLabel = MakeRow("SkillsHeader", "Skills", 8);
         _strikeLabel = MakeRow("StrikeRow", string.Empty, 42);
         _mendLabel = MakeRow("MendRow", string.Empty, 76);
-        _mannaLabel = MakeRow("MannaRow", string.Empty, 120);
-        foreach (var label in new[] { _headerLabel, _strikeLabel, _mendLabel, _mannaLabel })
+        _calmLabel = MakeRow("CalmRow", string.Empty, 110);
+        _mannaLabel = MakeRow("MannaRow", string.Empty, 154);
+        foreach (var label in new[] { _headerLabel, _strikeLabel, _mendLabel, _calmLabel, _mannaLabel })
             panel.AddChild(label);
     }
 

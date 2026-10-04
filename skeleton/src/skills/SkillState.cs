@@ -22,7 +22,8 @@ using LastAnimal.Dna;
 // The UNLOCK authority is NOT here: callers pass the live
 // PlayerMutations.Unlocked(...) verdict per use (plan §G D4 — single live
 // source, no cached flag this class could stale out). A locked use is
-// rejected WITHOUT spending.
+// rejected WITHOUT spending. MC 10031 adds the Calming Speak cost row +
+// TryCalmingSpeak (spend AFTER the caller's target scan, refuse spends zero).
 //
 // Arm semantics (DA-c2 D3 F-act 4): arming Invert Strike spends Manna and
 // sets PlayerController.ArmMultiplier; the armed damage is read through
@@ -46,6 +47,10 @@ public sealed class SkillState
 
     /// <summary>Manna cost of Mend.</summary>
     public const int MendCost = 15;
+
+    /// <summary>Manna cost of Calming Speak (MC 10031: utility bridge,
+    /// between Q=10 and R=15; the window it opens is the payload).</summary>
+    public const int CalmingSpeakCost = 12;
 
     /// <summary>Damage multiplier the arm applies to the next melee hit.</summary>
     public const int InvertStrikeMultiplier = 3;
@@ -96,6 +101,16 @@ public sealed class SkillState
         _player.RestoreHealth(Math.Min(_player.MaxHealth, _player.Health + MendHeal));
         return true;
     }
+
+    /// <summary>
+    /// Use Calming Speak (MC 10031): spend the cost — the caller has already
+    /// scanned a castable target BEFORE this runs (design §1.2: a targeted
+    /// skill knows a target exists before it takes the player's Manna).
+    /// Locked or short balance pays NOTHING (one payment on success, refuse
+    /// spends zero) — deliberately NOT Mend's pay-when-clamped: a cast at
+    /// nothing lands on nobody. No cooldown: Manna is the throttle (D3).
+    /// </summary>
+    public bool TryCalmingSpeak(bool unlocked) => unlocked && TrySpend(CalmingSpeakCost);
 
     /// <summary>
     /// Read the melee damage value FOR THE SINGLE DEALDAMAGE CALL SITE:
