@@ -298,3 +298,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   TEST-seam SpawnWildFollower, TryRosterNpc,
   ClearCalmWindows); 25 member decls byte-identical before/after, both halves under the 400
   ceiling, engine .uid in-commit, csproj explicit Compile (file is NOT glob-based).
+- MC 10058 gate-fix (runtime leg, 2026-10-04, code seat VM350, audit Top-2b):
+  runtime_integration_test.sh ENEMIES_EXIST_TARGETED leg revived — it ended
+  `|| true` (can never fail) and the marker printed nowhere in the repo, so
+  the assert moved into the proof: after the DNA kill stage a live
+  director-set enemy must exist AND its director-fed AI target
+  (EnemyActor.PlayerTarget*, fed every frame by WorldDirector._Process) must
+  track the live player position (tol 0.05) before the marker prints; the
+  gate line is now a named non-zero fail. Planted reds: marker print removed
+  with proof exit 0 -> gate red; sabotaged aim assert -> proof red (marker is
+  not free). Real-run aim reads == player exactly. Full battery 25 legs green
+  (the one run). Proof file at the 600-l test ceiling, header reason updated.

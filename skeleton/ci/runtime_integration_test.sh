@@ -79,7 +79,7 @@ run_mode() {  # run_mode <mode> <expect: pass|fail> <marker> [proof-res-path]
 run_mode positive pass "PLAYER_EXISTS_MOVED"
 LOGP="$(LA_GATE_MODE=positive timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" \
   || true
-[[ "$LOGP" == *'ENEMIES_EXIST_TARGETED'* ]] || true   # stage markers printed inline
+[[ "$LOGP" == *'ENEMIES_EXIST_TARGETED'* ]] || fail "positive: expected ENEMIES_EXIST_TARGETED (live director-set enemy AIMED at the live player position — asserted in-proof, MC 10058)"
 [[ "$LOGP" == *'DNA_EXTRACTED_EMITTED'* ]] || fail "positive: expected DNA_EXTRACTED_EMITTED (kill through the REAL CombatSystem path)"
 [[ "$LOGP" == *'HUD_REFLECTS_STATE'* ]] || fail "positive: expected HUD_REFLECTS_STATE (single health tracker)"
 [[ "$LOGP" == *'COMPANION_FOLLOWS'* ]] || fail "positive: expected COMPANION_FOLLOWS (machine-wired CompanionEntity)"

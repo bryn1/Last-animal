@@ -1,4 +1,4 @@
-// SIZE: >400 (591 l) — CI proof harness, test-class ceiling 600 (MC 3910 header-only; body splits owned by later waves).
+// SIZE: >400 (600 l) — CI proof harness, test-class ceiling 600 (MC 3910 header-only; body splits owned by later waves).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -401,6 +401,15 @@ public partial class RuntimeIntegrationProof : SceneTree
                           _hud.DnaMeter > _dnaBefore, $"dna={_hud.DnaMeter} (before {_dnaBefore})");
                     if (_failed) return true;
                     GD.Print("LA_GATE: DNA_EXTRACTED_EMITTED — kill via the REAL CombatSystem path -> EventBus.DnaExtracted -> Hud.DnaMeter");
+                    // ENEMIES_EXIST_TARGETED (MC 10058): the gate leg grepping this marker was a vacuous || true; the assert lives here now.
+                    var aimed = FirstLiveEnemy();
+                    if (aimed == null) { Fail("ENEMIES_EXIST_TARGETED: no live enemy left in the director set"); return true; }
+                    Check("live enemy AI target tracks the live player position",
+                          System.Math.Abs(aimed.PlayerTargetX - _playerBody.GlobalPosition.X) < 0.05f
+                          && System.Math.Abs(aimed.PlayerTargetZ - _playerBody.GlobalPosition.Z) < 0.05f,
+                          $"aim=({aimed.PlayerTargetX:0.###},{aimed.PlayerTargetZ:0.###}) player=({_playerBody.GlobalPosition.X:0.###},{_playerBody.GlobalPosition.Z:0.###})");
+                    if (_failed) return true;
+                    GD.Print("LA_GATE: ENEMIES_EXIST_TARGETED — live director-set enemy AIMED at the live player position");
                     if (_mode == "save")
                     {
                         // Save mode skips the HUD/companion stages: the kill
