@@ -284,8 +284,8 @@ public partial class WorldDirector
             BoundFollower = follower,
         };
         Vector3 p = Player?.GlobalPosition ?? Vector3.Zero;
+        AddChild(body);                              // enters the tree FIRST (Godot 4.7: GlobalPosition requires it)
         body.GlobalPosition = p + new Vector3(2.5f, 0f, 0f);
-        AddChild(body);
         _wild.Add(body);
         GD.Print($"ROSTER: wild creature spawned id={eid} (interact to offer, pay_wage to recruit)");
     }
