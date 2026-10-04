@@ -77,6 +77,10 @@
          partial the root's companion loop moved into + the roster runtime
          proof; modes roster_follow / roster_neg). -->
     <Compile Include="world/WorldDirector.Roster.cs" />
+    <!-- Compile MC 10080: the WILD-side members of that partial split VERBATIM
+         into their own file (offer pair, recruit join, wild spawn, interact
+         scan, calm-window load seam) so both halves sit under the 400 ceiling. -->
+    <Compile Include="world/WorldDirector.Roster.Wild.cs" />
     <Compile Include="ci_proofs/RosterIntegrationProof.cs" />
     <!-- Compile MC 10036 roster_follow leg: the full-arc stage machine moved
          VERBATIM out of the proof above into its partial-class half (moves

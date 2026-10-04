@@ -72,16 +72,18 @@ the composition root (see §3).
   wiring of the skills panel + HUD readout providers (live closures, no cached
   copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
   (partial: the follower-roster root seam — `TickRoster` per-follower wage/follow/
-  hearts loop moved out of the root verbatim, recruit via wild-interact + first
-  wage (offer mutation runs ONLY through the `OpenRecruitOffer`/`CloseRecruitOffer`
-  pair; Calming Speak opens the same offer and its window dies at the
-  `ClearCalmWindows` load seam at the END of `RestoreFollowers` — MC 10031),
-  `cycle_follower`/`break_bond` polls, Forgive/PermanentBreak glue, save
-  restore with cap; emits per-follower loyalty deltas under `<name>-<EntityId>`
-  then the roster mean LAST under the reserved key `roster`; wiring plus
-  bond-guard glue only — wage/loyalty/betrayal rules live in the engine-free
-  `CompanionRoster` (the world-side cap-drop guard on restore is pinned by the
-  roster proof, not unit reach); MC 3943 2g), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  hearts loop moved out of the root verbatim, `cycle_follower`/`break_bond` polls,
+  Forgive/PermanentBreak glue, the visible-body spawns and the save restore with
+  cap; emits per-follower loyalty deltas under `<name>-<EntityId>` then the roster
+  mean LAST under the reserved key `roster`; wiring plus bond-guard glue only —
+  wage/loyalty/betrayal rules live in the engine-free `CompanionRoster` (the
+  world-side cap-drop guard on restore is pinned by the roster proof, not unit
+  reach); MC 3943 2g), `WorldDirector.Roster.Wild.cs` (partial, MC 10080 split of
+  the roster half — pure move, no behaviour change: the WILD side, recruit via
+  wild-interact + first wage (offer mutation runs ONLY through the
+  `OpenRecruitOffer`/`CloseRecruitOffer` pair; Calming Speak opens the same offer
+  and its window dies at the `ClearCalmWindows` load seam at the END of
+  `RestoreFollowers` — MC 10031)), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
