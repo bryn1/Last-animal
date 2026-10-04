@@ -71,6 +71,24 @@ public partial class EventBus : Node
     [Signal] public delegate void WagePaidEventHandler(string quest);
     [Signal] public delegate void SkillUsedEventHandler(string skill);
 
+    // --- MC 10098 Inc-3 S0: consumer-facing presentation emits (additive). ---
+    // Emitted by the per-frame EDGE-DETECT poll in the TickUi seam
+    // (world/WorldDirector.Ui.cs) — DialogueSystem/queue code stays untouched
+    // (F3). One emit per edge: DialogueShown ""→node, DialogueClosed node→""
+    // (payload = the node leaving screen, so a direct node→node swap reads as
+    // Closed(old)+Shown(new)); PlayerHurt carries the health AFTER the
+    // decrease; BossFallen carries the dead boss's EntityId (string wire
+    // idiom, GD0202) and fires on the tracked BossActor's IsDead edge ONLY
+    // (F-2: a nulled _boss on zone exit is NOT a death — DA-c3).
+    // [signal] DialogueShown(String)   — the dialogue box opened a node.
+    // [signal] DialogueClosed(String)  — the shown node left the screen.
+    // [signal] PlayerHurt(Int)         — player health decreased (new Health).
+    // [signal] BossFallen(String)      — the zone boss's IsDead turned true.
+    [Signal] public delegate void DialogueShownEventHandler(string node);
+    [Signal] public delegate void DialogueClosedEventHandler(string node);
+    [Signal] public delegate void PlayerHurtEventHandler(int health);
+    [Signal] public delegate void BossFallenEventHandler(string boss);
+
     // --- C2: publish surface (thin, no logic) --------------------------------
 
     public void EmitDnaExtracted(DnaSignature signature)
@@ -107,4 +125,17 @@ public partial class EventBus : Node
 
     public void EmitSkillUsed(SkillId skill)
         => EmitSignal(SignalName.SkillUsed, skill.Id);
+
+    // --- MC 10098 Inc-3 S0: presentation emit surface (see signals above) ----
+    public void EmitDialogueShown(string node)
+        => EmitSignal(SignalName.DialogueShown, node);
+
+    public void EmitDialogueClosed(string node)
+        => EmitSignal(SignalName.DialogueClosed, node);
+
+    public void EmitPlayerHurt(int health)
+        => EmitSignal(SignalName.PlayerHurt, health);
+
+    public void EmitBossFallen(string boss)
+        => EmitSignal(SignalName.BossFallen, boss);
 }

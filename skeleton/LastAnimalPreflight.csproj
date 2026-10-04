@@ -66,6 +66,11 @@
     <!-- Compile MC 10031 Calming Speak: the calm-window runtime-proof partial
          (skill→recruitment bridge; the code lives in the 2e files above). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.CalmingSpeak.cs" />
+    <!-- Compile MC 10098 Inc-3 S0: the bus-emit proof partial (mode bus_emit)
+         + the positive-chain stages 1-4 moved VERBATIM out of the main proof
+         harness so it stays under the 600-line ceiling (split duty). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Bus.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Chain.cs" />
     <!-- Compile MC 3933 stage 2f skills/quest UI (the TAB-toggle SkillsPanel
          view + the UI composition partial + its headless pure-logic leg +
          the framebuffer capture script for ci/ui_test.sh legs E/F). -->

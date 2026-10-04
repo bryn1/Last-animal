@@ -382,3 +382,19 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   the repo with a pointer README to `bryn1/Last-animal` (audit §6 rec.4; the owner used it as a
   download source, so banner+archive, never delete). Anonymous GitHub API 404s from this seat
   2026-10-04 — whether it is currently private/renamed is UNVERIFIED from here.
+- MC 10098 S0 bus-emit seam (Inc-3 W0, 2026-10-05, code seat VM350, branch
+  vm350/s0-bus-emit): EventBus +4 ADDITIVE signals/emits (DialogueShown/
+  DialogueClosed/PlayerHurt/BossFallen — 11→15); emitter = per-frame edge-detect
+  poll inside the TickUi seam (WorldDirector.Ui.cs), DialogueSystem/queue/
+  BossController file-ZERO (F3); F-2 obeyed — BossFallen edge-detects the
+  TRACKED BossActor IsDead, zone-exit null-swap re-arms silently. Split duty
+  executed: RuntimeIntegrationProof.cs (was AT 600l) 445l, stages 1-4 moved
+  VERBATIM to Chain.cs, bus_emit stage machine in Bus.cs (csproj+uid in-commit).
+  Planted-bad red→green x3 (re-poll double-emit hurt=31 RED / missed close
+  "close edge MISSED" RED / HasLiveBoss-flip FALSE BossFallen on zone exit RED
+  — all green after byte-identical restore, evidence/.tmp cmp). Gates F5
+  single-mode: boot 0, audio 0, bus_emit 0 (BUS_SHOWN_ONCE, BUS_CLOSED_ONCE,
+  BUS_HURT_ONCE, BUS_NO_FALSE_FALLEN, BUS_BOSS_FALLEN, BUS_FALLEN_ONCE); split
+  regression 9 modes re-run expected-exit incl. save under SAVEGATE MUTEX.
+  Battery leg append + leg-count/§6 restamp at WAVE CLOSE (not here).
+  Evidence: .tmp/10098-close-evidence.md.
