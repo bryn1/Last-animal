@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (486 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check.
+// SIZE: inherited >400 (507 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check, MC 10112 only the 22-line shutdown-ref release (concern 2 fix).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -437,10 +437,31 @@ public partial class BridgeMvpProof : SceneTree
                 // real rendered frame, not the splash. Physics-tick gated like
                 // RuntimeIntegrationProof: process frames raced the 15s grab — the
                 // proof quit first and the root window read uniform black (MC 1344.2).
-                if (_physFrames >= _holdStartPhys + HoldFrames) { Quit(0); return true; }
+                if (_physFrames >= _holdStartPhys + HoldFrames) { ReleaseHeldRefsBeforeQuit(); Quit(0); return true; }
                 break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// MC 10112 (W0 barrier drift concern 2): the proof is the C# MainLoop — the
+    /// LAST managed object standing at shutdown. Its live-scene fields root the
+    /// scene's C# wrappers (and every Resource they hold: BoxMeshes, materials,
+    /// audio) until after the native ObjectDB is already gone, so their GC
+    /// finalizers hit freed objects — "Leaked unsafe reference to object ...
+    /// csharp_script.cpp:179" then a fatal teardown abort (exit 134/139). W0
+    /// exposed this latent bug — bisect colors VERIFIED (red at 3bfcee5/a4c7155,
+    /// green at 6db030c/S7 branch); which W0 hunk shifted the GC timing is
+    /// INFERRED (LEDGER MC 10112, DA JUDGED 241cd301). Release the
+    /// wrappers and flush finalizers BEFORE Quit, while the ObjectDB is alive.
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _enemies.Clear();
+        _bus = null; _main = null; _player = null; _hud = null; _empathy = null; _companion = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     public override void _Finalize()

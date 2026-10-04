@@ -469,3 +469,40 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   proof: the BASE a4c7155 tool compared the SAME identical FAIL-pair GREEN (exit 0) — the hole was
   real and is closed. skill_test 24 + roster_test 18 GATE PASS save-free. Tool 139 lines.
   Evidence: .audits/20261004-2147-10111-cmpguard/.
+
+- MC 10112 / 10026.13.4 W0 barrier drift (code VM350, 2026-10-04, branch vm350/10112-barrier):
+  three battery concerns, one root-cause + one fix each, no bundling. (C1 quest_test exit 1:
+  the bus-batch contract test still pinned the 2c count 11 while RATIFIED S0 (3bfcee5, wall
+  PASS bd4c9255) carries 15 [Signal] delegates — TEST-UPDATED to 6 pre-2c + 5 quest + the 4
+  S0 signals NAMED explicitly (DialogueShown/DialogueClosed/PlayerHurt/BossFallen); a
+  non-ratified sixth still trips the count (plant RED logged, removed green). (C2 bridge_mvp
+  exit 139: MECHANISM VERIFIED — BridgeMvpProof is the C# MainLoop and its live-scene fields
+  root the scene's C# wrappers past native teardown; their finalizers then hit freed ObjectDB
+  entries (csharp_script.cpp:179 leaked-unsafe-reference; abort shape non-deterministic 134
+  or 139). FIX (stands): ReleaseHeldRefsBeforeQuit() at the PASS Quit — all 7 wrapper fields
+  cleared, GC-flush while the ObjectDB is alive; TEST stress 5/5 green zero leaked lines,
+  plant drop-call -> RED detected + RESULT=PASS render bar. WHICH S0 HUNK shifted the GC
+  timing: INFERRED, demoted per DA JUDGED 241cd301 — bisect COLORS are VERIFIED (red at
+  3bfcee5 + a4c7155 deterministic, 2x each; green at 6db030c + S7 f1892f4, 2x each; full-S0
+  revert control green) and two ablations are VALID controls (proof ran, 51 leak lines):
+  PollBusEmits-call-off still red, Ui.cs-only pre-S0 revert still red. But the minus-signals
+  (expC) and the first Ui.cs-revert (expB variant) logs are BUILD-FAILURE logs ("build
+  callback failed", zero leak lines — proof never ran): INVALID controls. "Not the new
+  signals" rests on an invalid control; "not the proof split" was never ablated (sub-reverts
+  don't compile — proof.cs calls the Bus-partial stages); the surviving csproj +2 Compile
+  lines could BE the timing shifter. TEST T-1: plant detection measured 1/4 — a SINGLE green
+  bridge_mvp is weak evidence; run the gate N>=5 in series before trusting a green series.
+  No shipping-scene instance of the pattern: grep-VERIFIED (wall).
+  (C3 export_check aborted line 47: NOT reproducible solo — identical command AND the full
+  gate exit 0 on a4c7155 and on this branch (PE magic + assembly/GodotSharp/runtimeconfig
+  markers, 135.7 MB exe). toolchain.sh TMPDIR guard did NOT fire and was never in play:
+  /tmp/godot-publish-dotnet is claudecode-owned WRITABLE (the guard handles non-writable
+  only) and line 47 PRECEDES any publish. fad172d hunks are company_name strings. Battery
+  log mtimes prove the W0 barrier ran legs CONCURRENTLY on the SAME project dir (runtime
+  integration still writing 21:29 while save/skill logs closed 21:22) — export_check's
+  rm -rf .godot + headless --build-solutions racing sibling legs is the INFERRED cause; the
+  gate's >/dev/null swallowed the abort reason (observability gap for the battery harness,
+  not fixable from the repo side). Battery runs legs one-at-a-time -> this leg exits 0.
+  Gates green on this branch (all solo, savegate mutex held 21:37–close): quest_test
+  QUEST_EXIT=0 (46 passed), bridge_mvp BRIDGE_EXIT=0, export EXPORT_EXIT=0.
+  Evidence: .audits/202610042128-e55426c7/evidence/10112-evidence.md (+ copied logs).
