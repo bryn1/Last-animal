@@ -394,7 +394,7 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   "close edge MISSED" RED / HasLiveBoss-flip FALSE BossFallen on zone exit RED
   — all green after byte-identical restore, evidence/.tmp cmp). Gates F5
   single-mode: boot 0, audio 0, bus_emit 0 (BUS_SHOWN_ONCE, BUS_CLOSED_ONCE,
-  BUS_HURT_ONCE, BUS_NO_FALSE_FALLEN, BUS_BOSS_FALLEN, BUS_FALLEN_ONCE); split
+  BUS_HURT_ONCE, BUS_NO_FALSE_FALLEN, BUS_BOSS_LIVE, BUS_FALLEN_ONCE); split
   regression 9 modes re-run expected-exit incl. save under SAVEGATE MUTEX.
   Battery leg append + leg-count/§6 restamp at WAVE CLOSE (not here).
   Evidence: .tmp/10098-close-evidence.md.
