@@ -71,8 +71,8 @@ the composition root (see §3).
   `SkillState`), `WorldDirector.Ui.cs` (partial: the UI root seam — `InitUi`
   wiring of the skills panel + HUD readout providers (live closures, no cached
   copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
-  (partial: the follower-roster root seam — `TickRoster` per-follower wage/follow/
-  hearts loop moved out of the root verbatim, `cycle_follower`/`break_bond` polls,
+  (partial: the follower-roster root seam — hearts loop moved out of the root verbatim, `InitRoster` + the read-only proof surfaces,
+  the `cycle_follower`/`break_bond` polls,
   Forgive/PermanentBreak glue, the visible-body spawns and the save restore with
   cap; emits per-follower loyalty deltas under `<name>-<EntityId>` then the roster
   mean LAST under the reserved key `roster`; wiring plus bond-guard glue only —
@@ -83,7 +83,8 @@ the composition root (see §3).
   wild-interact + first wage (offer mutation runs ONLY through the
   `OpenRecruitOffer`/`CloseRecruitOffer` pair; Calming Speak opens the same offer
   and its window dies at the `ClearCalmWindows` load seam at the END of
-  `RestoreFollowers` — MC 10031)), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  `RestoreFollowers` — MC 10031 — plus the interact scan `TryRosterNpc` and the
+  TEST-seam `SpawnWildFollower`)), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,

@@ -287,3 +287,14 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   94 tracked .uid have siblings -> zero removals; screenshots meadow/canyon/ruins/
   hud under run dir (never committed); §9 stale WageBetrayalPillarTests 0600 row
   removed (file is 644 claudecode). Inc-2 COMPLETE.
+- MC 10079 spawn-order fix (3eaca1e): SpawnWildFollower AddChild BEFORE GlobalPosition
+  (Godot 4.7 tree-entry requirement) — battery warning 11 -> 0 hits, placement final
+  value unchanged (^ROSTER stream byte-identical), battery+roster gates green before
+  and after; row retroactively appended at MC 10080 close (close-commit of 10079
+  carried no LEDGER row — doctrine slip, declared).
+- MC 10080 roster split (903b9a6): WorldDirector.Roster.cs (467l, header CLAIMED 422 — the
+  lie died) split PURE into roster-core half (331l) + WILD half
+  world/WorldDirector.Roster.Wild.cs (158l: offer pair, TryRecruitOfferedWild,
+  TEST-seam SpawnWildFollower, TryRosterNpc,
+  ClearCalmWindows); 25 member decls byte-identical before/after, both halves under the 400
+  ceiling, engine .uid in-commit, csproj explicit Compile (file is NOT glob-based).
