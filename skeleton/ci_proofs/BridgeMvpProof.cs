@@ -449,10 +449,10 @@ public partial class BridgeMvpProof : SceneTree
     /// scene's C# wrappers (and every Resource they hold: BoxMeshes, materials,
     /// audio) until after the native ObjectDB is already gone, so their GC
     /// finalizers hit freed objects — "Leaked unsafe reference to object ...
-    /// csharp_script.cpp:179" then SIGSEGV at exit (gate exit 139). W0 (3bfcee5)
-    /// did not create this — it shifted assembly/GC timing past the flush
-    /// threshold (bisect: deterministic red at 3bfcee5 and a4c7155, green at
-    /// 6db030c and the S7 branch; full-S0-revert control green). Release the
+    /// csharp_script.cpp:179" then a fatal teardown abort (exit 134/139). W0
+    /// exposed this latent bug — bisect colors VERIFIED (red at 3bfcee5/a4c7155,
+    /// green at 6db030c/S7 branch); which W0 hunk shifted the GC timing is
+    /// INFERRED (LEDGER MC 10112, DA JUDGED 241cd301). Release the
     /// wrappers and flush finalizers BEFORE Quit, while the ObjectDB is alive.
     /// </summary>
     private void ReleaseHeldRefsBeforeQuit()
