@@ -1,24 +1,44 @@
- # Last Animal — build LEDGER (updated 2026-10-02, VM350 standby seat; M00 chain below: svarkor-session MC 1344)
+ # Last Animal — build LEDGER (updated 2026-10-04, MC 10059 record de-stale pass; prev. 2026-10-02 VM350 standby seat; M00 chain below: svarkor-session MC 1344)
 
 Goal: Godot 4 C# ARPG 'Last Animal' — owner DoD (card 1344, verbatim): "spelbart spel utan buggar
 som går att köra på en windowsdator" — a playable, bug-free game that runs on a Windows computer,
 according to the specs (PHASE0.md: mandate I1-I6, constraints C1-C5, gate contracts C1-C17,
 modules M00-M14).
 
-STATUS: CHAIN COMPLETE 2026-09-25 — final fresh audit (T7, MC 1373) verdict **SHIP-READY, 0 P0,
-0 P1** at HEAD 46eabe9. All CI gates green from clean clones; runtime-verified playable; Windows
-zip packages the complete launch payload. Documented exceptions: C16 launch smoke on real
-Windows/wine unexecuted (no wine on the build host — the owner's acceptance step); push BLOCKED
-(no deploy key on vm105). Non-blocking register: B1-B7 + A7/A8/A9/A10 (P2/P3/P4) — next card.
+Size note (file hygiene, MC 10059): one subject — this repo's project state — and fleet doctrine
+names LEDGER.md the ONE ledger, so it is kept whole past the ~300-line split guideline.
+
+CURRENT STATUS (2026-10-04): increments project — the "AAA goal" section below is authoritative
+(REOPENED 2026-10-01, owner ruling quoted there). C16 Windows launch smoke remains the owner's
+open acceptance step (never executed on Windows as of the 2026-10-04 workspace audit).
+
+[SUPERSEDED 2026-10-04 MC 10059 — kept as history; both status claims below were untrue at this
+pass: "CHAIN COMPLETE" stands superseded by the REOPENED ruling below, and the push blocker was
+resolved 2026-10-01 (PUSH row in REMAINING; bryn1 remote master verified = 5922b25 by
+`git ls-remote bryn1 master` 2026-10-04).] STATUS: CHAIN COMPLETE 2026-09-25 — final fresh audit
+(T7, MC 1373) verdict **SHIP-READY, 0 P0, 0 P1** at HEAD 46eabe9. All CI gates green from clean
+clones; runtime-verified playable; Windows zip packages the complete launch payload. Documented
+exception: C16 launch smoke on real Windows/wine unexecuted (the owner's acceptance step).
+Non-blocking register: B1-B7 + A7/A8/A9/A10 (P2/P3/P4) — next card.
 
 ## Repo (layout v2, MC 3671)
 - Repo root / project dir: `/srv/workspace/last-animal/` (migrated 2026-09-24 from
-  `svarkor-last-animal-phase2/gunilla`; git history continuous).
+  `svarkor-last-animal-phase2/gunilla`; git history continuous; the old sibling dir is gone —
+  checked 2026-10-04). On VM350 `/srv/workspace/last-animal` is a symlink to
+  `/home/svarkor/last-animal` (same .git — verified 2026-10-04, inode-identical).
 - Game tree: `skeleton/`; vendored engine: `engine/` (Godot 4.7.2-stable mono + export templates
   per `engine/PIN.txt` — note F6: PIN.txt names the templates dir without `.mono`, stale).
 - Spec of record: `.audits/legacy-svarkor-last-animal/PHASE0.md`.
 - Evidence: `.audits/legacy-svarkor-last-animal-integration-audit/<seat>/` (migrated from the old
-  sibling dir; MC cards' old paths resolve here).
+  sibling dir; MC cards' old paths resolve here). The 839/890-era seat evidence the 2026-09-24
+  migration left in `.audits/legacy-phase2/` was content-hash-audited on 2026-10-04 (MC 10059;
+  66 unique non-cache files incl. the only copies of those era reports, captures and the MC
+  890.8 bake-repro harness) and archive-moved under
+  `.audits/legacy-svarkor-last-animal-integration-audit/legacy-phase2/`; the stray
+  `_cleanclone-test/` full clones inside it (HEADs 67cd759, ffb1e44 — both ancestors of HEAD,
+  zero unique untracked evidence, no unique commits/stashes) were deleted from disk there.
+  `.audits/` is gitignored (`.gitignore:21`) and its 31 pre-rule tracked files were untracked
+  2026-10-04 (MC 10059, `git rm --cached`, kept on disk).
 
 ## INTEGRATED + COMMITTED
 | Phase | Module | Commit |
@@ -78,15 +98,17 @@ Landed: ab89eba/1d1a983 (M13/M14), 2bc93c6 (dna refactor), 5da802a (save/load + 
 migration (2026-09-24). Its own audit-fix loop runs on MC 1348 N-findings; A6-A10 (P2) offered to it.
 
 ## REMAINING
-- T7 verdict (final gate) — running.
 - P2 register (offered to the parallel crew, unclaimed): A6 ZoneProgression production wiring
   (446a1e4 may have addressed — re-verify), A7 load regresses ecosystem ObservedCount N→1,
   A8 DnaLanguage.Counter no production callers, A9 tampered-save crash (unguarded tally[nucleotide]++),
   A10 zone environments never change (main.tscn instances only meadow).
 - P3/P4 register: F2 (wine smoke asserts exit 0 only — the C16 ">0 non-blank frames" leg needs a
-  wine-capable host), F6 (PIN.txt stale: templates dir name + dotnet version), F7 (README per-run
-  byte counts), F8 (data dir named "Preflight" though it ships the full game), A14 (PlayerActions/
-  UI-build split), WorldDirector.cs over the 400-line ceiling (header reason stands).
+  wine-capable host), F6 (PIN.txt stale: templates dir name + dotnet version — re-confirmed
+  2026-10-04: live templates dir is `4.7.2.stable.mono`, live `dotnet --version` = 8.0.131 vs the
+  pinned 8.0.130), F7 (README per-run byte counts — DESTALED 2026-10-04 MC 10059: artifact block
+  marked M00-era with a pointer to the latest export evidence), F8 (data dir named "Preflight"
+  though it ships the full game), A14 (PlayerActions/UI-build split), WorldDirector.cs over the
+  400-line ceiling (header reason stands — 501 l at 5922b25, SIZE header present).
 - PUSH: ~~BLOCKED~~ RESOLVED 2026-10-01 — the bryn1 account key (`~/.ssh/github_bryn1`) pushed the
   full lineage to the canonical remote (see AAA section). Original blocker (no deploy key on vm105)
   recorded here for history.
@@ -146,12 +168,16 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   skeleton/tools/export_linux.sh — registered here so the path is never hunted again.
 - Known limitations: ruins zone intentionally dark; canyon reads hazy — polish-pass register.
   MC 3897 filed: bridge proof counts bodies, not Visual-subtree content (mutation probe P2
-  from 3895 TEST) — still queued.
+  from 3895 TEST) — still queued. [2026-10-04 MC 10059: card 3897 is not on the current board
+  (old board 3887-3953 archived — 2026-10-04 workspace audit header); "still queued" is
+  UNVERIFIED since — treat as open-but-untraced, re-file under the 10026 anchor if still wanted.]
 - Increment 2 PLANNED (.audits/20261002-inc2-plan/PLAN.md, 8 stages 2a-2h: story data layer +
   quest core, DNA-mutation skills on the dead Manna seam, follower ROSTER of the existing
-  companion stack, save v2->v3 one ratified break; 8 owner decisions D1-D8 pending "rec";
-  DA gate running). Two seed-notes claims refuted against code: no "6 weapon types" exist
-  (grep weapon = 0 hits), AdaptationSystem is really src/dna/EcosystemAdaptation.cs.
+  companion stack, save v2->v3 one ratified break; owner decisions D1-D8 RATIFIED 2026-10-02,
+  owner artifact "All rec" — PLAN.md §D; DA gate ran to DA-verdict-c3.md; the row's original
+  "pending rec / running" wording was stale and is corrected here per MC 10059; Inc-2 COMPLETE
+  per the MC 10030 row below). Two seed-notes claims refuted against code: no "6 weapon types"
+  exist (grep weapon = 0 hits), AdaptationSystem is really src/dna/EcosystemAdaptation.cs.
 - MC 3900 stage 2a BUILT (code, 2026-10-02): story DATA layer behind the existing dialogue
   view — new engine-free src/story/DialogueTable.cs (id -> authored text + optional
   Func<string,bool> condition, nil for now) REPLACES DialogueSystem's private hardcoded
@@ -257,6 +283,8 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   THREE on identical hash 0e85c22f at 4e119b0 (c1-c2 caught F-1/F-1c2 doc-lies, closed by c3/c4; TEST-c2
   proved the false-green class real). Owner ruling (2026-10-03): beats -> "Queue + auto-close box" =
   NEW FEATURE owed (card under new-board anchor 10026; docs' "pending/planned" wording flips there).
+  [SUPERSEDED 2026-10-04 MC 10059: shipped as MC 10026.1 DLQ at 4fece21, closed 7079a00 — see the DLQ
+  row below; guide wording flipped at b50f9a7 (MC 10031 close).]
   Carries: wiring-lambda guard residual (accepted), ci/*.sh mode 644 chmod owed (2h), pending-wording
   staleness at DLQ card. Banner restamped at this close.
 - DLQ CLOSED (orchestrator-verified, 2026-10-04): MC 10026.1 dialogue lifecycle — 4fece21 (DialogueSystem
@@ -284,7 +312,10 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   runtime_integration_test.sh exec bit +x in git; banner header now states the true
   25-leg count (comment-only diff, proven zero non-comment lines); strays gone
   (890.15 root note + skeleton/_scratch, LibDiag zero refs); orphan .uid census: all
-  94 tracked .uid have siblings -> zero removals; screenshots meadow/canyon/ruins/
+  94 tracked .uid have siblings -> zero removals (count corrected 2026-10-04 MC 10059: the
+  tracked tree at 20d3bf1 holds 108 .uid with zero orphans — re-counted via `git ls-tree -r
+  20d3bf1`; conclusion unchanged; later cards added more — 115 tracked at 5922b25, incl. the
+  6 strays from a36fa0d); screenshots meadow/canyon/ruins/
   hud under run dir (never committed); §9 stale WageBetrayalPillarTests 0600 row
   removed (file is 644 claudecode). Inc-2 COMPLETE.
 - MC 10079 spawn-order fix (3eaca1e): SpawnWildFollower AddChild BEFORE GlobalPosition

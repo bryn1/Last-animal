@@ -13,7 +13,7 @@ explicit, per PHASE0.md. The deliverable is a Windows .exe/.zip you run locally.
 | [build-and-run.md](build-and-run.md) | How the shipped artifact is built, and how to build it from source. |
 | [install.md](install.md) | How a player installs and first-runs the game (Windows and Linux). |
 
-## The delivered artifact (verified 2026-09-25)
+## The delivered artifact (M00-chain build, verified 2026-09-25 — superseded, see note below)
 
 - `build/LastAnimal.exe` — Windows x86_64 release export of the full game
   (`res://main.tscn`), ~111 MB (111,300,152 bytes for the build verified
@@ -35,6 +35,14 @@ explicit, per PHASE0.md. The deliverable is a Windows .exe/.zip you run locally.
 Both are produced by `bash tools/export_windows.sh` / `bash tools/export_linux.sh`
 from `skeleton/` (the scripts live in `skeleton/tools/`); see
 [build-and-run.md](build-and-run.md).
+
+> **Superseded (MC 10059, 2026-10-04; closes the F7 "per-run byte counts" register row):** the
+> sizes and hashes above are the **2026-09-25 M00-chain build** and no longer describe today's
+> export — Increments 1-2 (graphics, story, quests, skills, roster) rebuilt it. Latest executed
+> evidence: `tools/export_linux.sh` PASS at the Increment-1 exit sweep (~81 MB zip, LEDGER
+> "INCREMENT 1 EXIT CRITERION MET" row) and the MC 10030 clean-clone sweep (20d3bf1) re-ran
+> export_check + export green. Re-run the export scripts for current numbers; the binary is
+> rebuilt on every export, so its hash changes by design.
 
 ## Known limitation (stated, not hidden)
 
