@@ -147,8 +147,10 @@ stdout streams BYTE-STABLE (RED on any delta) vs NUMERIC-MASK (field-name
 keyed, numeric tokens masked; masked hunks RED unless `--declare`);
 save-touching — run ONLY while holding the savegate mutex. **TOOL, not a
 gate leg**: no gate script calls it and the battery banner count excludes it.
-The CI guard wiring around it is card 10111 — IN FLIGHT, not merged in this
-tree (branch `vm350/10111-cmp-guard` carries no commits beyond a4c7155).
+The content guard (card 10111) is MERGED: two RED conditions at
+`cmp_pair` — a zero-keyed side, or the harness FAIL banner (`LA_GATE: FAIL — `)
+carried by either side — shipped at 7a8bd10; TOOL status unchanged (zero
+gate callers; the guard lives inside the tool).
 `skill_test.sh` carries the named F-acts F1..F6 plus the calm rows
 `F7_calm_cost_spend_once` / `F8_calm_refuse_no_spend` / `F9_calm_unlock_positions`
 (MC 10031).
