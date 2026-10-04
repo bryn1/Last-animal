@@ -3,7 +3,9 @@
 #
 # CI contract for every later module (M01..M13): a build is a SMOKE PASS iff
 #   (a) this script exits 0, AND
-#   (b) graphical-test-helper.sh reports RESULT=PASS (non-blank framebuffer).
+#   (b) graphical-test-helper.sh reports RESULT=PASS (non-blank framebuffer
+#       carrying live-scene colour richness — a boot-splash frame FAILS; see
+#       the --min-colors note at leg (b), MC 10058).
 # Both halves are required. `godot --headless --quit` exiting 0 alone does NOT
 # prove rendering (see PREFLIGHT.md lesson 3).
 #
@@ -60,9 +62,13 @@ fi
 [[ "$LOAD_LOG" == *'GameLoop: ready'* ]] \
   || fail "composition root did not boot (expected 'GameLoop: ready' in output)"
 
-# (b) render-and-verify under throwaway Xvfb — non-blank framebuffer required
+# (b) render-and-verify under throwaway Xvfb — non-blank framebuffer required,
+# AND real scene content: --min-colors 1200 rejects a boot-splash frame. The
+# old bar (the helper's default --min-colors 8) PASSed on the Godot splash
+# screen — colors=495, stddev=0.127 (audit Top-2a, 2026-10-04); a live game
+# frame of this project measures colors 2380-3038, stddev ~0.27 (MC 10058).
 OUT="$(mktemp -u /tmp/smoke_XXXXXX.png)"
-graphical-test-helper.sh --cmd "$GODOT --path $PROJ" --wait 6 --out "$OUT" || { rm -f "$OUT"; fail "framebuffer gate failed (see RESULT line above)"; }
+graphical-test-helper.sh --cmd "$GODOT --path $PROJ" --wait 6 --min-colors 1200 --out "$OUT" || { rm -f "$OUT"; fail "framebuffer gate failed (see RESULT line above)"; }
 mv -f "$OUT" "${TMPDIR:-/tmp}/last-animal-smoke.png" 2>/dev/null || true
 rm -f "$OUT"
 

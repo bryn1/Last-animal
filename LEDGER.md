@@ -309,3 +309,15 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   with proof exit 0 -> gate red; sabotaged aim assert -> proof red (marker is
   not free). Real-run aim reads == player exactly. Full battery 25 legs green
   (the one run). Proof file at the 600-l test ceiling, header reason updated.
+- MC 10058 gate-fix (smoke leg, 2026-10-04, code seat VM350, audit Top-2a):
+  smoke.sh render leg now REJECTS a boot-splash frame — the old bar (helper
+  default min-colors 8) PASSed on the Godot splash (colors=495
+  stddev=0.127484, stats byte-identical to the audit's own capture). The leg
+  passes --min-colors 1200 to the EXISTING graphical-test-helper content bar
+  (no new mechanism): live game frames measure 2380-3038 colors / ~0.27
+  stddev at this HEAD. Planted red (12 s _Ready splash hold: pre-fix smoke
+  FALSE-green on the splash, fixed smoke FAIL; plant reverted), real smoke
+  green colors=2967. Audit finding (d) JUDGED-pin identical across design
+  revs inspected: mechanism is fleet-side dod_judged_hash.py (its RUN_DIRS
+  skip makes .audits deliverables invisible to the pin) — DECLARED to the
+  orchestrator, no sibling mechanism authored game-side.
