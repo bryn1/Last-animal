@@ -373,11 +373,34 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Card 10036's dangling citation (pre-amend 2a81b91) re-cited here to its current reachable
   descendant 3514d92 (verified `git log --all`; amend diff = docs/ARCHITECTURE.md +4/−1 only).
   Rebased on top of the MC 10058/10079/10080 rows — none of those rows reverted.
-- OPEN OWNER DECISION (NOT executed, MC 10059 — owner ratifies separately): the old public repo
-  `Last-animal` on the parallel orchestrator's old account (master 9f4173f, 50 commits behind; the copy the owner downloaded
+- [SUPERSEDED 2026-10-04 by OWNER ACTION — not by this seat. The old account is DELETED; the deletion
+  itself is the literal owner artifact (MC 10093, commit fad172d), so the archive+pointer decision
+  below lost its object. Text kept verbatim as history. See the two dated 2026-10-04 rows below.]
+  OPEN OWNER DECISION (NOT executed, MC 10059 — owner ratifies separately): the old public repo
+  `Last-animal` on the parallel orchestrator's old account (master 9f4173f — 62 commits behind canonical
+  `5922b25` at the 2026-10-04 audit; corrected 2026-10-04 fix-cycle-2 from the stale "50": instruments
+  `git rev-list --count 9f4173f..5922b25` = 62, `git rev-list --count 9f4173f..7a3c755` = 65, both
+  pinned to shas — never `..HEAD` per DA-c2 F-c2-2; the copy the owner downloaded
   2026-09-28 — per the read-only workspace audit of 2026-10-04, §1/§3/§6) disagrees with the
-  canonical `bryn1/Last-animal` (master 5922b25). Repo-vs-served disagreement = OWNER decision
+  canonical `bryn1/Last-animal` (master `5922b25` as of 2026-10-04, dated per DA-c2 F-c2-1; current
+  truth: `git ls-remote bryn1 master` = `fad172d8c01b65ffee78e628db253a131bebf3a1` as of 2026-10-04
+  19:00 UTC, re-run this session — the undated pin read as present-state and was CONTRADICTED).
+  Repo-vs-served disagreement = OWNER decision
   (doctrine rule 2 — no artifact = no decision). NOT TOUCHED (parallel orchestrator's account;
   this seat never pushed there). SUPERSEDED 2026-10-04: that account is deleted, so its repo is
   gone and the archive/pointer-README option no longer applies — `bryn1/Last-animal` is now the
   only home (audit §6 rec.4 mooted; MC 10093).
+- MC 10059 FACT-UPDATE (tech-writer VM350, 2026-10-04 19:00 UTC, orchestrator-authorized): the old
+  account is DELETED — owner action; the deletion itself IS the literal owner artifact (rule 2
+  satisfied), so no separate ratification of the archive+pointer option is owed. The OPEN OWNER
+  DECISION above is SUPERSEDED by that owner action, NOT by this seat (nothing here executed).
+  Cites: MC 10093 (the account deletion) + commit `fad172d` ("remove svarkor-ai provenance note
+  (account deleted, MC 10093)"). `bryn1/Last-animal` is now the only home.
+- MC 10059 fix-cycle 2 (tech-writer VM350, 2026-10-04 19:00 UTC): re-applied the cycle-1 corrections
+  to the fad172d LEDGER rewrite — corrected the stale "50 commits behind" on the OPEN OWNER DECISION
+  line to the re-run instrument (62 to `5922b25` / 65 to `7a3c755`, pinned to shas, never `..HEAD` —
+  DA-c2 F-c2-2), and dated the remote-master pin (DA-c2 F-c2-1: `5922b25` as of 2026-10-04;
+  `ls-remote bryn1 master` = `fad172d8` 2026-10-04, run this session). Re-verify over DA-c2:
+  `.audits/202610041822-10059-da-c2/DA-verdict-c2.md` (JUDGED
+  `faa820d35666fda8a57ee2b23819353ec1ed8ca504231d2814be5cd786649f82`; digest + workspace-path form —
+  `.audits` is untracked by design, `a06ecda` / `.gitignore:21`).
