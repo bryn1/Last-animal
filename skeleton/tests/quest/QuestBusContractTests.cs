@@ -11,10 +11,12 @@ using Xunit;
 // QuestObjective, QuestCompleted, WagePaid, SkillUsed), all string-Id per
 // GD0202, plus the QuestId + SkillId carriers. 2e/2f/2g consume, never edit.
 // EventBus is a Godot type and cannot compile into this pure project, so the
-// leg reads the SOURCE directly: the bus must carry exactly eleven [Signal]
-// delegates — six pre-2c + the five-row batch — and the new emit helpers
-// must take the carriers. Plant a SIXTH signal on the bus and the count leg
-// goes RED naming the signal.
+// leg reads the SOURCE directly: the bus must carry exactly fifteen [Signal]
+// delegates — six pre-2c + the five-row batch + the four RATIFIED S0
+// presentation signals (MC 10098, commit 3bfcee5: DialogueShown,
+// DialogueClosed, PlayerHurt, BossFallen) — and the new emit helpers
+// must take the carriers. Plant a SIXTH non-ratified signal on the bus and
+// the count leg goes RED naming the signal.
 namespace LastAnimal.Tests.Quest;
 
 public class QuestBusContractTests
@@ -28,6 +30,12 @@ public class QuestBusContractTests
     private static readonly string[] QuestBatchSignals =
     {
         "QuestStarted", "QuestObjective", "QuestCompleted", "WagePaid", "SkillUsed",
+    };
+
+    // RATIFIED additive S0 signals (MC 10098 / 3bfcee5, wall PASS bd4c9255).
+    private static readonly string[] S0PresentationSignals =
+    {
+        "DialogueShown", "DialogueClosed", "PlayerHurt", "BossFallen",
     };
 
     private static string RepoFile(string relPath)
@@ -57,11 +65,14 @@ public class QuestBusContractTests
     public void EventBus_CarriesExactlyFiveNewQuestSignals_NoSixth()
     {
         var names = BusSignalNames(RepoFile("autoload/EventBus.cs"));
-        Assert.Equal(11, names.Count);   // 6 pre-2c + the 5-row batch. A sixth
-                                         // batched signal trips exactly this.
+        Assert.Equal(15, names.Count);   // 6 pre-2c + the 5-row batch + the 4
+                                         // ratified S0 signals. A sixth non-
+                                         // ratified batch signal trips this.
         foreach (var s in C2Signals)
             Assert.Contains(s, names);
         foreach (var s in QuestBatchSignals)
+            Assert.Contains(s, names);
+        foreach (var s in S0PresentationSignals)
             Assert.Contains(s, names);
     }
 
