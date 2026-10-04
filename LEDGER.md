@@ -443,3 +443,32 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   skill_test 24 + roster_test 18 + quest_arc/skill_use/calm_use single-mode + determinism_cmp
   A/A (positive) — savegate mutex honored (all save runs in mkdir-locked windows). D-2 honored:
   asserts only, ZERO balance change. Evidence: .audits/20261004-1846-s7-latent/evidence/.
+
+- MC 10112 / 10026.13.4 W0 barrier drift (code VM350, 2026-10-04, branch vm350/10112-barrier):
+  three battery concerns, one root-cause + one fix each, no bundling. (C1 quest_test exit 1:
+  the bus-batch contract test still pinned the 2c count 11 while RATIFIED S0 (3bfcee5, wall
+  PASS bd4c9255) carries 15 [Signal] delegates — TEST-UPDATED to 6 pre-2c + 5 quest + the 4
+  S0 signals NAMED explicitly (DialogueShown/DialogueClosed/PlayerHurt/BossFallen); a
+  non-ratified sixth still trips the count (plant RED logged, removed green). (C2 bridge_mvp
+  exit 139: ROOT-CAUSE VERIFIED by experiment matrix — BridgeMvpProof is the C# MainLoop and
+  its live-scene fields root the scene's C# wrappers past native teardown; finalizers then
+  hit freed ObjectDB entries (csharp_script.cpp:179 leaked-unsafe-reference, SEGV at exit).
+  Bisect: deterministic red at 3bfcee5 + a4c7155 (solo, savegate), green at 6db030c and S7
+  f1892f4 (2x each); full-S0-revert control GREEN; Ui.cs-only, EventBus+Bus.cs-only reverts
+  ALL still red — W0 shifted assembly/GC timing past the flush threshold; NOT the TickUi
+  poll, NOT the new signals, NOT the proof split. FIX: ReleaseHeldRefsBeforeQuit() at the
+  PASS Quit — drop the wrapper refs, GC-flush while the ObjectDB is alive. Plant: drop call
+  -> RED (exit 134, leaked lines), restored -> GATE PASS zero leaks, render bar RESULT=PASS.
+  (C3 export_check aborted line 47: NOT reproducible solo — identical command AND the full
+  gate exit 0 on a4c7155 and on this branch (PE magic + assembly/GodotSharp/runtimeconfig
+  markers, 135.7 MB exe). toolchain.sh TMPDIR guard did NOT fire and was never in play:
+  /tmp/godot-publish-dotnet is claudecode-owned WRITABLE (the guard handles non-writable
+  only) and line 47 PRECEDES any publish. fad172d hunks are company_name strings. Battery
+  log mtimes prove the W0 barrier ran legs CONCURRENTLY on the SAME project dir (runtime
+  integration still writing 21:29 while save/skill logs closed 21:22) — export_check's
+  rm -rf .godot + headless --build-solutions racing sibling legs is the INFERRED cause; the
+  gate's >/dev/null swallowed the abort reason (observability gap for the battery harness,
+  not fixable from the repo side). Battery runs legs one-at-a-time -> this leg exits 0.
+  Gates green on this branch (all solo, savegate mutex held 21:37–close): quest_test
+  QUEST_EXIT=0 (46 passed), bridge_mvp BRIDGE_EXIT=0, export EXPORT_EXIT=0.
+  Evidence: worktree .tmp/10112-evidence.md (+ copied logs).

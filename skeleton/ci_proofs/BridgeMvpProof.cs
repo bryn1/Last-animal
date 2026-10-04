@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (486 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check.
+// SIZE: inherited >400 (507 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check, MC 10112 only the 22-line shutdown-ref release (concern 2 fix).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
