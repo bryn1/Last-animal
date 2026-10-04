@@ -358,3 +358,27 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   print — shell probe red/green PROBE_EXIT=0); smoke --wait 6→10 (single-
   capture false-red risk), bar stays 1200; smoke re-green SMOKE_EXIT=0
   colors=2967; battery not re-run (shell/docs-only, no proof .cs touched).
+- MC 10059 record de-stale (tech-writer VM350, 2026-10-04): this pass corrected the stale/
+  contradicted claims named in its close evidence (.tmp/10059-close-evidence.md) and did the
+  hygiene the record depends on — 31 pre-rule tracked .audits files untracked via
+  `git rm --cached` (files kept on disk; `git ls-files .audits` = 0 after), and the stray
+  `.audits/legacy-phase2/` (leftover from the 2026-09-24 layout-v2 migration) was removed from
+  disk: its seat dirs were CONTENT-HASH-audited against all of `.audits` (66 unique non-cache
+  files — the only copies of the 839/890-era seat reports, zone/HUD captures, the MC 890.8
+  bake-repro harness and two M13 windows binaries + smoke png) and archive-moved, not deleted,
+  into `.audits/legacy-svarkor-last-animal-integration-audit/legacy-phase2/`; the two
+  `_cleanclone-test/` clones inside it (HEADs 67cd759 + ffb1e44, both ancestors of this row's
+  HEAD, zero untracked evidence, zero unique commits/stashes) were deleted. Size before/after:
+  `.audits` 6.5G → 345M, `legacy-phase2` 6.3G → gone (archive ~150M rides inside the 345M).
+  Card 10036's dangling citation (pre-amend 2a81b91) re-cited here to its current reachable
+  descendant 3514d92 (verified `git log --all`; amend diff = docs/ARCHITECTURE.md +4/−1 only).
+  Rebased on top of the MC 10058/10079/10080 rows — none of those rows reverted.
+- OPEN OWNER DECISION (NOT executed, MC 10059 — owner ratifies separately): the old public repo
+  `svarkor-ai/Last-animal` (master 9f4173f, 50 commits behind; the copy the owner downloaded
+  2026-09-28 — per the read-only workspace audit of 2026-10-04, §1/§3/§6) disagrees with the
+  canonical `bryn1/Last-animal` (master 5922b25). Repo-vs-served disagreement = OWNER decision
+  (doctrine rule 2 — no artifact = no decision). NOT TOUCHED (svarkor's account, parallel
+  orchestrator; this seat never pushes svarkor-ai/*). SUGGESTED option for the owner: archive
+  the repo with a pointer README to `bryn1/Last-animal` (audit §6 rec.4; the owner used it as a
+  download source, so banner+archive, never delete). Anonymous GitHub API 404s from this seat
+  2026-10-04 — whether it is currently private/renamed is UNVERIFIED from here.
