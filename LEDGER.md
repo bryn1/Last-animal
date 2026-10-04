@@ -321,3 +321,9 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   revs inspected: mechanism is fleet-side dod_judged_hash.py (its RUN_DIRS
   skip makes .audits deliverables invisible to the pin) — DECLARED to the
   orchestrator, no sibling mechanism authored game-side.
+- MC 10058 fix-cycle (verdict wall, 2026-10-04, code seat VM350): PREFLIGHT §4
+  sample annotated pre-MC-10058; close-evidence copied into run dir evidence/;
+  revived-leg gate FAIL text made token-free (marker only in pass-grep + proof
+  print — shell probe red/green PROBE_EXIT=0); smoke --wait 6→10 (single-
+  capture false-red risk), bar stays 1200; smoke re-green SMOKE_EXIT=0
+  colors=2967; battery not re-run (shell/docs-only, no proof .cs touched).

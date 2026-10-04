@@ -67,8 +67,11 @@ fi
 # old bar (the helper's default --min-colors 8) PASSed on the Godot splash
 # screen — colors=495, stddev=0.127 (audit Top-2a, 2026-10-04); a live game
 # frame of this project measures colors 2380-3038, stddev ~0.27 (MC 10058).
+# --wait 10 (MC 10058 fix cycle): this is a single non-polling capture, and
+# the audit's own splash-era capture proves boots >= 6 s exist — --wait 6
+# risked a false-red. Bar stays --min-colors 1200.
 OUT="$(mktemp -u /tmp/smoke_XXXXXX.png)"
-graphical-test-helper.sh --cmd "$GODOT --path $PROJ" --wait 6 --min-colors 1200 --out "$OUT" || { rm -f "$OUT"; fail "framebuffer gate failed (see RESULT line above)"; }
+graphical-test-helper.sh --cmd "$GODOT --path $PROJ" --wait 10 --min-colors 1200 --out "$OUT" || { rm -f "$OUT"; fail "framebuffer gate failed (see RESULT line above)"; }
 mv -f "$OUT" "${TMPDIR:-/tmp}/last-animal-smoke.png" 2>/dev/null || true
 rm -f "$OUT"
 

@@ -88,6 +88,12 @@ sha256sum build/preflight.exe   # artifact identity
 Expected, from the run that produced this file (clean tree, `.godot/` and `build/`
 removed first):
 
+Note (2026-10-04, MC 10058 fix cycle): the block below is a verbatim
+**pre-MC-10058 sample**. Since then `smoke.sh` raised the render bar to
+`--min-colors 1200`, so under today's bar this `colors=495` frame (a boot
+splash) would FAIL. Kept verbatim as history — it is not the expected value
+for a current smoke run (live frames measure 2380-3038 colors at this HEAD).
+
 ```
 SMOKE: PASS (headless quit + framebuffer) — capture at /tmp/last-animal-smoke.png
 RESULT=PASS path=/tmp/smoke_Ul8v5G.png mean=0.132183 stddev=0.127484 colors=495
