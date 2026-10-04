@@ -122,8 +122,8 @@ models for player/companion/boss/enemies). Scope ruling: "Everything." The M00 c
 the historical base (MC 1344 achieved: playable, gates green, Windows-packageable).
 
 Canonical remote: `git@github.com:bryn1/Last-animal.git`, master = pushed lineage
-(df8ff23 base → graphics commits). Working branch `vm350/last-animal`. Prior svarkor-ai/* remote is
-NOT this seat's to push (parallel-orchestrator account; untouched).
+(df8ff23 base → graphics commits). Working branch `vm350/last-animal`. The prior remote on the
+old (parallel-orchestrator) account is NOT this seat's to push; that account is now deleted (MC 10093).
 
 ### Increment 1 — graphics pass (2026-10-01)
 - MC 3889 CLOSED (completed_unverified, DONE-gate requested): composed player (main.tscn Visual
@@ -374,11 +374,10 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   descendant 3514d92 (verified `git log --all`; amend diff = docs/ARCHITECTURE.md +4/−1 only).
   Rebased on top of the MC 10058/10079/10080 rows — none of those rows reverted.
 - OPEN OWNER DECISION (NOT executed, MC 10059 — owner ratifies separately): the old public repo
-  `svarkor-ai/Last-animal` (master 9f4173f, 50 commits behind; the copy the owner downloaded
+  `Last-animal` on the parallel orchestrator's old account (master 9f4173f, 50 commits behind; the copy the owner downloaded
   2026-09-28 — per the read-only workspace audit of 2026-10-04, §1/§3/§6) disagrees with the
   canonical `bryn1/Last-animal` (master 5922b25). Repo-vs-served disagreement = OWNER decision
-  (doctrine rule 2 — no artifact = no decision). NOT TOUCHED (svarkor's account, parallel
-  orchestrator; this seat never pushes svarkor-ai/*). SUGGESTED option for the owner: archive
-  the repo with a pointer README to `bryn1/Last-animal` (audit §6 rec.4; the owner used it as a
-  download source, so banner+archive, never delete). Anonymous GitHub API 404s from this seat
-  2026-10-04 — whether it is currently private/renamed is UNVERIFIED from here.
+  (doctrine rule 2 — no artifact = no decision). NOT TOUCHED (parallel orchestrator's account;
+  this seat never pushed there). SUPERSEDED 2026-10-04: that account is deleted, so its repo is
+  gone and the archive/pointer-README option no longer applies — `bryn1/Last-animal` is now the
+  only home (audit §6 rec.4 mooted; MC 10093).
