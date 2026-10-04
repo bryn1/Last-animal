@@ -203,5 +203,3 @@ skill, roster; ui tests compile into the main csproj and run via `--script`).
   likeliest the bundled .NET 8 host under Wine 9.0). Documented in
   `docs/build-and-run.md`; the Linux export + native Xvfb smoke is the
   verified launch path. Not fixed — a host/toolchain limitation.
-- `tests/companion/WageBetrayalPillarTests.cs` is mode 0600 owned by another
-  user — unreadable to other seats; needs `chown`/`chmod 644` (repo hygiene).

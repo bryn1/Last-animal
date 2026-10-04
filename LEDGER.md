@@ -278,3 +278,12 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   ClearCalmWindows (ONE caller). skill_test F7-F9 + calm_use/calm_neg green
   (TEST-verdict PASS, planted-bad reds in evidence/). Docs rows closed per
   DESIGN §8 (this row's commit).
+- MC 10030 clean-clone sweep (20d3bf1): reproducibility proven — 19 gates x 2 CLEAN
+  clones (branch-tip + remote-master b50f9a7) all exit 0 incl. full runtime battery
+  25 modes serial (603s/601s) + export_check + determinism cmp IDENTICAL; ci
+  runtime_integration_test.sh exec bit +x in git; banner header now states the true
+  25-leg count (comment-only diff, proven zero non-comment lines); strays gone
+  (890.15 root note + skeleton/_scratch, LibDiag zero refs); orphan .uid census: all
+  94 tracked .uid have siblings -> zero removals; screenshots meadow/canyon/ruins/
+  hud under run dir (never committed); §9 stale WageBetrayalPillarTests 0600 row
+  removed (file is 644 claudecode). Inc-2 COMPLETE.
