@@ -443,3 +443,15 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   skill_test 24 + roster_test 18 + quest_arc/skill_use/calm_use single-mode + determinism_cmp
   A/A (positive) — savegate mutex honored (all save runs in mkdir-locked windows). D-2 honored:
   asserts only, ZERO balance change. Evidence: .audits/20261004-1846-s7-latent/evidence/.
+
+- MC 10097 / W0 wave-close DRIFT restamp (design VM350, 2026-10-04, Inc-3 W0): docs-only,
+  ZERO gate/godot runs. The three owed drift rows, each owed by a wall verdict, discharged:
+  (1) ARCHITECTURE §3 EventBus census restamped 11→15 from the tree (grep
+  `[Signal] public delegate` skeleton/autoload/EventBus.cs = 15 at a4c7155); the four S0
+  presentation signals (3bfcee5) listed additive and the `PlayerHurt` Int-payload exception
+  stated honestly — owed by ARCH-verdict DRIFT-1, .audits/202610041758-e91b0813/ARCH-verdict.md.
+  (2) §6 proof enumeration now lists the S0 partials Chain.cs (stages 1-4 verbatim) and Bus.cs
+  (stage 80 bus_emit, markers incl. BUS_BOSS_LIVE per FIX-1) with the 600-l proof-ceiling
+  context — same DRIFT row. (3) §6 ci/ inventory now carries `determinism_cmp.sh` marked TOOL,
+  not a battery leg (the guard wiring around it, card 10111, is in flight — NOT claimed here);
+  owed by .audits/202610041758-1e37b441/ARCH-verdict.md §6 DRIFT ROW.

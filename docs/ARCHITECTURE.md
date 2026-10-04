@@ -42,10 +42,18 @@ the composition root (see §3).
 - **Autoloads** (`autoload/`, registered in `project.godot`): `MusicManager`,
   `EventBus`, `GameBootstrap`, `SfxRouter`, `GameLoop`; plus `FrameworkTypes.cs`
   and `IGameModule.cs` (shared framework). `GameBootstrap` is the service
-  registry the composition root binds into. `EventBus` carries 11 string-Id
-  signals (GD0202), incl. the five quest-core signals `QuestStarted`,
-  `QuestObjective`, `QuestCompleted`, `WagePaid`, `SkillUsed` (carriers
-  `QuestId`/`SkillId`; landed once by MC 3904 2c — consumers never edit the bus).
+  registry the composition root binds into. `EventBus` carries 15 signals
+  (GD0202 wire idiom: the carrier record's string Id as payload — the honest
+  exceptions: `LoyaltyChanged` carries the loyalty as an Int, `PlayerHurt`
+  carries the new health as an Int, and `EmpathyBookOpened` carries none),
+  incl. the five quest-core signals `QuestStarted`, `QuestObjective`,
+  `QuestCompleted`, `WagePaid`, `SkillUsed` (carriers `QuestId`/`SkillId`;
+  landed once by MC 3904 2c — consumers never edit the bus) plus the four
+  additive presentation signals `DialogueShown`, `DialogueClosed`,
+  `PlayerHurt` (Int!), `BossFallen` (MC 10098 S0 bus-emit seam at 3bfcee5,
+  11→15 — emitted ONLY by the TickUi edge-detect poll in
+  `WorldDirector.Ui.cs`; F-2: `BossFallen` fires on the tracked BossActor's
+  `IsDead` edge, a zone-exit null-swap re-arms silently).
 - **Composition root**: `world/WorldDirector.cs` on `main.tscn` — the ONLY
   production site that constructs gameplay systems and binds them into
   `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
@@ -132,13 +140,22 @@ the composition root (see §3).
 `runtime_integration_test.sh`, `combat_test.sh`, `companion_test.sh`,
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
 `story_test.sh`, `quest_test.sh`, `skill_test.sh`, `roster_test.sh`,
-`audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
+`audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib),
+plus `determinism_cmp.sh` — the F4-CMP determinism comparator shipped at
+f1892f4 (MC 10099 S7): runs battery mode(s) twice (A/A) and classifies the
+stdout streams BYTE-STABLE (RED on any delta) vs NUMERIC-MASK (field-name
+keyed, numeric tokens masked; masked hunks RED unless `--declare`);
+save-touching — run ONLY while holding the savegate mutex. **TOOL, not a
+gate leg**: no gate script calls it and the battery banner count excludes it.
+The CI guard wiring around it is card 10111 — IN FLIGHT, not merged in this
+tree (branch `vm350/10111-cmp-guard` carries no commits beyond a4c7155).
 `skill_test.sh` carries the named F-acts F1..F6 plus the calm rows
 `F7_calm_cost_spend_once` / `F8_calm_refuse_no_spend` / `F9_calm_unlock_positions`
 (MC 10031).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
-`RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+`RuntimeIntegrationProof.Quests.cs` / `RuntimeIntegrationProof.Chain.cs` /
+`RuntimeIntegrationProof.Bus.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
@@ -159,7 +176,19 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `RuntimeIntegrationProof.CalmingSpeak.cs` — `calm_use` (legs `CALM_CAST`,
 `CALM_PAY_IN_WINDOW`, `CALM_REFUSE_SHORT`, `CALM_REFUSE_STANDING`,
 `CALM_E_STANDS`, `CALM_WINDOW_EXPIRES`, `CALM_LOAD_CLEARED` via a REAL
-`load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031); the death leg in
+`load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
+`RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
+(MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
+split duty: the entry harness had reached the 600-l proof ceiling; after the
+split Proof.cs is 445 l carrying its `SIZE:` reason header, Chain.cs 221 l,
+Bus.cs 342 l — every proof file under 600, no mode router moved: the entry
+file's stage switch stays the only mode router);
+`RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
+presentation emits land EXACTLY ONCE per edge on the live autoload EventBus
+(markers `BUS_SHOWN_ONCE`, `BUS_CLOSED_ONCE`, `BUS_HURT_ONCE`,
+`BUS_NO_FALSE_FALLEN`, `BUS_BOSS_LIVE` — the death leg's real marker,
+per ARCH FIX-1 on 3bfcee5 — and `BUS_FALLEN_ONCE`); F5 single-mode, NOT a
+battery leg yet (the gate script greps no `BUS_*` in this tree); the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
