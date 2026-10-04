@@ -21,7 +21,7 @@ Verified against the `[input]` map in `project.godot`:
 | Skills panel (toggle) | `TAB` |
 | Cycle selected follower | `C` |
 | Break bond (selected follower) | `J` (with the Empathy Book open) |
-| Third skill (reserved; bound but inert) | `F` |
+| Calming Speak (skill) | `F` |
 | Save game | `F5` |
 | Load game | `F9` |
 
@@ -51,7 +51,9 @@ load — nothing refills it for free. The skills and their keys are under
    C5). The DNA meter shows how your language stacks up.
 3. **Companions.** You can lead a roster of up to **three** followers
    (`CompanionRoster`, MC 3943): recruit a wild creature by interacting with it
-   (`E`) and paying its first wage (`P`). Each follower follows you (`CompanionFollowBody`), has its
+   (`E`) and paying its first wage (`P`) — Calming Speak (`F`) can open that
+   same offer at cast range, but the wage remains the only way to join. Each
+   follower follows you (`CompanionFollowBody`), has its
    own needs (`CompanionNeeds`) and its own loyalty (`LoyaltyChanged` per
    follower; the HUD shows the mean). Loyalty moves with how you treat each
    one; neglect has consequences — and one follower's betrayal does not make
@@ -79,16 +81,19 @@ load — nothing refills it for free. The skills and their keys are under
 
 ## Skills
 
-Two launch skills ride the Manna economy (the tunables — costs, heal,
+Three launch skills ride the Manna economy (the tunables — costs, heal,
 per-kill gain — live in `src/skills/SkillState.cs`, the cap in
 `src/combat/PlayerController.cs`):
 
 - **Invert Strike** (`Q`, 10 Manna): your next melee hit deals triple
   damage; the arm is spent by that one hit.
 - **Mend** (`R`, 15 Manna): restore 25 life, never past your maximum.
-- **`F` is reserved** for the third launch skill (Calming Speak) — it is
-  bound but inert: the key already maps to the reserved action, and no
-  handler reads it in this build, so pressing it does nothing yet.
+- **Calming Speak** (`F`, 12 Manna): the nearest castable wild creature inside
+  cast reach (a good deal further than talk range) is calmed into a recruit
+  offer that stands for 10 seconds (600 frames, counted down every frame — a
+  save/load clears it, and an `E` offer outlives the window). A press that
+  finds no castable wild, or cannot pay, spends NOTHING. `F` never recruits:
+  the first wage (`P`) still does the joining.
 
 You unlock skills by learning DNA: each extraction teaches the ecosystem's
 language a counter, and the learned positions open the skills

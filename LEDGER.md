@@ -270,3 +270,11 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   MoveItem proven) + ARCH PASS (docs = code truth, stale-claim sweep clean), pins fa41ada0/18ad2292
   reproduced by orchestrator on clean tree. No P0-P2. Rides: P3-beta design rationale wording (design
   pinned), P3-gamma SPEAK-leg latch hardening recipe (future wave), 4xP4; NF5-9 latents unchanged.
+- MC 10031 Calming Speak (03367376): third launch skill live — F/skill_3 (2e
+  reserved binding, map zero-diff), 12 Manna spent AFTER the target scan
+  (refusal spends zero), opens the SAME RecruitOffered behind a 600-frame
+  window (9.0 reach); pay_wage -> TryRecruitOfferedWild stays the SOLE join
+  authority; runtime-only state, save schema v3 zero-delta; load seam
+  ClearCalmWindows (ONE caller). skill_test F7-F9 + calm_use/calm_neg green
+  (TEST-verdict PASS, planted-bad reds in evidence/). Docs rows closed per
+  DESIGN §8 (this row's commit).

@@ -29,7 +29,7 @@ the composition root (see §3).
 | `src/combat/` | `CombatSystem.cs`, `CombatVec3.cs`, `EnemyAI.cs`, `PlayerController.cs` | Combat math, enemy AI, player controller. |
 | `src/companion/` | `CompanionEntity.cs`, `CompanionNeeds.cs`, `CompanionStateMachine.cs`, `CompanionAnimationHook.cs`, `CompanionRoster.cs` | Companion entity, needs, state machine, animation binding; roster (cap 3, per-follower wage settle, unique bus keys latched at add, mean-heart key, broken bonds never settled/forgiven — MC 3943 2g). |
 | `src/dna/` | `DnaLanguage.cs`, `DnaMessage.cs`, `EcosystemAdaptation.cs`, `LanguageSignature.cs`, `PlayerMutations.cs` | DNA language, messages, ecosystem adaptation; `PlayerMutations` = pure unlock authority (consensus `Counters` only, MC 3912 2e). |
-| `src/skills/` | `SkillState.cs` | Manna economy + arm/consume semantics (engine-free; MC 3912 2e). |
+| `src/skills/` | `SkillState.cs` | Manna economy + arm/consume semantics (engine-free; MC 3912 2e) + Calming Speak spend: `CalmingSpeakCost = 12`, `TryCalmingSpeak` spends ONLY after the caller's target scan — a refusal spends zero (MC 10031). |
 | `src/ecosystem/` | `EcosystemSpawner.cs`, `BossController.cs` | Spawning and the zone boss. |
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
@@ -62,14 +62,21 @@ the composition root (see §3).
   the observation provider
   riding the guarded `QuestDialogueNodeNow` seam; wiring only, quest rules live in the pure
   `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
-  `InitSkills` wiring, Q/R input poll, Manna save seams + the single armed-damage
+  `InitSkills` wiring, Q/R/F input poll — skill_3 Calming Speak spends 12 Manna
+  AFTER its target scan (refusal spends zero) and opens the SAME recruit offer
+  behind a 600-frame window (9.0 reach; frame-arith decay sweep BEFORE the press
+  chain, frozen under the gate seam; MC 10031, W3fixwave A1-P3 residual closed
+  here), Manna save seams + the single armed-damage
   wrap at the one `DealDamage` call; wiring only, economy lives in the engine-free
   `SkillState`), `WorldDirector.Ui.cs` (partial: the UI root seam — `InitUi`
   wiring of the skills panel + HUD readout providers (live closures, no cached
   copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
   (partial: the follower-roster root seam — `TickRoster` per-follower wage/follow/
   hearts loop moved out of the root verbatim, recruit via wild-interact + first
-  wage, `cycle_follower`/`break_bond` polls, Forgive/PermanentBreak glue, save
+  wage (offer mutation runs ONLY through the `OpenRecruitOffer`/`CloseRecruitOffer`
+  pair; Calming Speak opens the same offer and its window dies at the
+  `ClearCalmWindows` load seam at the END of `RestoreFollowers` — MC 10031),
+  `cycle_follower`/`break_bond` polls, Forgive/PermanentBreak glue, save
   restore with cap; emits per-follower loyalty deltas under `<name>-<EntityId>`
   then the roster mean LAST under the reserved key `roster`; wiring plus
   bond-guard glue only — wage/loyalty/betrayal rules live in the engine-free
@@ -79,7 +86,9 @@ the composition root (see §3).
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
   `redtest/`).
-- **Input map**: WASD + arrows + attack, skill_1..2 (Q/R; F reserved), ui_toggle
+- **Input map**: WASD + arrows + attack, skill_1..3 (Q/R/F — F is the live
+  Calming Speak press since MC 10031, riding the 2e-reserved binding, map
+  zero-diff), ui_toggle
   (TAB), cycle_follower (C), break_bond (J), defined in `project.godot`.
 
 ## 4. Entrypoints
@@ -121,6 +130,9 @@ the composition root (see §3).
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
 `story_test.sh`, `quest_test.sh`, `skill_test.sh`, `roster_test.sh`,
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib).
+`skill_test.sh` carries the named F-acts F1..F6 plus the calm rows
+`F7_calm_cost_spend_once` / `F8_calm_refuse_no_spend` / `F9_calm_unlock_positions`
+(MC 10031).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
 `RuntimeIntegrationProof.Quests.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
@@ -140,7 +152,11 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `DLQ_NPC_CLOSED`: a direct `npc_` line auto-closes too) — and the named
 `REWARD_GUARD` leg; gate section (I) greps
 `REWARD_SHOWN` x5 + `REWARD_GUARD` + the four `DLQ_*` markers);
-`RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
+`RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`;
+`RuntimeIntegrationProof.CalmingSpeak.cs` — `calm_use` (legs `CALM_CAST`,
+`CALM_PAY_IN_WINDOW`, `CALM_REFUSE_SHORT`, `CALM_REFUSE_STANDING`,
+`CALM_E_STANDS`, `CALM_WINDOW_EXPIRES`, `CALM_LOAD_CLEARED` via a REAL
+`load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031); the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
