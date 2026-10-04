@@ -443,3 +443,16 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   skill_test 24 + roster_test 18 + quest_arc/skill_use/calm_use single-mode + determinism_cmp
   A/A (positive) — savegate mutex honored (all save runs in mkdir-locked windows). D-2 honored:
   asserts only, ZERO balance change. Evidence: .audits/20261004-1846-s7-latent/evidence/.
+- MC 10111 / 10026.13.3 determinism_cmp content guard (code VM350, 2026-10-04, Inc-3 W0):
+  DA P2-1 closed (verdict 202610041758-1e37b441) — the comparator can no longer go GREEN on a
+  comparison that proves nothing. Two content guards at cmp_pair entry (the one path both --cmp
+  and live A/A share): (a) a side keying ZERO lines is RED ("0 lines, IDENTICAL" was an
+  empty-vs-empty vacuous pass); (b) a side carrying the harness's literal FAIL banner
+  'LA_GATE: FAIL — ' is RED, naming the side — exit-code equality alone was not proof because
+  _Finalize PrintErrs its banner WITHOUT Quit(1) (RuntimeIntegrationProof.cs:408-409; the same
+  literal is Fail()'s banner at :442). Still a TOOL: battery legs and the ci gate-LIST untouched.
+  Planted pairs: identical FAIL-pair RED naming the side (both banner forms), empty pair RED;
+  identical GREEN pair and the S7 builder's real positive A/A pair stay GREEN exit 0. Before/after
+  proof: the BASE a4c7155 tool compared the SAME identical FAIL-pair GREEN (exit 0) — the hole was
+  real and is closed. skill_test 24 + roster_test 18 GATE PASS save-free. Tool 139 lines.
+  Evidence: .audits/20261004-2147-10111-cmpguard/.
