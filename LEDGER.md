@@ -382,3 +382,24 @@ NOT this seat's to push (parallel-orchestrator account; untouched).
   the repo with a pointer README to `bryn1/Last-animal` (audit §6 rec.4; the owner used it as a
   download source, so banner+archive, never delete). Anonymous GitHub API 404s from this seat
   2026-10-04 — whether it is currently private/renamed is UNVERIFIED from here.
+- MC 10099 / 10026.13.2 S7 latent closure + the cmp tool (code VM350, 2026-10-04, Inc-3 W0):
+  (a) F-4 pinned — multiplier literal `3` asserted in SkillEconomyTests F3 AND the skill_use
+  proof leg; plant 3→4 went RED at BOTH (the derived-vs-literal split made delta=80 FAIL while
+  every derived assert stayed ok — TEST-verdict-10030 F-1 closed empirically). (b) CSK P4-1
+  VERIFY-AND-DROP: the CALM_WINDOW_EXPIRES/CALM_LOAD_CLEARED battery greps already ship at
+  runtime_integration_test.sh:236-237 — absent latent, zero change, grep recorded. (c) NF9 dead
+  assertion repaired — RosterTests cap test now pins the per-iteration TRUE/FALSE contract;
+  cap-guard off-by-one plant RED at RosterTests.cs:435. (d) P3-γ SPEAK latches landed (recipe
+  as pinned): (a)-pass latches the (b) transition, intro paint latches (c); the named
+  drain-threshold-decoupled plant slips PRE-LATCH code through green (control log) and goes RED
+  latched; drain-paint-drop plant RED via the (c) FAIL. First plant attempt (uniform-close
+  threshold) proved behaviorally INERT — branch is empty-queue-gated; recorded, v2 plant used.
+  (e) NEW ci/determinism_cmp.sh — the F4-CMP comparator (TOOL, not a battery leg; gate-LIST
+  restamp owed at wave close): (i) byte-stable streams RED on any delta (^ROSTER digit-flip
+  plant RED), (ii) dist/position-field LA_GATE lines numeric-masked (drift allowed, 10080 §2
+  noise class), masked hunks RED unless --declare. Classes KEYED ON FIELD NAMES — the tool's own
+  first A/A caught its float-shape keying flipping a line whose 0.### render collapsed to an
+  integer (dist0=3.997 vs dist0=4); field keys, restated, A/A GREEN. Gates green this card:
+  skill_test 24 + roster_test 18 + quest_arc/skill_use/calm_use single-mode + determinism_cmp
+  A/A (positive) — savegate mutex honored (all save runs in mkdir-locked windows). D-2 honored:
+  asserts only, ZERO balance change. Evidence: .audits/20261004-1846-s7-latent/evidence/.
