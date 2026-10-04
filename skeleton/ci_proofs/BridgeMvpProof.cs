@@ -437,10 +437,31 @@ public partial class BridgeMvpProof : SceneTree
                 // real rendered frame, not the splash. Physics-tick gated like
                 // RuntimeIntegrationProof: process frames raced the 15s grab — the
                 // proof quit first and the root window read uniform black (MC 1344.2).
-                if (_physFrames >= _holdStartPhys + HoldFrames) { Quit(0); return true; }
+                if (_physFrames >= _holdStartPhys + HoldFrames) { ReleaseHeldRefsBeforeQuit(); Quit(0); return true; }
                 break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// MC 10112 (W0 barrier drift concern 2): the proof is the C# MainLoop — the
+    /// LAST managed object standing at shutdown. Its live-scene fields root the
+    /// scene's C# wrappers (and every Resource they hold: BoxMeshes, materials,
+    /// audio) until after the native ObjectDB is already gone, so their GC
+    /// finalizers hit freed objects — "Leaked unsafe reference to object ...
+    /// csharp_script.cpp:179" then SIGSEGV at exit (gate exit 139). W0 (3bfcee5)
+    /// did not create this — it shifted assembly/GC timing past the flush
+    /// threshold (bisect: deterministic red at 3bfcee5 and a4c7155, green at
+    /// 6db030c and the S7 branch; full-S0-revert control green). Release the
+    /// wrappers and flush finalizers BEFORE Quit, while the ObjectDB is alive.
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _enemies.Clear();
+        _bus = null; _main = null; _player = null; _hud = null; _empathy = null; _companion = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     public override void _Finalize()
