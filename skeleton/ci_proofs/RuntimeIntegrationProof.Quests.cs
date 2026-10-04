@@ -1,5 +1,7 @@
+// SIZE: >400 (~520 l) — CI proof partial (the quest stage machine), test-class ceiling 600 (MC 10029 header note; body splits owed to later waves).
 using Godot;
 using LastAnimal.Story;
+using LastAnimal.Ui;
 using LastAnimal.World;
 using System.Collections.Generic;
 
@@ -32,6 +34,11 @@ using System.Collections.Generic;
 //     (WorldDirector.Story.cs InitStory -> SetDialogueNodeProvider) is a
 //     one-line delegation observed gate-green even unguarded in the planted2
 //     mutation — named residual, not covered by this leg.
+//     MC 10026.1 (DESIGN rev 4 §6) adds the DLQ lifecycle legs inside THIS
+//     mode (no new mode): DLQ_SPEAK_PRECEDENCE (case 1) + DLQ_DRAINED,
+//     DLQ_CLOSED, DLQ_NPC_CLOSED (new case 7 — "All dialogue lines" close).
+//     Case 6's terminal hold moved to case 7's end (F-D); case 6 gained the
+//     NextPhase() advance (F-K).
 //   quest_persist — after two completed quests: SaveGame(), diverge the LIVE
 //     log (FromSaveRows corruption seam), LoadGame() must restore the saved
 //     rows onto the live scene -> QUEST_PERSIST. THEN the rewind leg (DA P1):
@@ -60,6 +67,8 @@ public partial class RuntimeIntegrationProof : SceneTree
     private bool _qCounting;
     private int _qCompletedAfterLoad;
     private int _qExtractsAfterLoad;
+    // MC 10026.1 DLQ leg sub-state (case 1 SPEAK poll, case 7 drain/close).
+    private int _qSpeakLeg, _qSpeakLegFrames, _q7, _q7Frames;
 
     /// <summary>Stage-50 dispatch (called from the main file's stage switch).</summary>
     private void RunQuestStage()
@@ -177,6 +186,30 @@ public partial class RuntimeIntegrationProof : SceneTree
                 break;
 
             case 1:   // speak: teleport to the companion, press interact
+                if (_qSpeakLeg > 0)
+                {
+                    // DLQ_SPEAK_PRECEDENCE (§6): queue [first_speak, intro] behind
+                    // the fresh npc reply — (a) starved never, (b) lost nothing, (c) closes.
+                    var ui = _director!.DialogueUi;
+                    if (++_qSpeakLegFrames > 3 * DialogueSystem.RewardLineFrames + 8)
+                    { Fail($"quest_arc: DLQ_SPEAK_PRECEDENCE budget exceeded (sub-leg={_qSpeakLeg}, node={ui.ActiveNode})"); break; }
+                    if (_qSpeakLeg == 1)
+                    {
+                        if (_qSpeakLegFrames == DialogueSystem.RewardLineFrames - 1)
+                            Check("DLQ_SPEAK_PRECEDENCE(a): the fresh reply owns the box one tick before its TTL (never starved)",
+                                  ui.ActiveNode.StartsWith("npc_") && !ui.ActiveNodeIsReward, $"node={ui.ActiveNode} at dwell=239");
+                        if (ui.ActiveNode == "first_speak" && ui.ActiveNodeIsReward)
+                            _qSpeakLeg = 2;   // (b) the queued beat drains after the reply
+                    }
+                    else if (!ui.IsOpen)
+                    {
+                        Check("DLQ_SPEAK_PRECEDENCE(c): the box auto-closed after the full drain (intro last)",
+                              !ui.Visible, "no external Close call");
+                        GD.Print("LA_GATE: DLQ_SPEAK_PRECEDENCE — reply read in full; first_speak -> intro drained in order; box auto-closed (MC 10026.1)");
+                        NextPhase();
+                    }
+                    break;
+                }
                 if (QStatus("q_speak") == QuestStatus.Completed)
                 {
                     // MC 3915 view leg, honest reading: the first_speak reward
@@ -196,7 +229,7 @@ public partial class RuntimeIntegrationProof : SceneTree
                           $"node={_director.DialogueUi.ActiveNode}");
                     if (_failed) return;
                     GD.Print("LA_GATE: QUEST_SPOKE — interact drove q_speak through the bus");
-                    NextPhase();
+                    _qSpeakLeg = 1; _qSpeakLegFrames = 0;   // DLQ_SPEAK_PRECEDENCE poll follows (MC 10026.1)
                     break;
                 }
                 if (_qFrames > 1200) Fail("quest_arc: q_speak never completed (interact -> DnaSpoken wire broken)");
@@ -282,8 +315,72 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (_failed) return;
                 GD.Print("LA_GATE: REWARD_GUARD — boss_fallen as reward satisfied nothing; as dialogue it satisfies");
                 GD.Print("LA_GATE: PASS — quest arc verified (full arc + reward beats + DialogueShown guard, MC 3915)");
-                _asserted = true; _stage = 6; _stageFrames = 0; _holdStartPhys = _physFrames;
+                // F-D + rev-4 F-K: the terminal hold MOVED to case 7's end (the DLQ
+                // legs must receive it); case 6 instead ADVANCES, else it would
+                // re-run every frame and the DLQ legs would never run.
+                NextPhase();
                 break;
+
+            case 7:   // MC 10026.1 DLQ legs (§6); terminal hold MOVED VERBATIM from
+                      // case 6 ends it (F-D). R9 preamble: known-empty start.
+                {
+                    var ui = _director!.DialogueUi;
+                    if (_q7 == 0)
+                    {
+                        ui.ClearPresentation();
+                        ui.Close();
+                        ui.Show("counters", true);      // R2: painted IN THE CALL
+                        ui.Show("boss_fallen", true);   // R4: same-tick pair -> append only
+                        _q7Frames = 0;
+                        _q7 = 1;
+                        break;
+                    }
+                    if (++_q7Frames > 2 * DialogueSystem.RewardLineFrames + 8)
+                    { Fail($"quest_arc: DLQ budget exceeded (sub-leg={_q7}, node={ui.ActiveNode}, open={ui.IsOpen})"); break; }
+                    if (_q7 == 1)   // DLQ_DRAINED: counters -> boss_fallen IN THAT ORDER
+                    {
+                        if (_q7Frames <= 2)
+                            Check($"DLQ_DRAINED[{_q7Frames}]: the first-emitted beat holds the box (R4 appends, never steals)",
+                                  ui.ActiveNode == "counters" && ui.ActiveNodeIsReward, $"node={ui.ActiveNode}");
+                        else if (ui.ActiveNode == "boss_fallen" && ui.ActiveNodeIsReward)
+                        {
+                            GD.Print("LA_GATE: DLQ_DRAINED — same-tick pair drained in strict emission order (MC 10026.1)");
+                            _q7 = 2; _q7Frames = 0;
+                        }
+                    }
+                    else if (_q7 == 2)   // DLQ_CLOSED: the empty queue closes the box itself
+                    {
+                        if (!ui.IsOpen)
+                        {
+                            Check("DLQ_CLOSED: queue emptied and the box closed itself",
+                                  ui.ActiveNode.Length == 0 && !ui.ActiveNodeIsReward && !ui.Visible, "empty, flag cleared, hidden");
+                            if (_failed) return;
+                            GD.Print("LA_GATE: DLQ_CLOSED — auto-close after the drain (the uniform branch is the only _Process Close)");
+                            // SCOPE-RULING ("All dialogue lines"); DA P4-6: read right here, no external Close.
+                            ui.ClearPresentation();
+                            ui.Show("npc_9");
+                            Check("DLQ_NPC_CLOSED[open]: the direct show owns the box in the call (DA P4-6)",
+                                  ui.IsOpen && ui.ActiveNode == "npc_9", $"node={ui.ActiveNode}");
+                            if (_failed) return;
+                            _q7 = 3; _q7Frames = 0;
+                        }
+                    }
+                    else if (_q7 == 3)   // DLQ_NPC_CLOSED: direct npc lines close too
+                    {
+                        if (_q7Frames > DialogueSystem.RewardLineFrames + 8)
+                        { Fail($"quest_arc: DLQ_NPC_CLOSED budget exceeded — the direct line never auto-closed (node={ui.ActiveNode})"); break; }
+                        if (!ui.IsOpen)
+                        {
+                            Check("DLQ_NPC_CLOSED: the unauthored direct line closed itself after its dwell (All dialogue lines)",
+                                  ui.ActiveNode.Length == 0 && !ui.Visible, "no external Close call");
+                            if (_failed) return;
+                            GD.Print("LA_GATE: DLQ_NPC_CLOSED — direct npc_9 line auto-closed after its dwell — All dialogue lines (MC 10026.1)");
+                            GD.Print("LA_GATE: PASS — quest arc verified (full arc + reward guard + dialogue lifecycle, MC 10026.1)");
+                            _asserted = true; _stage = 6; _stageFrames = 0; _holdStartPhys = _physFrames;
+                        }
+                    }
+                    break;
+                }
         }
     }
 

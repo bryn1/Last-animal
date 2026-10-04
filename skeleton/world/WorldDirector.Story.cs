@@ -66,7 +66,7 @@ public partial class WorldDirector
         _quests = new QuestLog(QuestTable.Default());
         _quests.Changed += OnQuestChanged;
         _saveLoad.QuestStatesWrite = () => _quests.ToSaveRows();
-        _saveLoad.QuestStatesRestore = rows => _quests.FromSaveRows(rows);
+        _saveLoad.QuestStatesRestore = rows => { _quests.FromSaveRows(rows); _dialogue?.ClearPresentation(); };
 
         if (!_storyHooksEnabled) return;   // gate seam (design §4.2)
 
@@ -109,7 +109,11 @@ public partial class WorldDirector
     /// <summary>MC 3915 reward beat — the row's Reward node is shown by the
     /// EXISTING dialogue system (ride, no second UI), flagged reward-shown so
     /// it never feeds DialogueShown evidence; the REWARD_SHOWN line is the
-    /// gate marker (W3 GD.Print idiom, world/WorldDirector.cs).</summary>
+    /// gate marker (W3 GD.Print idiom, world/WorldDirector.cs).
+    /// MC 10026.1 (owner ruling, DESIGN rev 4): beats QUEUE in the view in
+    /// emission order and each is painted for a full dwell — "nothing gets
+    /// lost". The marker stays state truth printed AT EMISSION regardless of
+    /// render: a queued-but-not-yet-painted beat still prints REWARD_SHOWN.</summary>
     private void ShowRewardBeat(string questId)
     {
         if (!_storyHooksEnabled || _dialogue == null) return;   // gate-seam idiom (SetQuestHooksEnabled)

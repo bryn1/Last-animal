@@ -55,8 +55,11 @@ the composition root (see §3).
   `main.tscn`), `WorldDirector.Story.cs` (partial: the quest root seam —
   `InitStory` wiring, observation-hook delivery, wage-settle → `WagePaid`
   attribution to the ACTIVE wage row, and the MC 3915 reward-beat emitter on
-  Completed (the row's `Reward` node shown through the dialogue view flagged
-  reward-shown, `REWARD_SHOWN` gate marker) with the observation provider
+  Completed (the row's `Reward` node queued through the dialogue view flagged
+  reward-shown, `REWARD_SHOWN` gate marker; MC 10026.1: the view queues beats
+  in emission order and auto-closes every line after its dwell; load runs
+  `DialogueSystem.ClearPresentation()` — the queue is never persisted) with
+  the observation provider
   riding the guarded `QuestDialogueNodeNow` seam; wiring only, quest rules live in the pure
   `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
   `InitSkills` wiring, Q/R input poll, Manna save seams + the single armed-damage
@@ -124,14 +127,19 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
-gate); in live play every completion emits the state-truth marker
-`REWARD_SHOWN` while the render coalesces — beats emitted within one frame
-coalesce, including two separate evaluation passes in the same frame, and
-the last beat rendered wins (q_speak always; q_kills when its completing
-kill is also the boss kill; a pay_wage+attack same-frame co-press, where the
-wage beat loses every painted frame), `Show` is last-writer-wins both
-ways; recorded limitation MC 3915 DA F1–F3, owner call pending) — and the named `REWARD_GUARD` leg; gate section (I) greps
-`REWARD_SHOWN` x5 + `REWARD_GUARD`);
+gate); MC 10026.1 decided lifecycle (owner rulings "Reward lines queue up and
+the box auto-closes after reading, nothing gets lost" + "All dialogue lines"):
+reward beats QUEUE inside the view in emission order — a beat arriving while a
+queued head is mid-read takes the head and the preempted beat re-queues for
+its full dwell later — and EVERY line, reward beat or direct, auto-closes
+after its `RewardLineFrames` dwell; `REWARD_SHOWN` stays state truth printed
+at emission) — the four `DLQ_*` lifecycle legs
+(`DLQ_SPEAK_PRECEDENCE`: a fresh direct reply is never starved and the queued
+beats drain behind it; `DLQ_DRAINED`: a same-tick pair drains in strict
+emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
+`DLQ_NPC_CLOSED`: a direct `npc_` line auto-closes too) — and the named
+`REWARD_GUARD` leg; gate section (I) greps
+`REWARD_SHOWN` x5 + `REWARD_GUARD` + the four `DLQ_*` markers);
 `RuntimeIntegrationProof.Skills.cs` — `skill_use`/`skill_neg`; the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content

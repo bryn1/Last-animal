@@ -176,6 +176,9 @@ for q in q_intro q_speak q_wage q_kills q_boss; do
   [[ "$LOGQ" == *"REWARD_SHOWN $q "* ]] || fail "quest_arc: expected REWARD_SHOWN $q (reward beat emitter, MC 3915)"
 done
 [[ "$LOGQ" == *'REWARD_GUARD'* ]] || fail "quest_arc: expected REWARD_GUARD (reward beats never feed DialogueShown — MC 3915)"
+for m in DLQ_SPEAK_PRECEDENCE DLQ_DRAINED DLQ_CLOSED DLQ_NPC_CLOSED; do
+  [[ "$LOGQ" == *"$m"* ]] || fail "quest_arc: expected $m (dialogue lifecycle leg — MC 10026.1)"
+done
 run_mode quest_persist pass "QUEST_PERSIST"
 LOGP="$(LA_GATE_MODE=quest_persist timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 [[ "$LOGP" == *'QUEST_REWIND_ARMED'* ]] || fail "quest_persist: evidence-rewind leg never armed (wage/farm drift broken)"

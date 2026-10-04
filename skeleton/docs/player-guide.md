@@ -87,7 +87,8 @@ per-kill gain — live in `src/skills/SkillState.cs`, the cap in
   damage; the arm is spent by that one hit.
 - **Mend** (`R`, 15 Manna): restore 25 life, never past your maximum.
 - **`F` is reserved** for the third launch skill (Calming Speak) — it is
-  not bound yet; pressing it does nothing in this build.
+  bound but inert: the key already maps to the reserved action, and no
+  handler reads it in this build, so pressing it does nothing yet.
 
 You unlock skills by learning DNA: each extraction teaches the ecosystem's
 language a counter, and the learned positions open the skills
@@ -115,9 +116,12 @@ zone fields once your spoken DNA crosses its threshold). Quests advance
 automatically as you play; each completion starts the next. A quest's
 reward is a short authored spoken beat rather than loot: when you
 complete a quest, its beat is spoken in-world in the dialogue box (see
-Dialogue above). The box shows one line at a time — the most recent
-spoken line replaces the previous one, and a line lingers until the
-next replaces it (a fuller queue with auto-close is planned). There is
+Dialogue above). Quest beats queue up and are read in order — a beat that
+arrives while another is still on screen waits its turn (and if it lands
+while a queued beat is mid-read, that beat simply re-queues for a full read
+afterwards; nothing gets skipped). Every line — a quest beat or a spoken
+NPC reply — is read for a few seconds, then the box closes on its own; the
+next line opens it again. There is
 no quest log screen yet: the arc happens without menus.
 
 ## Saving and loading
