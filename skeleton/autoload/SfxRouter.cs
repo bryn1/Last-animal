@@ -29,9 +29,22 @@ public partial class SfxRouter : Node
         // own mutated DNA, so it rides "dna_spoken". Zero new assets (plan §D
         // 7: no new audio this increment; Fire already skips a missing stream).
         bus.SkillUsed += _ => Fire("dna_spoken");
+        // MC 10130 S5 (Inc-3 W2): route ONLY the currently-unmapped signals, each
+        // exactly once, onto the five EXISTING streams (D-1: zero new assets).
+        // DialogueShown/DialogueClosed are deliberately NOT routed — MusicManager.
+        // SubscribeMix (S4) owns their presentation-adjacent audio (Music-bus duck);
+        // an SFX route here would double-route those signals. EntityId-carrying
+        // signals fire at a deterministic per-Id pitch (PitchFor).
+        bus.QuestStarted += q => Fire("loyalty", q);        // companion-bond beat
+        bus.QuestObjective += q => Fire("loyalty", q);      //   (quests recruit and
+        bus.WagePaid += q => Fire("loyalty", q);            //    hold the roster)
+        bus.QuestCompleted += q => Fire("dna_extract", q);  // reward beat = a pickup
+        bus.EmpathyBookOpened += () => Fire("dna_spoken");  // spoken idiom (as 2e)
+        bus.PlayerHurt += _ => Fire("betrayal");            // harm beat: harsh stream
+        bus.BossFallen += b => Fire("ecosystem", b);        // zone reshapes (as C5)
     }
 
-    private void Fire(string sfx)
+    private void Fire(string sfx, string? entityId = null)
     {
         var rand = _music?.GetSfx(sfx);
         if (rand is null)
@@ -41,11 +54,24 @@ public partial class SfxRouter : Node
         }
         var player = _music!.SpawnSfxPlayer();   // positional, on the Sfx bus
         player.Stream = rand;                    // randomizer -> variation on repeat
+        if (entityId is not null)
+            player.PitchScale = PitchFor(entityId);  // deterministic, per-EntityId (S5)
         // Playback requires the node be inside the scene tree; parent it under the
         // router so the engine can mix it (Positional 3D -> Sfx bus).
         AddChild(player);
         player.Play();
         GD.Print($"SFX_ROUTER: fired \"{sfx}\"  bus={player.Bus}  playing={player.Playing}" +
                  $"  streamLen={player.Stream?.GetLength():0.000}s");
+    }
+
+    /// <summary>Deterministic per-EntityId pitch (S5): integer-keyed fold of the Id
+    /// over five fixed steps above unity — same Id, same pitch, every run. NOT
+    /// System.Random, and NOT string.GetHashCode (its seed is per-process, which
+    /// would break cross-run determinism, F4).</summary>
+    public static float PitchFor(string entityId)
+    {
+        int h = 17;
+        foreach (var c in entityId) h = unchecked(h * 31 + c);
+        return 1.0f + (int)((uint)h % 5u) * 0.05f;
     }
 }

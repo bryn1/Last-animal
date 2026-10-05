@@ -12,6 +12,12 @@ using LastAnimal.Core.Audio;
 // / MIX_BOSS_STANCE — asserting Music-bus volume STATE across the S0 dialogue
 // emits and the boss stance, driven by frame counts only (no wall-clock).
 //
+// S5 (MC 10130) adds the mapping-table leg: each added SfxRouter pair is emitted
+// once (scripted emission below) and must produce EXACTLY one new routed player —
+// stream identity via the shared GetSfx reference, Sfx bus, and the deterministic
+// EntityId pitch from SfxRouter.PitchFor. A planted double-route trips the
+// one-player check and prints FAIL (gate red), never a silent duplicate.
+//
 // Godot has no audio device in --headless mode, so "non-silent" is asserted from the
 // actual stream data: the SFX streams must load with GetLength() > 0 (real PCM, not
 // silent), the router must place them on the "Sfx" bus, and the player must be Playing.
@@ -26,7 +32,7 @@ using LastAnimal.Core.Audio;
 public partial class AudioTest : SceneTree
 {
     private int _failures = 0;
-    private int _stage = 0;               // 0=compose, 1=fire, 2..5=mix legs (verdict at 5)
+    private int _stage = 0;               // 0=compose, 1=fire, 2..5=mix legs, 6=mapping table (verdict at 6)
     private int _wait;                    // frames waited inside the current mix leg
     private bool _bossLegOk = true;       // MIX_BOSS_STANCE spans engage + release
     private SfxRouter? _sfx;
@@ -149,6 +155,33 @@ public partial class AudioTest : SceneTree
             MixCheck("MIX_BOSS_STANCE", "Music bus ducks -12 dB under boss stance and decays back on release",
                      _bossLegOk && released,
                      $"released={released} bus={MusicBusDb():0.000}dB duck={_music!.MusicDuckDb:0.000}dB after {_wait}f");
+            _stage = 6; _wait = 0;
+            return false;
+        }
+
+        if (_stage == 6)
+        {
+            // S5 mapping-table leg (MC 10130): emit each ADDED route pair EXACTLY
+            // once (scripted emission). Existing route pairs are NOT re-emitted
+            // here — stage 1's dna_extract stays the sole baseline print for that
+            // stream, so the baseline's single SFX_ROUTER line is byte-unchanged.
+            MapPair("QuestStarted",      () => _bus!.EmitQuestStarted(new QuestId("q_s5")),     "loyalty", SfxRouter.PitchFor("q_s5"));
+            MapPair("QuestObjective",    () => _bus!.EmitQuestObjective(new QuestId("q_s5")),   "loyalty", SfxRouter.PitchFor("q_s5"));
+            MapPair("WagePaid",          () => _bus!.EmitWagePaid(new QuestId("q_s5")),         "loyalty", SfxRouter.PitchFor("q_s5"));
+            MapPair("QuestCompleted",    () => _bus!.EmitQuestCompleted(new QuestId("q_s5")),   "dna_extract", SfxRouter.PitchFor("q_s5"));
+            MapPair("EmpathyBookOpened", () => _bus!.EmitEmpathyBookOpened(),                   "dna_spoken", 1.0f);
+            MapPair("PlayerHurt",        () => _bus!.EmitPlayerHurt(1),                         "betrayal", 1.0f);
+            // boss_9's fold lands on 1.20, not unity: the check distinguishes an
+            // APPLIED EntityId pitch from a forgotten one (default PitchScale 1.0).
+            MapPair("BossFallen",        () => _bus!.EmitBossFallen("boss_9"),                 "ecosystem", SfxRouter.PitchFor("boss_9"));
+            // Formula-stability pin: PitchFor is a pure function of the Id, so a
+            // fixed Id yields a fixed pitch — a drift in the fold flips this (a
+            // planted wrong-formula mutation trips it).
+            bool stable = SfxRouter.PitchFor("q_s5") == SfxRouter.PitchFor("q_s5")
+                          && System.MathF.Abs(SfxRouter.PitchFor("q_s5") - 1.15f) < 1e-4f;
+            MixCheck("MAP pitch-determinism", "PitchFor(q_s5) is stable and pinned to 1.15", stable,
+                     $"pitch(q_s5)={SfxRouter.PitchFor("q_s5"):0.000}");
+            GD.Print(_failures == 0 ? "M06_AUDIO_TEST: MAP_TABLE: ok" : "M06_AUDIO_TEST: MAP_TABLE: FAIL");
             Verdict();
             return false;
         }
@@ -176,6 +209,31 @@ public partial class AudioTest : SceneTree
     {
         MixLog(leg, $"{(ok ? "ok" : "FAIL")} {what} ({detail})");
         if (!ok) _failures++;
+    }
+
+    /// <summary>S5 mapping-table pair (MC 10130): scripted emission of one signal
+    /// must spawn EXACTLY ONE new routed player — on the Sfx bus, carrying the
+    /// shared randomizer instance of the mapped stream, at the deterministic
+    /// EntityId pitch. A planted double-route spawns two players and trips the
+    /// one-spawn check (line prints FAIL, the gate goes RED).</summary>
+    private void MapPair(string signal, System.Action emit, string wantStream, float wantPitch)
+    {
+        int before = _sfx!.GetChildCount();
+        emit();
+        int spawned = _sfx.GetChildCount() - before;
+        if (spawned != 1)
+        {
+            MixCheck($"MAP {signal}->{wantStream}", "routed EXACTLY once", false,
+                     $"spawns+={spawned} (double-route or unmapped signal)");
+            return;
+        }
+        var p = _sfx.GetChild<AudioStreamPlayer3D>(before);
+        bool streamOk = ReferenceEquals(p.Stream, _music!.GetSfx(wantStream));
+        bool pitchOk = System.MathF.Abs(p.PitchScale - wantPitch) < 1e-4f;
+        bool ok = p.Bus == MusicManager.SfxBus && p.Playing && streamOk && pitchOk;
+        MixCheck($"MAP {signal}->{wantStream}", "routed EXACTLY once", ok,
+                 $"spawns+=1 bus={p.Bus} playing={p.Playing} stream={wantStream}:{streamOk}" +
+                 $" pitch={p.PitchScale:0.000}/{wantPitch:0.000}:{pitchOk}");
     }
 
     private static void MixLog(string leg, string msg)

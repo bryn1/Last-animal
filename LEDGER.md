@@ -676,3 +676,24 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   DA, P4) — a same-frame load+damage suppresses that frame's PlayerHurt edge (payload
   unresolvable at frame granularity; the TickUi rebaseline owns it) — zero behaviour.
   Evidence: .audits/20261005-0250-w1-restamp/ (EVIDENCE.md last line VERIFY_EXIT=0).
+
+- MC 10130 / 10026.15.6 S5 SFX coverage remap (code VM350, 2026-10-05, Inc-3
+  W2, branch vm350/s5-sfx): SfxRouter routes ONLY the previously-unmapped
+  signals, each exactly once, onto the five EXISTING streams (D-1 zero new
+  assets — assets/audio/ untouched, git diff proves it). QuestStarted/
+  QuestObjective/WagePaid -> loyalty, QuestCompleted -> dna_extract,
+  EmpathyBookOpened -> dna_spoken, PlayerHurt -> betrayal, BossFallen ->
+  ecosystem. DialogueShown/DialogueClosed deliberately NOT routed — S4
+  MusicManager.SubscribeMix owns their presentation audio; an SFX route would
+  double-route them. The 6 pre-existing routes (incl. SkillUsed->dna_spoken
+  SfxRouter.cs:31) byte-unchanged. EntityId pitch variation via
+  SfxRouter.PitchFor = integer-keyed fold (h=17; h=h*31+c; 1.00+((uint)h%5)*0.05,
+  five steps) — NO System.Random, NOT string.GetHashCode (per-process seed,
+  F4). Fire() print line untouched so existing pairs' SFX_ROUTER lines stay
+  byte-identical (warm-baseline diff: only additions). audio_test.sh mapping-
+  table leg (pattern copied from S4 mix legs): 7 MAP pair legs + pitch-
+  determinism pin + per-stream exact-count guard (double-route trips the count);
+  planted-bad (double WagePaid) -> MAP WagePaid->loyalty FAIL (spawns+=2), gate
+  exit 1, reverted; audio_test + boot_test solo exit 0 on final tree, two
+  independent runs byte-identical across MAP/SFX_ROUTER lines.
+  Evidence: .audits/20261005-0445-s5-sfx/EVIDENCE.md (VERIFY_EXIT=0).

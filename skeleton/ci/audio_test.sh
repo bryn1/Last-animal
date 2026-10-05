@@ -53,5 +53,34 @@ printf '%s\n' "$LOG"
 [[ "$LOG" == *'MIX_BOSS_STANCE: ok'* ]] \
   || fail "mix leg MIX_BOSS_STANCE not green (Music bus did not duck -12 dB under the boss stance, or did not release)"
 
-echo "M06_AUDIO_TEST: GATE PASS — EventBus-triggered non-silent SFX on the Sfx bus, music on Music bus, S4 duck legs (show/close/boss) green"
+# (5) S5 mapping-table legs (MC 10130): same leg pattern as (4). AudioTest.cs emits
+#     each added SfxRouter pair exactly once (scripted emission); the per-pair line
+#     asserts EXACTLY one new routed player, so a double-route prints FAIL, never a
+#     silent duplicate. The per-stream fired-print counts then pin the whole table:
+#     each stream's SFX_ROUTER line total must equal baseline leg + one per pair.
+for pair in "QuestStarted->loyalty" "QuestObjective->loyalty" "WagePaid->loyalty" \
+            "QuestCompleted->dna_extract" "EmpathyBookOpened->dna_spoken" \
+            "PlayerHurt->betrayal" "BossFallen->ecosystem"; do
+  [[ "$LOG" == *"MAP $pair: ok"* ]] \
+    || fail "mapping leg MAP $pair not green (signal not routed exactly once to its stream)"
+done
+[[ "$LOG" == *'MAP pitch-determinism: ok'* ]] \
+  || fail "mapping leg MAP pitch-determinism not green (EntityId pitch fold drifted from its pinned value)"
+
+sfx_fires() {   # count SFX_ROUTER fired lines for a stream — bash-native, no pipe (see (3))
+  local n=0 line
+  while IFS= read -r line; do
+    [[ "$line" == "SFX_ROUTER: fired \"$1\""* ]] && n=$((n+1))
+  done <<< "$LOG"
+  printf '%d' "$n"
+}
+# Totals over the whole scripted run: baseline leg (dna_extract x1) + exactly one
+# print per routed pair (EVIDENCE route table). A double-route trips a count.
+for pair in "dna_extract:2" "dna_spoken:1" "loyalty:3" "betrayal:1" "ecosystem:1"; do
+  stream="${pair%%:*}"; want="${pair##*:}"; got="$(sfx_fires "$stream")"
+  [[ "$got" -eq "$want" ]] \
+    || fail "stream \"$stream\" printed ${got}x SFX_ROUTER lines, want ${want}x (double-route or lost route)"
+done
+
+echo "M06_AUDIO_TEST: GATE PASS — EventBus-triggered non-silent SFX on the Sfx bus, music on Music bus, S4 duck legs (show/close/boss) green, S5 mapping table (7 pairs + pitch determinism) green"
 exit 0
