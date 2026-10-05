@@ -60,7 +60,21 @@
 #       every label/panel rect — pure uniform backdrop in the OFF run, so
 #       the ONLY thing that can move it is the vignette: the ON run's tint
 #       pixel must be non-blank red AND measurably redder than the OFF run.
-# The gate passes only if A–H all behave as expected.
+#   (I) MC 10138 — HUD_QUESTLINE_ACT2: the tracker line follows the ACT-TWO
+#       log once the act opens. TWO runs of tests/ui/
+#       HudQuestAct2CaptureTest.cs (LA_QUESTLINE_ACT2=0 / =1). Run 0 (the
+#       baseline) must self-check the ACT-ONE active title; run 1 opens the
+#       act through the REAL save path (FromSaveRows diverge + SaveGame/
+#       LoadGame — the shipped restore-sync open, the quest_arc2 idiom) and
+#       must self-check the act-two title mid-arc ("The Way Down"). The
+#       pixel bar proves the quest row is painted and its pixels actually
+#       changed between the runs. PLANTED-BAD (the card's own): revert
+#       WorldDirector.Ui.cs LiveQuestLine to the act-one-only read and run
+#       1 shows "Quest: none" -> the self-check marker goes RED. The run-1
+#       save round-trip writes user://savegame.json: run this gate under the
+#       SAVEGATE flock whenever other save-touching legs may run (the fleet
+#       convention, kb c8e1f2bb).
+# The gate passes only if A–I all behave as expected.
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
@@ -77,6 +91,7 @@ STORY_CAPTURE="res://tests/story/StoryTextCaptureTest.cs"
 UI_2F_LOGIC="res://tests/ui/SkillsPanelTest.cs"
 UI_2F_CAPTURE="res://tests/ui/SkillsPanelCaptureTest.cs"
 UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
+UI_QUESTLINE="res://tests/ui/HudQuestAct2CaptureTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
@@ -92,6 +107,14 @@ PANEL_CROP="420x200+8+440"
 # the SkillsPanel rect (x 8..428, y 440..700). In the capture scene nothing
 # else paints there, so the ONLY thing that can move it is the vignette.
 VIGNETTE_CROP="200x120+900+480"
+# Leg I quest-row crop: the Quest gauge is the 6th HUD row (y = 8 + 5*28 =
+# 148, the BuildUi loop pitch), label at window x 8. Measured here (MC 10138,
+# deterministic across runs): the 1152x648 play window maps at +64+36 inside
+# the helper's 1280x720 Xvfb root (identical trim-box on every capture — the
+# shipped F/H crops tolerate the same offset with coarser bars), so the root
+# crop = window rect + (64,36). 500px wide covers the longest tracker line;
+# the dialogue box is CenterBottom — outside this crop.
+QUEST_CROP="500x26+72+182"
 
 fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -d "$TESTS_UI" ] || fail "ui tests dir not found: $TESTS_UI"
@@ -101,6 +124,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$PROJ/tests/ui/SkillsPanelTest.cs" ] || fail "SkillsPanelTest.cs not found"
 [ -f "$PROJ/tests/ui/SkillsPanelCaptureTest.cs" ] || fail "SkillsPanelCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudVignetteCaptureTest.cs" ] || fail "HudVignetteCaptureTest.cs not found"
+[ -f "$PROJ/tests/ui/HudQuestAct2CaptureTest.cs" ] || fail "HudQuestAct2CaptureTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -284,5 +308,50 @@ fnum "$RED_DELTA" 0.02 \
   || fail "run H: corner red delta=$RED_DELTA too small — the vignette does not turn ON below 30 / OFF at 30 (boundary not painted)"
 echo "UI_HUD_TEST: H ok — vignette ON <30 (tint pixel non-blank red), OFF at the 30 boundary"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H)"
+# ---------------------------------------------------------------------------
+# (I) MC 10138 — HUD_QUESTLINE_ACT2: the tracker line follows the act-two
+#     log once the act opens. Baseline run (LA_QUESTLINE_ACT2=0) shows the
+#     act-one active title; act run (=1) opens the act through the REAL save
+#     path (the quest_arc2 restore-sync idiom) and must show the act-two
+#     title mid-arc. The quest-row crop proves the row is painted and that
+#     its pixels actually moved between the runs. PLANTED-BAD: revert the
+#     LiveQuestLine union in world/WorldDirector.Ui.cs -> the act run shows
+#     "Quest: none" and its LA_QUESTLINE marker goes RED.
+#     NOTE run 1 writes user://savegame.json — gate-level SAVEGATE flock.
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run I — HUD_QUESTLINE_ACT2 baseline + act-two mid-arc title"
+LOGI_BASE="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT2=0 $GODOT --path $PROJ --script $UI_QUESTLINE > $CAPDIR/app-ql-base.log 2>&1" \
+            --wait 6 --out "$CAPDIR/la-ql-base.png" 2>&1)"
+printf '%s\n' "$LOGI_BASE"
+[[ "$LOGI_BASE" == *'RESULT=PASS'* ]] \
+  || fail "run I: baseline capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-ql-base.log" 2>/dev/null)" == *'LA_QUESTLINE: PASS'* ]] \
+  || fail "run I: baseline self-check marker missing (act-one tracker title not painted at boot — see app-ql-base.log)"
+
+LOGI_ACT2="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT2=1 $GODOT --path $PROJ --script $UI_QUESTLINE > $CAPDIR/app-ql-act2.log 2>&1" \
+            --wait 6 --out "$CAPDIR/la-ql-act2.png" 2>&1)"
+printf '%s\n' "$LOGI_ACT2"
+[[ "$LOGI_ACT2" == *'RESULT=PASS'* ]] \
+  || fail "run I: act-two capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-ql-act2.log" 2>/dev/null)" == *'LA_QUESTLINE: PASS'* ]] \
+  || fail "run I: act-two self-check marker missing (the tracker did NOT follow the act-two log mid-arc — the S10 limitation is back)"
+
+# The quest-row crop must carry glyphs in the act-two run AND differ from the
+# baseline run's row (a different title painted). Bars mirror F1/F2.
+QL_SD="$(convert "$CAPDIR/la-ql-act2.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
+        -format '%[fx:standard_deviation]' info:)"
+QL_COLORS="$(convert "$CAPDIR/la-ql-act2.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
+echo "UI_HUD_TEST: I act2 quest-row stddev=$QL_SD colors=$QL_COLORS (bar: stddev>=0.02, colors>=4)"
+fnum "$QL_SD" 0.02 || fail "run I: act-two quest row blank-ish (stddev=$QL_SD) — the tracker line did not paint"
+fnum "$QL_COLORS" 4 || fail "run I: act-two quest row has <4 colours (colors=$QL_COLORS) — no glyph shapes present"
+QL_DIFF_SD="$(convert "$CAPDIR/la-ql-base.png" "$CAPDIR/la-ql-act2.png" -compose difference -composite \
+             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
+QL_DIFF_MEAN="$(convert "$CAPDIR/la-ql-base.png" "$CAPDIR/la-ql-act2.png" -compose difference -composite \
+               -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:mean]' info:)"
+echo "UI_HUD_TEST: I quest-row diff stddev=$QL_DIFF_SD mean=$QL_DIFF_MEAN (bar: stddev>=0.01, mean>=0.003)"
+fnum "$QL_DIFF_SD" 0.01 || fail "run I: quest row identical baseline/act-two (stddev=$QL_DIFF_SD) — the tracker did not repaint on act open"
+fnum "$QL_DIFF_MEAN" 0.003 || fail "run I: quest row diff too small (mean=$QL_DIFF_MEAN) — act-two title not actually painted"
+echo "UI_HUD_TEST: I ok — tracker paints act-one title at boot, act-two title mid-arc (pixels moved)"
+
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I)"
 exit 0

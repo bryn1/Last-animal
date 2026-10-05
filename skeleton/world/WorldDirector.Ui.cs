@@ -20,8 +20,9 @@ using LastAnimal.Ui;
 // Freshness (plan §G D4): every readout closure below re-derives from the
 // live authorities at CALL time — PlayerMutations.Unlocked over the same
 // per-position consensus the ecosystem learns from (the only round-trip
-// stable unlock source), PlayerController.Manna, and the QuestLog's first
-// still-Active row. Nothing on this side of the seam is a copy.
+// stable unlock source), PlayerController.Manna, and the ACTIVE quest row
+// across both act logs (LiveQuestLine's union, MC 10138). Nothing on this
+// side of the seam is a copy.
 //
 // MC 10098 Inc-3 S0 (this file owns the bus-emit seam): TickUi additionally
 // runs the per-frame EDGE-DETECT poll that mirrors dialogue/hurt/boss state
@@ -77,8 +78,22 @@ public partial class WorldDirector
     public SkillUnlocks LiveUnlocks() =>
         PlayerMutations.Unlocked(EcosystemAdaptation.ModelPlayerDna(_spokenDna));
 
-    /// <summary>The quest tracker line: ACTIVE quest title + objective.</summary>
-    public string LiveQuestLine() => FormatQuestLine(_quests.Table, _quests.ActiveQuestId);
+    /// <summary>The quest tracker line: ACTIVE quest title + objective.
+    /// MC 10138 (S10-flagged limitation): union across BOTH act logs — the
+    /// act-two row wins while its log has a still-Active row (from the act-
+    /// open edge through the arc); otherwise act one's first still-Active
+    /// row (boot through the finale, and the post-arc "none"). This is a
+    /// READ-side union only: _quests keeps its shipped act-one identity —
+    /// quest_arc reads QStatus("q_boss") through Quests AFTER the open edge
+    /// (RuntimeIntegrationProof.Quests.cs case 5), a reference swap there
+    /// would break the shipped proofs.</summary>
+    public string LiveQuestLine()
+    {
+        var act2Id = _questsAct2.ActiveQuestId;
+        return act2Id != null
+            ? FormatQuestLine(_questsAct2.Table, act2Id)
+            : FormatQuestLine(_quests.Table, _quests.ActiveQuestId);
+    }
 
     /// <summary>
     /// _Process seam (root, one line): the TAB toggle handler + the refresh
