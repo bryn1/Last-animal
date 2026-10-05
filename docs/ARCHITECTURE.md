@@ -153,11 +153,18 @@ carried by either side — shipped at 7a8bd10; TOOL status unchanged (zero
 gate callers; the guard lives inside the tool).
 `skill_test.sh` carries the named F-acts F1..F6 plus the calm rows
 `F7_calm_cost_spend_once` / `F8_calm_refuse_no_spend` / `F9_calm_unlock_positions`
-(MC 10031).
+(MC 10031). `audio_test.sh` carries the named mix legs `MIX_DUCK_ON_SHOW` /
+`MIX_DUCK_OFF_CLOSE` / `MIX_BOSS_STANCE` (MC 10122 S4: Music bus ducks on
+`DialogueShown`, releases within the decay after `DialogueClosed`, ducks under
+the boss stance). `ui_test.sh` carries the named runs `UI_TOKENS_SINGLE_SOURCE`
+(the three panel files raw-literal-clean, theme tokens single-sourced in
+`UiTheme.cs`) and `HUD_VIGNETTE` (low-health red tint on/below boundary,
+non-blank tint pixel) (MC 10123 S6).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
 `RuntimeIntegrationProof.Quests.cs` / `RuntimeIntegrationProof.Chain.cs` /
-`RuntimeIntegrationProof.Bus.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+`RuntimeIntegrationProof.Bus.cs` / `RuntimeIntegrationProof.Juice.cs` /
+`RuntimeIntegrationProof.Shake.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
@@ -181,16 +188,26 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
-split duty: the entry harness had reached the 600-l proof ceiling; after the
-split Proof.cs is 445 l carrying its `SIZE:` reason header, Chain.cs 221 l,
-Bus.cs 342 l — every proof file under 600, no mode router moved: the entry
-file's stage switch stays the only mode router);
+split duty: the entry harness had reached the 600-l proof ceiling; at the W1
+tip Proof.cs is 510 l carrying its `SIZE:` reason header, Chain.cs 221 l,
+Bus.cs 566 l (grown past its 342-l split size by the MC 10103 edge fixes and
+the MC 10117 rooted-fields release), Juice.cs 126 l, Shake.cs 119 l,
+P1FixProof.cs 356 l — every proof file under 600, no mode router moved: the
+entry file's stage switch stays the only mode router);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
 presentation emits land EXACTLY ONCE per edge on the live autoload EventBus
 (markers `BUS_SHOWN_ONCE`, `BUS_CLOSED_ONCE`, `BUS_HURT_ONCE`,
 `BUS_NO_FALSE_FALLEN`, `BUS_BOSS_LIVE` — the death leg's real marker,
 per ARCH FIX-1 on 3bfcee5 — and `BUS_FALLEN_ONCE`); F5 single-mode, NOT a
-battery leg yet (the gate script greps no `BUS_*` in this tree); the death leg in
+battery leg yet (the gate script greps no `BUS_*` in this tree);
+`RuntimeIntegrationProof.Juice.cs` — stage 95, mode `JUICE_HITFLASH`: MC 10120
+S1 white hit-flash + VISUAL-NODE offset punch proven at the REAL hit site on
+the live scene, enemy BODY GlobalPosition unchanged across the window (marker
+`JUICE_BODY_STILL`); rides the battery as leg (L).
+`RuntimeIntegrationProof.Shake.cs` — stage 96, mode `JUICE_SHAKE`: MC 10121 S2
+FollowCamera S0 subscription, integer-frame shake window HELD +4f and EXACT
+follow-base return by +12f (marker `JUICE_SHAKE_AT_BASE`; the camera prints
+NOTHING, F4-CMP); rides the battery as leg (M); the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),

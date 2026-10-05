@@ -16,7 +16,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 26 run_mode legs = 16 positive modes + 10 negative
+# Battery at this HEAD: 27 run_mode legs = 17 positive modes + 10 negative
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/skill/
@@ -24,7 +24,7 @@
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
 # and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
-# proof invocations exceed the 25-leg count; the (E) framebuffer render bar
+# proof invocations exceed the 27-leg count; the (E) framebuffer render bar
 # runs once more through graphical-test-helper.
 #
 # Usage:

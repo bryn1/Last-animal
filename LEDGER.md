@@ -650,3 +650,29 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   plant revert thereafter by cp-restore (md5-checked). Lesson: COMMIT before mutating.
   Evidence: .audits/20261005-0221-s2-shake/ (EVIDENCE.md + series.log + logs/).
 - MC 10121 (S2, follow-up) stage-96 PASS exit adopts MC 10117 rooted-fields release idiom (_shakeCam=null + ReleaseHeldRefsBeforeQuit(), 2 lines, cherry-pick c2369a1 delta applied by hand after rebase-base conflict; JUICE_SHAKE re-green on master this commit).
+
+- MC 10119 / W1 wave-close restamp (design VM350, 2026-10-05, Inc-3 W1): docs restamp,
+  base aa7ee5d; ZERO gate/godot runs; only code edits are comment lines (battery header
+  + one WorldDirector note). (1) ARCHITECTURE §6 proof-partials inventory gains the W1
+  halves RuntimeIntegrationProof.Juice.cs (stage 95, mode JUICE_HITFLASH) + Shake.cs
+  (stage 96, mode JUICE_SHAKE); ALL proof wc counts re-derived at tip and the stale W0-era
+  445/221/342 restamped: Proof.cs 510 l (SIZE header kept), Chain.cs 221 l (unchanged),
+  Bus.cs 566 l (grew past its 342-l split size via MC 10103 edge fixes + MC 10117
+  rooted-fields release), Juice.cs 126 l, Shake.cs 119 l, P1FixProof.cs 356 l — every
+  proof file under the 600 ceiling (max = Bus.cs 566). NOTE honestly (TOOL/NOTE, not
+  fixed here — comment-only budget was WorldDirector): Proof.cs's in-file SIZE header
+  still reads 466 l (MC 10117's stamp) vs wc 510 at tip. (2) Battery header restamped
+  27 run_mode legs = 17 positive + 10 negative (was 26=16+10: S1 had restamped its own
+  leg onto 25; S2 deferred per F5; the merge left it one short — re-derived by anchored
+  run_mode-count grep, not by the +2 arithmetic) + "exceed the 27-leg count". (3) §3
+  signal census re-derived from skeleton/autoload/EventBus.cs: grep `[Signal] public
+  delegate` = 15 — UNCHANGED (MC 10103 added no signal; S2 FollowCamera subscribes,
+  never declares); doc already read 15, no edit owed. (4) §6 named-legs inventory gains
+  battery legs JUICE_HITFLASH/JUICE_SHAKE (markers JUICE_BODY_STILL/JUICE_SHAKE_AT_BASE),
+  ui_test runs G UI_TOKENS_SINGLE_SOURCE + H HUD_VIGNETTE (MC 10123 S6) and audio_test
+  mix legs MIX_DUCK_ON_SHOW/MIX_DUCK_OFF_CLOSE/MIX_BOSS_STANCE (MC 10122 S4) — every
+  string existence-verified in its named gate script before listing. (5) ONE comment-only
+  touch at the world/WorldDirector.cs load arm: the ratified F-DA1 semantics (MC 10103
+  DA, P4) — a same-frame load+damage suppresses that frame's PlayerHurt edge (payload
+  unresolvable at frame granularity; the TickUi rebaseline owns it) — zero behaviour.
+  Evidence: .audits/20261005-0250-w1-restamp/ (EVIDENCE.md last line VERIFY_EXIT=0).

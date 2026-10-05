@@ -256,6 +256,7 @@ public partial class WorldDirector : Node3D
             ToggleEmpathyBook();
         if (Input.IsActionJustPressed("save_game"))
             _saveLoad.Save();
+        // MC 10103 DA F-DA1 (P4, ratified): a same-frame load+damage suppresses that frame's PlayerHurt edge — the payload is unresolvable at frame granularity; the TickUi rebaseline owns it. Comment-only, zero behaviour.
         if (Input.IsActionJustPressed("load_game"))
             _saveLoad.Load();
         PollSkillActions();   // MC 3912 2e: skill_1/skill_2 arms (Skills partial)
