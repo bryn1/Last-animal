@@ -506,3 +506,28 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Gates green on this branch (all solo, savegate mutex held 21:37–close): quest_test
   QUEST_EXIT=0 (46 passed), bridge_mvp BRIDGE_EXIT=0, export EXPORT_EXIT=0.
   Evidence: .audits/202610042128-e55426c7/evidence/10112-evidence.md (+ copied logs).
+- MC 10103 (10026.12) S0-wall DA P2 bus presentation-edge fixes (2026-10-05, code seat VM350,
+  branch vm350/10103-bus-edges): F-A — same-frame kill+travel could SWALLOW BossFallen (kill at
+  _Process :249 precedes travel's ClearZoneEnemies swap; the FIRST poll that could observe
+  IsDead never happened — the Ui.cs swap branch re-armed without emitting). Fix: the swap branch
+  now emits the swapped-OUT actor's unemitted death before re-arming (IsDead gates — an ALIVE
+  swap still never emits, F-2 unchanged; reads are pure-managed, safe post-QueueFree). F-B —
+  loading a LOWER-HP save emitted a FALSE PlayerHurt (restore-lowers-Health read as damage by
+  the frame-boundary poll). Fix: SaveLoadController gains the BusHurtRebaseline seam (same
+  injection idiom as Manna/QuestStates), invoked after _restoreHealth; the Ui partial wires it
+  BEFORE the UICanvas guard (bus poll runs in no-UI compositions) and re-arms _busHealthBaseline.
+  Proofs EXTENDED in the existing bus_emit stage machine (no parallel harness): phases 17-22 F-A
+  named F-act BUS_FALLEN_SWAP (release-then-press edges — a held travel produces no JustPressed
+  edge, CalmingSpeak idiom; BUS_SWAP_STRIKE proves the same-frame window opened; absorbed-hit
+  leg reruns, never asserts on a missed window); phase 23 F-B named F-act BUS_NO_LOAD_HURT
+  (F4 frame-boundary sampling honored: >=2 polls must observe the HIGH HP before the load drop;
+  owns its save delete-first per MC 3910). Plant REDs on this branch: F-A ->
+  "F-A: boss died unemitted — the same-frame swap swallowed BossFallen" exit 1; F-B ->
+  "F-B: loading a lower-HP save emits NO PlayerHurt edge" FAIL hurt=1 (payload = restored 70),
+  exit 1. GREEN: LA_GATE_MODE=bus_emit exit 0 — all six S0 markers byte-identical +
+  BUS_FALLEN_SWAP + BUS_NO_LOAD_HURT. All runs solo under the SAVEGATE mutex (/tmp/la-savegate.lock).
+  Regression: ci/smoke.sh exit 0 (render RESULT=PASS colors=2968), ci/combat_test.sh exit 0
+  (21 passed; harness self-test red leg as designed). F-B harness lesson (VERIFIED): the
+  frame-boundary poll samples, it does not watch — an intra-frame restore+damage round trip
+  shows NO edge; a false-edge proof must spread the writes across observed ticks.
+  Evidence: .audits/20261005-0049-10103-bus-edges/ (EVIDENCE.md + 5 logs).

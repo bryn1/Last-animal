@@ -81,6 +81,14 @@ public sealed class SaveLoadController
     public Func<int>? MannaWrite { get; set; }
     public Action<int>? MannaRestore { get; set; }
 
+    // MC 10103 F-B (DA-verdict 202610041758): a load can LOWER live Health
+    // (restore to an older save's HP) — restoring is not damage, and the
+    // bus-emit poll must not read the drop as a PlayerHurt edge. The
+    // WorldDirector Ui partial injects this; it runs after _restoreHealth
+    // below. Unset (a composition without the bus seam) keeps the restore
+    // as the only health write, exactly as before (same idiom as above).
+    public Action? BusHurtRebaseline { get; set; }
+
     // Followers seams (MC 3943 2g): the v3 Followers list exists since 2b as a
     // roster-of-one (BuildFollowers below). The WorldDirector Roster partial
     // injects these to fill N — every bonded follower, and a load RESTORES N
@@ -201,6 +209,9 @@ public sealed class SaveLoadController
         // on the HUD life gauge, which the bus does not drive.
         _restoreHealth(loaded.PlayerHealth);
         _hud?.UpdateLife(loaded.PlayerHealth);
+        // MC 10103 F-B: the restore above can LOWER live HP — re-arm the bus
+        // hurt edge so a load never emits a false PlayerHurt.
+        BusHurtRebaseline?.Invoke();
         // MC 1405 N5: put the player back where they stood BEFORE the zone
         // re-entry, so the re-applied SpawnSet spawns around the restored
         // position (travel semantics), not around the load-point position.

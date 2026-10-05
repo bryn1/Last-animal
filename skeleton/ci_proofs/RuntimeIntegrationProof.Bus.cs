@@ -1,4 +1,5 @@
 using Godot;
+using LastAnimal.Save;
 using LastAnimal.World;
 
 // Last Animal — MC 10098 Inc-3 S0 bus-emit proof (stage 80, mode bus_emit).
@@ -21,7 +22,16 @@ using LastAnimal.World;
 // Markers print only after their assertion passes (harness contract).
 //
 // Run:  LA_GATE_MODE=bus_emit $GODOT --headless --path <proj> \
-//         --script res://ci_proofs/RuntimeIntegrationProof.cs
+//         --script res://ci_proofs/RuntimeIntegrationProof.cs   (savegate: the
+//         MC 10103 F-B leg below owns user://savegame.json before its write.)
+//
+// MC 10103 (card 10026.12) extends the stage machine with the two P2 legs
+// from the S0-wall DA-verdict (.audits/202610041758-e91b0813), each a named
+// F-act gate: phases 17-22 F-A (a same-frame kill+travel must NOT swallow
+// BossFallen — the death rides the swap; markers BUS_SWAP_STRIKE /
+// BUS_FALLEN_SWAP), phase 23 F-B (loading a lower-HP save lowers Health with
+// NO PlayerHurt edge — restore is not damage; markers BUS_SAVE_OWNED /
+// BUS_NO_LOAD_HURT).
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private int _busPhase;
@@ -41,6 +51,12 @@ public partial class RuntimeIntegrationProof : SceneTree
     private const int BusRepollFrames = 30;           // re-poll guard window
     private const int BusQuietFrames = 30;            // box-quiet margin (a late queued beat surfaces here)
     private bool _busSpawnArmed;
+
+    // MC 10103 F-A/F-B leg state:
+    private EnemyActor? _busFaBoss;
+    private string _busFaId = "", _busFaZoneBefore = "";
+    private int _busFallenFaBase, _busHurtFbBase, _busSavedHealth;
+    private int _busFbSub;
 
     private bool BusSubscribe()
     {
@@ -92,6 +108,20 @@ public partial class RuntimeIntegrationProof : SceneTree
         _busAttackToggle++;
         if (_busAttackToggle % 4 == 1) Input.ActionPress("attack");
         else if (_busAttackToggle % 4 == 3) Input.ActionRelease("attack");
+        return true;
+    }
+
+    private bool BusBossIsNearest(EnemyActor boss)
+    {
+        // TryAttack hits the NEAREST live enemy in range — the F-A strike
+        // frame must be one where that nearest IS the boss.
+        float bd = boss.GlobalPosition.DistanceTo(_playerBody!.GlobalPosition);
+        if (bd > _director!.PlayerModel.AttackRange) return false;
+        foreach (var e in _director!.Enemies)
+        {
+            if (e.IsDead || ReferenceEquals(e, boss) || !GodotObject.IsInstanceValid(e)) continue;
+            if (e.GlobalPosition.DistanceTo(_playerBody!.GlobalPosition) < bd) return false;
+        }
         return true;
     }
 
@@ -332,7 +362,197 @@ public partial class RuntimeIntegrationProof : SceneTree
                     if (_failed) return;
                     Input.ActionRelease("attack");
                     GD.Print("LA_GATE: BUS_FALLEN_ONCE — one BossFallen per tracked-actor death edge");
-                    GD.Print("LA_GATE: PASS — S0 bus-emit seam verified (shown/closed/hurt each once per edge; BossFallen only on the tracked boss's death, F-2)");
+                    _busFaBoss = null;
+                    BusNextPhase(17);   // MC 10103 F-A leg below
+                }
+                break;
+
+            case 17:  // MC 10103 F-A: re-field a boss for the same-frame leg.
+                if (_director!.HasLiveBoss)
+                {
+                    _busFaBoss = _director.BossActor;
+                    _busFaId = _busFaBoss!.Ai.EntityId.ToString();
+                    _busFallenFaBase = _busFallen;
+                    BusNextPhase(18);
+                }
+                else
+                {
+                    BusPressTravel();
+                    if (BusPhaseExpired(2400)) Fail("bus_emit F-A: boss never re-fielded for the swap leg");
+                }
+                break;
+
+            case 18:  // F-A whittle: bring the boss to ONE melee swing while it
+                      // stays the NEAREST live enemy (BusBossIsNearest — the
+                      // strike must hit IT) and the player stays topped up.
+                      // A boss-phase re-field swaps the reference: re-capture.
+                {
+                    var boss = _director!.BossActor;
+                    if (boss == null || !GodotObject.IsInstanceValid(boss) || boss.IsDead)
+                    { BusNextPhase(17); break; }
+                    if (!ReferenceEquals(boss, _busFaBoss))
+                    {
+                        _busFaBoss = boss;
+                        _busFaId = boss.Ai.EntityId.ToString();
+                        _busFallenFaBase = _busFallen;
+                    }
+                    _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
+                    Vector3 p = boss.GlobalPosition;
+                    _playerBody!.GlobalPosition = new Vector3(p.X - 0.8f, p.Y, p.Z);
+                    if (boss.Ai.Health <= _director.PlayerModel.MeleeDamage)
+                    { Input.ActionRelease("attack"); BusNextPhase(19); break; }
+                    if (!BusBossIsNearest(boss)) break;   // someone is closer — wait
+                    _busAttackToggle++;
+                    if (_busAttackToggle % 4 == 1) Input.ActionPress("attack");
+                    else if (_busAttackToggle % 4 == 3) Input.ActionRelease("attack");
+                    if (BusPhaseExpired(3000)) Fail("bus_emit F-A: whittle never reached a one-swinger boss");
+                }
+                break;
+
+            case 19:  // F-A STRIKE: ONE frame presses attack AND travel. The
+                      // _Process order (attack :249 -> travel :253 -> TickUi)
+                      // puts kill + BossActor swap in the SAME director tick,
+                      // BEFORE the poll that would observe IsDead — exactly
+                      // the window the DA-verdict named (F-A).
+                {
+                    var boss = _director!.BossActor;
+                    if (boss == null || !GodotObject.IsInstanceValid(boss) || boss.IsDead)
+                    { BusNextPhase(17); break; }
+                    if (boss.Ai.Health > _director.PlayerModel.MeleeDamage || !BusBossIsNearest(boss))
+                    { BusNextPhase(18); break; }
+                    _busFaZoneBefore = _director.CurrentZone;
+                    // Release-then-press: force FRESH JustPressed edges (the
+                    // travel may still be HELD from the BusPressTravel cycles —
+                    // ActionPress on a held action produces no edge; the
+                    // pay_wage idiom, CalmingSpeak.cs).
+                    Input.ActionRelease("attack");
+                    Input.ActionRelease("travel");
+                    Input.ActionPress("attack");
+                    Input.ActionPress("travel");
+                    GD.Print($"LA_GATE: BUS_SWAP_STRIKE entity={_busFaId} zone={_busFaZoneBefore} hp={boss.Ai.Health} — attack+travel pressed the SAME frame");
+                    BusNextPhase(20);
+                }
+                break;
+
+            case 20:  // F-A conditions: the strike must have killed the boss AND
+                      // travelled in the same tick (a nearer enemy absorbing the
+                      // hit reruns the leg — never assert on a missed window).
+                if (_frames - _busPhaseStart < 3) break;   // let one director tick consume the press
+                {
+                    Input.ActionRelease("attack");
+                    Input.ActionRelease("travel");
+                    var dead = _busFaBoss!;
+                    if (!dead.IsDead)
+                    {
+                        GD.Print("LA_GATE: BUS_SWAP_RETRY — strike frame did not kill the boss (absorbed hit), re-running the leg");
+                        BusNextPhase(17);
+                        break;
+                    }
+                    Check("F-A: same-frame strike killed the boss AND swapped BossActor before any poll could observe the death",
+                          _director!.CurrentZone != _busFaZoneBefore && !ReferenceEquals(_director.BossActor, dead),
+                          $"zone-before='{_busFaZoneBefore}' zone-now='{_director.CurrentZone}'");
+                    if (_failed) return;
+                    BusNextPhase(21);
+                }
+                break;
+
+            case 21:  // F-A emit wait: the death rode the swap — BossFallen
+                      // must still reach the bus. RED WITHOUT THE FIX (the
+                      // swap branch re-armed without emitting).
+                if (_busFallen > _busFallenFaBase)
+                {
+                    Check("F-A: same-frame kill+travel emits BossFallen for the swapped-out dead boss (no swallow)",
+                          _busFallenLast == _busFaId, $"payload='{_busFallenLast}' want='{_busFaId}'");
+                    if (_failed) return;
+                    BusNextPhase(22);
+                }
+                else if (BusPhaseExpired(120))
+                    Fail("F-A: boss died unemitted — the same-frame swap swallowed BossFallen (the audited window)");
+                break;
+
+            case 22:  // F-A settle: exactly one emit for the swap-carried death.
+                if (_frames - _busPhaseStart >= 4 * BusRepollFrames)
+                {
+                    Check("F-A: the swap-carried death emitted EXACTLY ONCE (no re-emit on re-poll)",
+                          _busFallen - _busFallenFaBase == 1,
+                          $"fallen={_busFallen - _busFallenFaBase}");
+                    if (_failed) return;
+                    GD.Print("LA_GATE: BUS_FALLEN_SWAP — F-A closed: a death riding a swap still emits once");
+                    _busFbSub = 0;
+                    BusNextPhase(23);
+                }
+                break;
+
+            case 23:  // MC 10103 F-B, five sub-steps. The poll samples at the
+                      // FRAME BOUNDARY (F4), so the sequence must spread over
+                      // ticks: 0 own the save (MC 3910 delete) + top up + step
+                      // out of reach; 1 clean window -> TRUE decrease (stamps
+                      // the lower HP, visible across a boundary); 2 true edge
+                      // landed -> save + restore HP UP; 3 after >=2 polls saw
+                      // the HIGH value, press load_game; 4 settle — the load
+                      // lowers Health with NO PlayerHurt edge.
+                if (_busFbSub == 0)
+                {
+                    _director!.SetSpawningEnabled(false);   // load re-entry fields nobody
+                    _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
+                    var store = new GodotSaveStore();
+                    if (System.IO.File.Exists(store.SavePath)) System.IO.File.Delete(store.SavePath);
+                    var far = _playerBody!.GlobalPosition;
+                    _playerBody.GlobalPosition = new Vector3(far.X + 80f, far.Y, far.Z);   // no live-enemy damage inside the windows
+                    _busHurtFbBase = _busHurt;
+                    GD.Print("LA_GATE: BUS_SAVE_OWNED — stale save removed before this leg's write");
+                    _busPhaseStamp = _frames;
+                    _busFbSub = 1;
+                    break;
+                }
+                if (_busFbSub == 1 && _frames - _busPhaseStamp >= BusRepollFrames)
+                {
+                    Check("F-B harness: no stray PlayerHurt in the clean window (teleport + spawn-off held)",
+                          _busHurt == _busHurtFbBase, $"hurt={_busHurt - _busHurtFbBase}");
+                    if (_failed) return;
+                    _director!.PlayerModel.TakeDamage(30);   // TRUE decrease, visible at the next poll
+                    _busSavedHealth = _director.PlayerModel.Health;
+                    _busPhaseStamp = _frames;
+                    _busFbSub = 2;
+                    break;
+                }
+                if (_busFbSub == 2 && _frames - _busPhaseStamp >= BusRepollFrames)
+                {
+                    Check("F-B harness: the true TakeDamage edge emitted exactly once (baseline)",
+                          _busHurt - _busHurtFbBase == 1 && _busHurtLast == _busSavedHealth,
+                          $"hurt={_busHurt - _busHurtFbBase} payload={_busHurtLast} saved={_busSavedHealth}");
+                    if (_failed) return;
+                    _director!.SaveGame();                       // carries the LOWER HP
+                    GD.Print($"LA_GATE: BUS_SAVE_WRITTEN health={_busSavedHealth}");
+                    _busHurtFbBase = _busHurt;                   // count only load-window edges from here
+                    _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
+                    _busPhaseStamp = _frames;
+                    _busFbSub = 3;
+                    break;
+                }
+                if (_busFbSub == 3 && _frames - _busPhaseStamp >= 3)
+                {
+                    // >=2 polls have now observed the HIGH HP — the load's
+                    // drop to the saved LOWER value crosses a frame boundary
+                    // (the audited false-edge shape, F-B).
+                    Input.ActionRelease("load_game");
+                    Input.ActionPress("load_game");
+                    _busPhaseStamp = _frames;
+                    _busFbSub = 4;
+                    break;
+                }
+                if (_busFbSub == 4 && _frames - _busPhaseStamp >= BusRepollFrames)
+                {
+                    Input.ActionRelease("load_game");
+                    Check("F-B harness: the load really restored the stamped LOWER Health (the false-edge condition held)",
+                          _director!.PlayerModel.Health == _busSavedHealth && _busSavedHealth < _director.PlayerModel.MaxHealth,
+                          $"health={_director.PlayerModel.Health} saved={_busSavedHealth}");
+                    Check("F-B: loading a lower-HP save emits NO PlayerHurt edge (restore is not damage)",
+                          _busHurt == _busHurtFbBase,
+                          $"hurt={_busHurt - _busHurtFbBase} after load of health={_busSavedHealth}");
+                    if (_failed) return;
+                    GD.Print("LA_GATE: BUS_NO_LOAD_HURT — F-B closed: a save-load health restore emits no false PlayerHurt");
+                    GD.Print("LA_GATE: PASS — S0 bus-emit seam verified (shown/closed/hurt each once per edge; BossFallen only on the tracked boss's death, F-2; MC 10103: swap-carried death emits once (F-A), load-restore emits no hurt (F-B))");
                     _asserted = true;
                     Quit(0);
                 }
