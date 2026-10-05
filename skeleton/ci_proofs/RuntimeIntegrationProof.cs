@@ -1,4 +1,4 @@
-// SIZE: >400 — multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4 verbatim into Chain.cs, stage 80 into Bus.cs).
+// SIZE: >400 (466 l, MC 10117 restamp) — multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4 verbatim into Chain.cs, stage 80 into Bus.cs).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -355,7 +355,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 6:
                 // Hold the live scene so graphical-test-helper (--wait 15)
                 // captures a real rendered frame, not the splash.
-                if (_physFrames >= _holdStartPhys + HoldFrames) { Quit(0); return true; }
+                if (_physFrames >= _holdStartPhys + HoldFrames) { ReleaseHeldRefsBeforeQuit(); Quit(0); return true; }
                 break;
 
             // ---- save mode: round-trip through the REAL scene state ----
@@ -393,6 +393,27 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 80: RunBusStage(); break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// MC 10117 (10026.13.5): same latent class as MC 10112's BridgeMvpProof fix —
+    /// the proof is the C# MainLoop, the LAST managed object standing at shutdown.
+    /// Its live-scene fields root the scene's C# wrappers (and every Resource they
+    /// hold) until after the native ObjectDB is gone, so their GC finalizers hit
+    /// freed objects — "Leaked unsafe reference ... csharp_script.cpp:179", exit
+    /// 134/139. Detection is probabilistic (~1/4, TEST T-1 MC 10112; at this HEAD
+    /// the plant measured 0 RED / 20 — see evidence). Release the wrappers and
+    /// flush finalizers BEFORE Quit, while the ObjectDB is alive. Idiom REUSED
+    /// from BridgeMvpProof.ReleaseHeldRefsBeforeQuit (MC 10112).
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _enemies.Clear();
+        _bus = null; _director = null; _main = null; _playerBody = null;
+        _hud = null; _dialogue = null; _companion = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     public override void _Finalize()
