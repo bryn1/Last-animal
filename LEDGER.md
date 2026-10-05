@@ -546,3 +546,36 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   frame-boundary poll samples, it does not watch — an intra-frame restore+damage round trip
   shows NO edge; a false-edge proof must spread the writes across observed ticks.
   Evidence: .audits/20261005-0049-10103-bus-edges/ (EVIDENCE.md + 5 logs).
+
+- MC 10121 (10026.15.2) S2 camera shake (2026-10-05, code seat VM350, branch
+  vm350/s2-shake): FollowCamera SUBSCRIBES S0's PlayerHurt/BossFallen — SfxRouter-style
+  consumer wiring on the autoload bus, with the MC 1344.1 deferred-resolve idiom (headless
+  --script loads autoloads AFTER scene _Ready: _Process retries until wired). Shake:
+  amp <= 0.15 m (JuiceShakeTuning.ShakeMaxAmp), 12-frame INTEGER-counter decay (F4 — zero
+  delta-time/Tween/Timer in the juice path); the kick is ADDED on top of a NEW
+  _followBase (the smoothed follow position, previously folded into GlobalPosition) and
+  never written into it, so the base return at window end is bitwise EXACT (proof asserts
+  GlobalPosition == _followBase). Camera prints NOTHING (F4-CMP, DA-inspection: zero
+  GD.Print in the shake path — every marker is proof output). The ratified JuiceTuning
+  block is NOT on master (S1 unmerged) — shake consts live in world/FollowCamera.cs as
+  JuiceShakeTuning with JuiceTuning-consistent naming; orchestrator folds them into S1's
+  JuiceTuning at merge (task-card note honored; distinct class name = no merge type-collision).
+  Leg JUICE_SHAKE (+1, run_mode mechanism, stage 96, partial
+  RuntimeIntegrationProof.Shake.cs + .uid + csproj Compile same commit): hurt arm driven by
+  the REAL wire (PlayerModel.TakeDamage -> S0 Ui-poll emit), window HELD +4f (camera off
+  base), EXACT base return by +12f (+2f readout margin), BossFallen arm reacts too (direct
+  bus emit = AudioTest consumer-test idiom; emit AUTHORITY stays S0's, proven by bus_emit).
+  Spawning off at boot (bus_emit quiet-leg idiom — stray hurts would re-arm mid-assert).
+  .sh hunk kept at the file END (S1's JUICE_HITFLASH hunk mid-file appends cleanly; leg-count
+  + banner + ARCHITECTURE §6 restamp are wave-close duties per F5, deliberately NOT done here).
+  GREEN: LA_GATE_MODE=JUICE_SHAKE solo exit 0 x3 (JUICE_SHAKE_ACTIVE/HELD/AT_BASE/
+  BOSS_ACTIVE/BOSS_AT_BASE, zero leaked refs) + boot_test + smoke solo exit 0 — all solo
+  under the SAVEGATE mutex (/tmp/la-savegate.lock; W1 S1||S2 serialization observed working,
+  9 waits on a sibling holder). PLANTED-BAD: decay site replaced with delta-time decay
+  (RoundToInt(ShakeFrames*delta*60)/frame) -> exit 1 RED (window collapsed inside a tick;
+  named FAIL in log), revert, re-green after revert — all solo under the mutex.
+  INCIDENT logged honestly: the first plant phase reverted with `git checkout --` while the
+  S2 change was UNCOMMITTED and wiped the whole camera edit (boot/smoke then failed on the
+  broken tree); file rebuilt and the full green series re-run (R1 logs) BEFORE any plant;
+  plant revert thereafter by cp-restore (md5-checked). Lesson: COMMIT before mutating.
+  Evidence: .audits/20261005-0221-s2-shake/ (EVIDENCE.md + series.log + logs/).

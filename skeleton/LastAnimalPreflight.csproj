@@ -138,6 +138,11 @@
     <Compile Include="tests/companion/CompanionRenderTest.cs" />
     <Compile Include="tests/ui/UiRenderTest.cs" />
     <Compile Include="tests/ui/UiHarnessSelfTest.cs" />
+    <!-- Compile MC 10121 Inc-3 S2: the juice-shake proof partial (mode
+         JUICE_SHAKE, stage 96); the shake itself lives in world/
+         FollowCamera.cs. Appended at the ItemGroup END so S1's Juice.cs
+         hunk (inserted mid-list at MC 10098's block) merges cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Shake.cs" />
   </ItemGroup>
 
 </Project>

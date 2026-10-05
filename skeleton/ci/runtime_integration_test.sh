@@ -264,5 +264,13 @@ LOGR="$(LA_GATE_MODE=roster_follow timeout 300 "$GODOT" --headless --path "$PROJ
 [[ "$LOGR" == *'restored entry id'* && "$LOGR" == *'DROPPED — roster cap'* ]] || fail "roster_follow: expected the F4 DROPPED marker on the over-cap restore (world-side drop-arm silent)"
 run_mode roster_neg fail "NEG_ROSTER" "$PROOF_ROSTER"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; non-blank render)"
+# (M) MC 10121 Inc-3 S2 juice camera shake: FollowCamera SUBSCRIBES S0's
+# PlayerHurt/BossFallen on the live scene — the window is armed by a real
+# TakeDamage-driven emit, HELD at +4f (camera off its follow base), and the
+# camera sits back on its EXACT shake-free follow base by +12f (integer
+# decay, F4 — the planted delta-time decay goes RED). BossFallen arm reacts
+# too. Real bus wire, stage 96; the camera itself prints NOTHING (F4-CMP).
+run_mode JUICE_SHAKE pass "JUICE_SHAKE_AT_BASE"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice shake green; non-blank render)"
 exit 0
