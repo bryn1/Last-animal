@@ -565,3 +565,26 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Regression ci/bridge_mvp_test.sh BRIDGE_EXIT=0. runtime_integration_test.sh full battery NOT
   run (orchestrator owns). Evidence: .audits/20261005-0035-10117-latent-sweep/ (91 logs,
   EVIDENCE.md VERIFY_EXIT=0).
+
+- MC 10123 / 10026.15.4 S6 HUD tokens + readability (code VM350, 2026-10-05,
+  Inc-3 W1, branch vm350/s6-hud): NEW src/ui/UiTheme.cs const class — the single
+  literal home for the three panel files (gauge colour/font, Empathy colour/font,
+  byte-equal to the literals they replace: a single-source tidy, not a restyle;
+  csproj Include + .uid same commit). Hud.cs: the Life DIGITS VISUAL-ease to the
+  exact value within 10 redraws on an INTEGER counter (F4; CalmedWindow idiom, no
+  Tween/Timer/delta) — logic values untouched, Manna digits stay EXACT (plan §G
+  D4 freshness contract). R6 vignette: a NEW ColorRect "Vignette" layer (first
+  child, MouseFilter Ignore) under the readout labels, alpha triangle-wave pulse
+  on the redraw counter while the Life readout is strictly <30, alpha EXACTLY 0
+  at/above (reads the health mirror, never writes game state — I4). NEW
+  HudVignetteCaptureTest.cs (+.uid+csproj). ui_test.sh +2 named legs:
+  UI_TOKENS_SINGLE_SOURCE (panel files raw-literal-clean) + HUD_VIGNETTE (on<30 /
+  off@30 boundary + far-corner red-mean tint pixel non-blank: mean 0.28@29 vs
+  0.10@30, delta 0.18); planted-bad #1 (raw literal reappears in Hud.cs) ->
+  UI_TOKENS_SINGLE_SOURCE RED exit 1, planted-bad #2 (< flipped to <=) ->
+  HUD_VIGNETTE RED exit 1, both mutations reverted; ui_test + boot_test +
+  main_composition_test solo exit 0 on final tree, existing legs A–F unchanged
+  green. Bonus AudioTest.cs comment hygiene = VERIFIED NO-OP (comment already
+  correct at master; no misleading wording ever committed — see EVIDENCE). SAVE-
+  FREE (only save_game input writes user://, no leg presses it) — no savegate lock.
+  Evidence: .audits/20261005-0142-s6-hud/EVIDENCE.md (+logs, 2 capture PNGs).

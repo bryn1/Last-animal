@@ -28,6 +28,19 @@ using System;
 //
 // The Headless test (tests/ui/UiRenderTest.cs) drives every one of these and
 // asserts the rendered labels reflect the bus-updated values.
+//
+// MC 10123 / card 10026.15.4 (Inc-3 S6), three presentation-only additions:
+//  - Theme literals come from UiTheme (the single token home; the
+//    ui_test UI_TOKENS_SINGLE_SOURCE leg greps this file raw-literal-clean).
+//  - VISUAL smoothing: the Life DIGITS ease to the exact value within
+//    UiTheme.SmoothFrames redraws on an integer counter (CalmedWindow idiom,
+//    F4 — no Tween/Timer/delta). The Life/Manna PROPERTIES — the logic values
+//    every consumer reads — are untouched by the smoothing; and the Manna
+//    digits stay exact because the plan §G D4 freshness contract pins them.
+//  - Low-health edge vignette (R6 ratified): one NEW ColorRect layer under
+//    the readout labels, alpha pulse on the redraw counter while the Life
+//    readout is < UiTheme.LowHealthThreshold, EXACTLY off above it. The View
+//    READS its health mirror and never writes gameplay state (I4).
 namespace LastAnimal.Ui;
 
 /// <summary>
@@ -52,6 +65,21 @@ public partial class Hud : Control
     private Label? _heartsLabel;
     private Label? _skillsLabel;
     private Label? _questLabel;
+
+    // S6 gauge VISUAL smoothing: the Life digits ease toward the exact value
+    // on an integer redraw counter (CalmedWindow idiom, F4). Purely visual —
+    // the Life PROPERTY stays the exact logic value the whole time; these
+    // fields never feed anything but the Life label's text.
+    private int _lifeShown;
+    private int _lifeShownFrom;
+    private int _lifeShownTarget = -1;   // -1 = unseeded: first paint lands exact
+    private int _lifeSmoothTick;
+
+    // S6 low-health vignette (R6): one ColorRect layer UNDER the readout
+    // labels. Reads the Life readout, never writes it; alpha pulses on the
+    // redraw counter below UiTheme.LowHealthThreshold, is EXACTLY 0 above.
+    private ColorRect? _vignette;
+    private int _vignetteTick;
 
     // 2f live sources (plan §G D4): re-invoked at every redraw, never copied
     // into a field — the View holds providers, not values.
@@ -193,6 +221,21 @@ public partial class Hud : Control
 
         SetAnchorsPreset(LayoutPreset.FullRect);
 
+        // S6: the vignette layer is the FIRST child, so the readout labels
+        // paint over the tint (and stay crisp). MouseFilter Ignore: it is
+        // pure paint and must never swallow input. Seeded fully transparent;
+        // PaintVignette owns its colour from the first Redraw onward.
+        var vignetteSeed = UiTheme.VignetteColor;
+        vignetteSeed.A = 0f;
+        _vignette = new ColorRect
+        {
+            Name = "Vignette",
+            Color = vignetteSeed,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _vignette.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(_vignette);
+
         _lifeLabel = MakeLabel("Life");
         _mannaLabel = MakeLabel("Manna");
         _dnaLabel = MakeLabel("DNA");
@@ -221,15 +264,70 @@ public partial class Hud : Control
     {
         var label = new Label();
         label.Name = $"{title}Gauge";
-        label.AddThemeFontSizeOverride("font_size", 20);
-        label.Modulate = new Color(1.0f, 1.0f, 1.0f);
+        label.AddThemeFontSizeOverride("font_size", UiTheme.GaugeFontSize);
+        label.Modulate = UiTheme.GaugeColor;
         return label;
+    }
+
+    /// <summary>
+    /// S6 VISUAL-only ease of the Life digits: integer counter, converges
+    /// within UiTheme.SmoothFrames redraws (CalmedWindow idiom — no Tween,
+    /// Timer, delta or wall-clock). Retargeting mid-flight re-begins the ease
+    /// from wherever the digits stand; the FIRST paint seeds at the target so
+    /// boot never animates from zero. The logic value (the Life property) is
+    /// the smooth TARGET — this method can never move it.
+    /// </summary>
+    private int SmoothLife(int target)
+    {
+        if (_lifeShownTarget != target)
+        {
+            _lifeShownFrom = _lifeShownTarget < 0 ? target : _lifeShown;
+            _lifeShownTarget = target;
+            _lifeSmoothTick = 0;
+        }
+        if (_lifeSmoothTick < UiTheme.SmoothFrames)
+        {
+            _lifeSmoothTick++;
+            _lifeShown = _lifeShownFrom +
+                         (target - _lifeShownFrom) * _lifeSmoothTick / UiTheme.SmoothFrames;
+        }
+        return _lifeShown;
+    }
+
+    /// <summary>
+    /// S6 low-health vignette paint (R6 ratified): reads the Life readout,
+    /// writes nothing but the tint layer's own colour. ON strictly below
+    /// UiTheme.LowHealthThreshold — a triangle-wave alpha pulse on the redraw
+    /// counter (F4) between min and max so every captured frame while low
+    /// shows a measurable tint; AT/ABOVE the threshold the alpha is EXACTLY 0
+    /// and the counter parks (HUD_VIGNETTE pins both sides of the boundary).
+    /// </summary>
+    private void PaintVignette()
+    {
+        if (_vignette == null) return;
+        bool on = Life < UiTheme.LowHealthThreshold;
+        if (on)
+            _vignetteTick = (_vignetteTick + 1) % UiTheme.VignettePulseFrames;
+        else
+            _vignetteTick = 0;
+
+        const int half = UiTheme.VignettePulseFrames / 2;
+        int tri = _vignetteTick <= half ? _vignetteTick : UiTheme.VignettePulseFrames - _vignetteTick;
+        float tint = UiTheme.VignetteMinAlpha +
+                     (UiTheme.VignetteMaxAlpha - UiTheme.VignetteMinAlpha) * tri / half;
+        var colour = UiTheme.VignetteColor;
+        colour.A = on ? tint : 0f;
+        _vignette.Color = colour;
     }
 
     private void Redraw()
     {
         if (_lifeLabel == null) return;
-        _lifeLabel!.Text = $"Life: {Life}/100";
+        _lifeLabel!.Text = $"Life: {SmoothLife(Life)}/100";
+        // S6: Manna digits stay EXACT (plan §G D4 freshness contract — the
+        // SkillsPanelTest freshness leg pins them); only the combat-driven
+        // Life readout gets the visual ease. DNA/Hearts are already bus-step
+        // values and paint unchanged.
         // 2f: with a live source bound, the digits are pulled from it right
         // now; the UpdateManna push seam (2e) stays the bus-less path and
         // stays consistent because both read the same PlayerController.
@@ -241,6 +339,7 @@ public partial class Hud : Control
             _skillsLabel.Text = _liveUnlocks != null ? SkillNames(_liveUnlocks()) : string.Empty;
         if (_questLabel != null)
             _questLabel!.Text = _liveQuest != null ? _liveQuest() : string.Empty;
+        PaintVignette();
     }
 
     /// <summary>The learned-skill row, derived from the LIVE unlock verdict
