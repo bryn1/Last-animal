@@ -1,4 +1,4 @@
-// SIZE: >400 (466 l, MC 10117 restamp) — multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4 verbatim into Chain.cs, stage 80 into Bus.cs).
+// SIZE: >400 (555 l, MC 10139 W2 wave-close restamp) — multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4 verbatim into Chain.cs, stage 80 into Bus.cs; W1 disclosed the 466-l drift as owed debt: stage 95/96/97/55 mode arms grew the entry dispatch past it, comment-only restamp here closes it).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;

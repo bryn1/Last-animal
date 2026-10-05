@@ -34,7 +34,7 @@ the composition root (see §3).
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
-| `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1). Engine-free (MC 3900 2a, MC 3904 2c). |
+| `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs`, `ActTwoSync.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1) + the act-two restore-sync arms (MC 10132 F-DA2: `Run` decides None/Adopt/Rollback/FreshOpen/SilentReStart — quest-state logic stays pure, `WorldDirector.Story.cs` `SyncActTwoFromRestore` only executes the returned action's engine-side halves). Engine-free (MC 3900 2a, MC 3904 2c). |
 | `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies), dialogue (`Show(nodeId, fromReward=false)` — the MC 3915 reward-beat flag `ActiveNodeIsReward`, one-arg callers unchanged), empathy panel, TAB skills panel (MC 3933 2f). |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
@@ -156,15 +156,25 @@ gate callers; the guard lives inside the tool).
 (MC 10031). `audio_test.sh` carries the named mix legs `MIX_DUCK_ON_SHOW` /
 `MIX_DUCK_OFF_CLOSE` / `MIX_BOSS_STANCE` (MC 10122 S4: Music bus ducks on
 `DialogueShown`, releases within the decay after `DialogueClosed`, ducks under
-the boss stance). `ui_test.sh` carries the named runs `UI_TOKENS_SINGLE_SOURCE`
+the boss stance) and the named S5 mapping legs `MAP QuestStarted->loyalty` /
+`MAP QuestObjective->loyalty` / `MAP WagePaid->loyalty` /
+`MAP QuestCompleted->dna_extract` / `MAP EmpathyBookOpened->dna_spoken` /
+`MAP PlayerHurt->betrayal` / `MAP BossFallen->ecosystem` +
+`MAP pitch-determinism` (MC 10130 S5: each signal routes EXACTLY once to its
+stream — a double-route prints FAIL; per-stream fired-counts pin the table).
+`ui_test.sh` carries the named runs `UI_TOKENS_SINGLE_SOURCE`
 (the three panel files raw-literal-clean, theme tokens single-sourced in
-`UiTheme.cs`) and `HUD_VIGNETTE` (low-health red tint on/below boundary,
-non-blank tint pixel) (MC 10123 S6).
+`UiTheme.cs`), `HUD_VIGNETTE` (low-health red tint on/below boundary,
+non-blank tint pixel) (MC 10123 S6) and run (I) `HUD_QUESTLINE_ACT2`
+(MC 10138: baseline pins the act-one tracker title; the act-two run, opened
+through the shipped restore-sync path, pins "The Way Down" mid-arc with
+quest-row pixel bars — closing S10's flagged LiveQuestLine limitation).
 Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ partial-class halves
 `RuntimeIntegrationProof.Save.cs` / `RuntimeIntegrationProof.Interact.cs` /
 `RuntimeIntegrationProof.Quests.cs` / `RuntimeIntegrationProof.Chain.cs` /
 `RuntimeIntegrationProof.Bus.cs` / `RuntimeIntegrationProof.Juice.cs` /
-`RuntimeIntegrationProof.Shake.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+`RuntimeIntegrationProof.Shake.cs` / `RuntimeIntegrationProof.Story2.cs` /
+`RuntimeIntegrationProof.Dissolve.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
@@ -188,11 +198,15 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
-split duty: the entry harness had reached the 600-l proof ceiling; at the W1
-tip Proof.cs is 510 l carrying its `SIZE:` reason header, Chain.cs 221 l,
-Bus.cs 566 l (grown past its 342-l split size by the MC 10103 edge fixes and
-the MC 10117 rooted-fields release), Juice.cs 126 l, Shake.cs 119 l,
-P1FixProof.cs 356 l — every proof file under 600, no mode router moved: the
+split duty: the entry harness had reached the 600-l proof ceiling; at the W2
+tip Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
+Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
+edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
+header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
+comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
+W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
+Dissolve.cs 209 l, P1FixProof.cs 356 l — every proof file under 600 (max
+Bus.cs 566), no mode router moved: the
 entry file's stage switch stays the only mode router);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
 presentation emits land EXACTLY ONCE per edge on the live autoload EventBus
@@ -207,7 +221,26 @@ the live scene, enemy BODY GlobalPosition unchanged across the window (marker
 `RuntimeIntegrationProof.Shake.cs` — stage 96, mode `JUICE_SHAKE`: MC 10121 S2
 FollowCamera S0 subscription, integer-frame shake window HELD +4f and EXACT
 follow-base return by +12f (marker `JUICE_SHAKE_AT_BASE`; the camera prints
-NOTHING, F4-CMP); rides the battery as leg (M); the death leg in
+NOTHING, F4-CMP); rides the battery as leg (M).
+`RuntimeIntegrationProof.Dissolve.cs` — stage 97, mode `DISSOLVE_SUPPRESS`:
+MC 10129 S3 death dissolve — the KillHide death tick pins suppression (body
+collision mask 0, physics stop, damage zero: forced presses AND a forced
+`DealDamage(9999)` land as 0 across f+1..+20) and arms the 20-frame INTEGER
+VISUAL alpha/scale dissolve on the S1 VisualJuice root (visual frees itself
+at f+21, body `Visual` ref cleared); targeting exclusion REUSES the
+director's existing `IsDead` predicate (no second list; a boss rides the
+same KillHide choke — EnemyActor in `_enemies`); markers `DISSOLVE_GONE`
+and `DISSOLVE_ABSENT`; rides the battery as leg (N).
+`RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
+S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
+on the live scene through the SHIPPED pure `QuestLog` machine off a REAL
+save->load edge (restore arms in pure `src/story/ActTwoSync.cs`); markers
+`ACT2_OPENED`, `ACT2_CARD_ON_SCREEN`, open/close `ACT_CARD act_two`, four
+DISTINCT `QUEST_COMPLETED q_r_*` drives (W6 pin: never one cascade),
+per-row `REWARD_SHOWN`, `WAGE_PAID for q_r_bread`, `ACT2_PERSIST` on the
+shipped v3 `QuestStates` wire (F2 zero save-file delta), `ACT2_CLOSED`
+(the DLQ path stays untouched, uniform auto-close); rides the battery as
+leg (O); the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),

@@ -663,7 +663,9 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   fixed here — comment-only budget was WorldDirector): Proof.cs's in-file SIZE header
   still reads 466 l (MC 10117's stamp) vs wc 510 at tip. (2) Battery header restamped
   27 run_mode legs = 17 positive + 10 negative (was 26=16+10: S1 had restamped its own
-  leg onto 25; S2 deferred per F5; the merge left it one short — re-derived by anchored
+  leg from 25 onto 26 — wording restamped at W2 wave-close per the MC 10119 DA P3 dissent:
+  git log -L of the header shows S1's stamp moved 25 → 26, "onto 25" mis-read;
+  S2 deferred per F5; the merge left it one short — re-derived by anchored
   run_mode-count grep, not by the +2 arithmetic) + "exceed the 27-leg count". (3) §3
   signal census re-derived from skeleton/autoload/EventBus.cs: grep `[Signal] public
   delegate` = 15 — UNCHANGED (MC 10103 added no signal; S2 FollowCamera subscribes,
@@ -791,3 +793,40 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   revert + re-green; ui_test/boot/main_composition/quest_test/quest_arc solo
   green under SAVEGATE flock. Evidence: .audits/20261005-0954-hudact2/
   EVIDENCE.md (VERIFY_EXIT=0).
+
+- MC 10139 / W2 wave-close restamp (design VM350, 2026-10-05, Inc-3 W2): docs
+  restamp at tip 44806a1; ZERO gate/godot runs; only code edits are comment
+  lines (Proof.cs SIZE header + battery header). (1) ARCHITECTURE §6 proof-
+  partials inventory gains the W2 halves RuntimeIntegrationProof.Dissolve.cs
+  (stage 97, mode DISSOLVE_SUPPRESS, leg (N), markers DISSOLVE_GONE/ABSENT) +
+  RuntimeIntegrationProof.Story2.cs (stage 55, mode quest_arc2, leg (O),
+  markers ACT2_*, stage numbers grepped off the Proof.cs dispatch switch);
+  ALL proof wc re-derived at tip: Proof.cs 555 l, Chain.cs 221 l (unchanged),
+  Bus.cs 566 l (unchanged; TOOL/NOTE: still no in-file SIZE header though
+  >400 — inside the 600 test-class ceiling, flagged not fixed), Juice.cs 126 l
+  (unchanged), Shake.cs 121 l (+2 l since W1 at 95f65cd rooted-fields PASS
+  exit), Story2.cs 288 l, Dissolve.cs 209 l, P1FixProof.cs 356 l (unchanged) —
+  every proof file under 600 (max Bus.cs 566); stale 510/119-era counts gone
+  (grep zero). (2) KNOWN DEBT CLOSED: Proof.cs in-file SIZE header restamped
+  466 -> 555 l (MC 10119's disclosed drift) with reason clause; ALL other
+  in-file SIZE headers checked vs wc — BridgeMvp 507/507, Roster 298/298,
+  ZoneBoss 441/441 exact, Quests ~560 vs 559 + Story2 ~300 vs 288 honest
+  tildes — none else drifted. (3) Battery header restamped 29 run_mode legs =
+  19 positive + 10 negative (was 27=17+10; +DISSOLVE_SUPPRESS +quest_arc2,
+  anchored whitespace-tolerant run_mode grep re-derived the split; negative
+  list unchanged) + "exceed the 29-leg count"; class parenthetical gains
+  story/dissolve. (4) §3 signal census re-derived: grep '[Signal] public
+  delegate' skeleton/autoload/EventBus.cs = 15 — UNCHANGED (W2 added no
+  signal); doc already read 15, no edit owed. (5) §6 named-legs inventory
+  gains battery legs DISSOLVE_SUPPRESS/quest_arc2, ui_test run (I)
+  HUD_QUESTLINE_ACT2 (MC 10138) and the audio_test S5 mapping legs
+  MAP QuestStarted->loyalty/QuestObjective->loyalty/WagePaid->loyalty/
+  QuestCompleted->dna_extract/EmpathyBookOpened->dna_spoken/PlayerHurt->
+  betrayal/BossFallen->ecosystem + MAP pitch-determinism (MC 10130) — every
+  string existence-grepped in its gate script first; bus_emit STILL not a
+  battery leg re-verified (grep -c BUS_ runtime_integration_test.sh = 0).
+  (6) §2 src/story listing gains ActTwoSync.cs (pure restore-sync arms,
+  MC 10132 F-DA2); the MC 10119 DA P3 dissent clause in the W1 row restamped
+  one word ("onto 25" -> "from 25 onto 26", dissent cited in-row).
+  Evidence: .audits/20261005-1102-w2-restamp/ (EVIDENCE.md last line
+  VERIFY_EXIT=0; comment-only diff proven, RED self-test shown).
