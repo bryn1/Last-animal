@@ -111,6 +111,8 @@ public partial class RuntimeIntegrationProof : SceneTree
                 GD.Print("LA_GATE: JUICE_SHAKE_BOSS_AT_BASE — boss arm exact return");
                 GD.Print("LA_GATE: PASS — S2 juice shake verified (PlayerHurt+BossFallen subscribe; 12f integer window; exact base return)");
                 _asserted = true;
+                _shakeCam = null;                     // MC 10117 rooted-fields idiom
+                ReleaseHeldRefsBeforeQuit();          // (Bus.cs precedent: partial calls the harness one)
                 Quit(0);
                 break;
             }

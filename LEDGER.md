@@ -649,3 +649,4 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   broken tree); file rebuilt and the full green series re-run (R1 logs) BEFORE any plant;
   plant revert thereafter by cp-restore (md5-checked). Lesson: COMMIT before mutating.
   Evidence: .audits/20261005-0221-s2-shake/ (EVIDENCE.md + series.log + logs/).
+- MC 10121 (S2, follow-up) stage-96 PASS exit adopts MC 10117 rooted-fields release idiom (_shakeCam=null + ReleaseHeldRefsBeforeQuit(), 2 lines, cherry-pick c2369a1 delta applied by hand after rebase-base conflict; JUICE_SHAKE re-green on master this commit).
