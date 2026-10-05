@@ -281,4 +281,33 @@ echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verifie
 run_mode JUICE_SHAKE pass "JUICE_SHAKE_AT_BASE"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice shake green; non-blank render)"
+
+# (N) MC 10132 Inc-3 S10 story ACT TWO: the +4 ruins-deep QuestTable.RuinsArc()
+# rows play on the live scene through the SHIPPED pure QuestLog machine — the
+# act opens off a REAL save->load edge (the restore sync) with its table-driven
+# open card painted guarded (ACT2_CARD_ON_SCREEN); each of the four completions
+# rides its OWN distinct drive (W6 pin: zone-enter / two fresh speaks / the
+# single wage path resolving the act-two row / six fresh extractions — four
+# separate QUEST_COMPLETED q_r_* greps, never one cascade); the act-two rows
+# round-trip save->load on the SHIPPED v3 QuestStates wire (ACT2_PERSIST, zero
+# save-file schema delta — data rides existing rows); and the close card drains
+# in emission order behind the finale beat to the uniform auto-close (DLQ
+# untouched, F3). Stage 55, proof partial RuntimeIntegrationProof.Story2.cs.
+run_mode quest_arc2 pass "ACT2_CLOSED"
+LOGA2="$(LA_GATE_MODE=quest_arc2 timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGA2" == *'ACT2_OPENED'* ]] || fail "quest_arc2: expected ACT2_OPENED (restore sync opened the act)"
+[[ "$LOGA2" == *'ACT2_CARD_ON_SCREEN'* ]] || fail "quest_arc2: expected ACT2_CARD_ON_SCREEN (table-driven open card, guarded beat)"
+[[ "$LOGA2" == *'ACT_CARD act_two open'* ]] || fail "quest_arc2: expected the open ACT_CARD marker (REWARD_SHOWN idiom)"
+for q in q_r_descent q_r_tongue q_r_bread q_r_bones; do
+  [[ "$LOGA2" == *"QUEST_COMPLETED $q"* ]] || fail "quest_arc2: expected QUEST_COMPLETED $q (W6: its own observation, its own completion)"
+done
+for q in q_r_descent q_r_tongue q_r_bread q_r_bones; do
+  [[ "$LOGA2" == *"REWARD_SHOWN $q "* ]] || fail "quest_arc2: expected REWARD_SHOWN $q (reward beat through the shipped DLQ path)"
+done
+[[ "$LOGA2" == *'WAGE_PAID for q_r_bread'* ]] || fail "quest_arc2: expected WAGE_PAID for q_r_bread (the ONE wage path resolved the act-two row)"
+[[ "$LOGA2" == *'ACT2_PERSIST'* ]] || fail "quest_arc2: expected ACT2_PERSIST (act-two rows round-tripped on the shipped QuestStates wire)"
+[[ "$LOGA2" == *'ACT2_CLOSED'* ]] || fail "quest_arc2: expected ACT2_CLOSED (close card drained + uniform auto-close)"
+[[ "$LOGA2" == *'ACT_CARD act_two close'* ]] || fail "quest_arc2: expected the close ACT_CARD marker"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice shake green; act-two arc + act cards + act-two persist green; non-blank render)"
 exit 0

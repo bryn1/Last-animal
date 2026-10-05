@@ -66,6 +66,48 @@ public sealed class QuestObjective
     }
 }
 
+/// <summary>
+/// One authored ACT card (MC 10132 Inc-3 S10, RULING-5): the ordered node-id
+/// lists an act plays when it opens and when its last row completes. This is
+/// the whole act mechanism — NO cutscene system exists and none is added:
+/// every card node is an ordinary DialogueTable entry shown through the
+/// existing dialogue view (the composition root queues them as guarded
+/// presentation beats, the shipped DLQ drains them in emission order and the
+/// uniform auto-close retires the box). Node ids are DATA here; tests/story
+/// (QuestArcCrossCheckTests) cross-checks every id against
+/// DialogueTable.Default(), so a rename anywhere fails the gate, not the player.
+/// </summary>
+public sealed class ActCard
+{
+    /// <summary>Stable act id (gate-marker vocabulary, e.g. "act_two").</summary>
+    public string Id { get; }
+
+    /// <summary>Ordered node ids shown when the act opens (never empty).</summary>
+    public IReadOnlyList<string> OpenNodes { get; }
+
+    /// <summary>Ordered node ids shown when the act's last row completes.</summary>
+    public IReadOnlyList<string> CloseNodes { get; }
+
+    public ActCard(string id, IReadOnlyList<string> openNodes, IReadOnlyList<string> closeNodes)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("act card id must be non-empty", nameof(id));
+        if (openNodes == null || openNodes.Count == 0)
+            throw new ArgumentException($"act '{id}' must author at least one open card node", nameof(openNodes));
+        if (closeNodes == null || closeNodes.Count == 0)
+            throw new ArgumentException($"act '{id}' must author at least one close card node", nameof(closeNodes));
+        foreach (var n in openNodes)
+            if (string.IsNullOrEmpty(n))
+                throw new ArgumentException($"act '{id}': empty open card node id", nameof(openNodes));
+        foreach (var n in closeNodes)
+            if (string.IsNullOrEmpty(n))
+                throw new ArgumentException($"act '{id}': empty close card node id", nameof(closeNodes));
+        Id = id;
+        OpenNodes = openNodes;
+        CloseNodes = closeNodes;
+    }
+}
+
 /// <summary>One authored quest row: id, title, objective, reward text beat.</summary>
 public sealed class QuestDef
 {
@@ -200,4 +242,48 @@ public sealed class QuestTable
             new QuestObjective(QuestObjectiveKind.BossDead, 1),
             "boss_fallen"),
     });
+
+    /// <summary>
+    /// The authored ACT TWO rows (MC 10132 Inc-3 S10, RULING-5: "+4 quests
+    /// ruins-deep, existing objective kinds, table-driven act cards, no
+    /// cutscenes, no new zone"). Authoring order IS arc order — the SAME pure
+    /// QuestLog machine plays this table (no new state, no new kind: every
+    /// objective rides a shipped observable — a zone entered, a DNA speak, a
+    /// wage settle, an extraction). The kinds are deliberately ordered
+    /// descent -> tongue -> wage -> bones so each completion is driven by its
+    /// own distinct fact, and BossDead/LoyaltyAtLeast stay UNUSED here: the
+    /// act opens while the act-one boss corpse can still be the live boss, so
+    /// a BossDead row would ride it — the shipped provider would read the
+    /// corpse as a fresh kill (cascade). Rewards name DialogueTable nodes of
+    /// the act-two set; tests/story cross-checks every reference.
+    /// </summary>
+    public static QuestTable RuinsArc() => new QuestTable(new QuestDef[]
+    {
+        new("q_r_descent", "The Way Down",
+            new QuestObjective(QuestObjectiveKind.ZoneReached, 1, "ruins"),
+            "ruins_gate"),
+        new("q_r_tongue", "The Older Tongue",
+            new QuestObjective(QuestObjectiveKind.Spoken, 2),
+            "deep_tongue"),
+        new("q_r_bread", "Bread in the Dark",
+            new QuestObjective(QuestObjectiveKind.WagePaid, 1),
+            "dark_bread"),
+        new("q_r_bones", "The Deeper Count",
+            new QuestObjective(QuestObjectiveKind.Kills, 6),
+            "bones_deeper"),
+    });
+
+    /// <summary>
+    /// The act-two open/close cards (RULING-5 "table-driven act cards"):
+    /// ordered DialogueTable node ids, played as guarded presentation beats
+    /// when the act opens and when <see cref="RuinsArc"/>'s last row
+    /// completes. Composition-root-visible data only — the wiring shows these
+    /// ids through the existing view and prints one ACT_CARD marker per event
+    /// (the REWARD_SHOWN idiom); the reference leg of tests/story pins every
+    /// id against the authored table.
+    /// </summary>
+    public static readonly ActCard ActTwo = new ActCard(
+        "act_two",
+        new[] { "act2_open_a", "act2_open_b" },
+        new[] { "act2_close_a", "act2_close_b" });
 }

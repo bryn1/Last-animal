@@ -122,5 +122,20 @@ public sealed class DialogueTable
         // 2d arc beats: the kill-quest reward and the finale reward.
         new("counters",    "They fall. Something of their tongue passes into you. The land keeps count."),
         new("boss_fallen", "The watcher falls. The grass settles. Nothing is decided."),
+        // MC 10132 Inc-3 S10 act-two beats (RULING-5, owner ruling D6 tone:
+        // English, diegetic-minimal). The four reward beats are the
+        // QuestTable.RuinsArc() rewards; the four card nodes are the
+        // QuestTable.ActTwo open/close pairs, played as guarded presentation
+        // beats through the SAME view + DLQ (no cutscene system). tests/story
+        // cross-checks every quest reward reference and every act-card id
+        // against these entries — a rename fails the story gate, not the player.
+        new("ruins_gate",   "Stone teeth open. The wind comes up colder from below."),
+        new("deep_tongue",  "You speak it twice over. Something old turns its whole attention to you."),
+        new("dark_bread",   "You feed yours in the dark. Bread is loyalty anywhere."),
+        new("bones_deeper", "The older bones learn your tongue now. The deep ground keeps its count."),
+        new("act2_open_a",  "The watcher falls behind you. The way down opens."),
+        new("act2_open_b",  "Older bones line the dark. They spoke a different tongue."),
+        new("act2_close_a", "The deep places keep their count now, and it includes you."),
+        new("act2_close_b", "You carry two tongues and the dark's permission. Go up."),
     });
 }

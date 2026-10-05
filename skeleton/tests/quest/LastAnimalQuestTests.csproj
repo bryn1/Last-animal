@@ -41,6 +41,7 @@
     <Compile Include="QuestLogTests.cs" />
     <Compile Include="QuestSaveWireTests.cs" />
     <Compile Include="QuestBusContractTests.cs" />
+    <Compile Include="ActTwoArcTests.cs" />
     <Compile Include="QuestHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
   </ItemGroup>
 
