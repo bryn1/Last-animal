@@ -382,6 +382,10 @@ public partial class WorldDirector : Node3D
         // MC 3912 2e: the damage VALUE rides the armed-skill multiplier at
         // this single call site (kill-path grep leg stays exactly 1).
         _combat.DealDamage(attackerId: 0, best.Ai, ConsumeSkillDamage(_player.MeleeDamage));
+        // MC 10120 Inc-3 S1: the ONLY hit site drives the presentation juice —
+        // flash + punch ride the VISUAL node (transform + tint) only; the body
+        // gets no impulse (RULING-1; F4: decay is integer frames in VisualJuice).
+        ActorVisual.PlayHitFx(best.Visual, best.GlobalPosition - ppos);
         if (best.IsDead)
         {
             best.KillHide();

@@ -588,3 +588,32 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   correct at master; no misleading wording ever committed — see EVIDENCE). SAVE-
   FREE (only save_game input writes user://, no leg presses it) — no savegate lock.
   Evidence: .audits/20261005-0142-s6-hud/EVIDENCE.md (+logs, 2 capture PNGs).
+
+- MC 10120 / 10026.15.1 S1 hit-flash + VISUAL knockback (Inc-3 W1, 2026-10-05,
+  code VM350, branch vm350/s1-hitflash): 6-frame white flash + 6f VISUAL-NODE
+  offset punch on the composed enemy root — JuiceTuning consts = RULING-1 face
+  (ratified 6f/+6f; PunchDistance 0.35 m declared). Node3D has no Modulate: the
+  per-enemy SHARED StandardMaterial3D MaterialOverride is the only Modulate
+  analogue on the MeshInstance3D tree — flash = white tint of that one instance,
+  exact stored colours restored at +6f. Punch = Visual root local Position only
+  (presentation transform; boss Scale + LookAt orthogonal, body never written).
+  Visual root becomes VisualJuice (partial Node3D, INTEGER-frame decay, F4
+  CalmedWindow idiom; exact base return, no float accumulation). Trigger =
+  3-line hunk at the ONE DealDamage site (TryAttack, WorldDirector.cs): the
+  race-ledger's WorldDirector.Skills.cs guess is SUPERSEDED by reading — the hit
+  is known only there; merge order S8-after-S1 unaffected. EnemyActor.cs ZERO
+  diff (verified). JUICE_HITFLASH leg appended per the leg mechanism (+1: 26
+  legs = 16 positive + 10 negative; proof partial RuntimeIntegrationProof.Juice.cs,
+  stage 95, real attack wire): target physics frozen BEFORE the hit (juice is
+  then the ONLY candidate body-mover) — asserts flash active + punch off base
+  on the hit frame, BOTH still on at +4f (no early decay), BODY GlobalPosition
+  EXACT-equal at +4f and +8f, punch + tint at EXACT base by +6f
+  (JUICE_BODY_STILL position= rides the masked (ii) class). Planted-bad (punch
+  ALSO applied to the body, decayed — the insidious variant) -> leg RED exit 1
+  "BODY MOVED during the juice window" (log in evidence; reverted, green
+  re-proven). determinism_cmp A/A JUICE_HITFLASH under savegate: (i) 11 lines
+  byte-identical, (ii) 1 masked — DETERMINISM: IDENTICAL. Solo (savegate held
+  for legs+cmp): JUICE_HITFLASH green; regression boot_test / smoke /
+  main_composition_test / combat_test exit 0. Full battery NOT run (master-
+  only per F5; header leg-count carried to wave-close restamp as 26=16+10).
+  Evidence: .audits/20261005-0116-s1-hitflash/ (EVIDENCE.md + logs).

@@ -75,6 +75,10 @@
          harness so it stays under the 600-line ceiling (split duty). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Bus.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Chain.cs" />
+    <!-- Compile MC 10120 Inc-3 S1: the juice hit-flash proof partial (mode
+         JUICE_HITFLASH, stage 95) + the VisualJuice root it rides (in
+         world/ActorVisual.cs). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Juice.cs" />
     <!-- Compile MC 3933 stage 2f skills/quest UI (the TAB-toggle SkillsPanel
          view + the UI composition partial + its headless pure-logic leg +
          the framebuffer capture script for ci/ui_test.sh legs E/F). -->

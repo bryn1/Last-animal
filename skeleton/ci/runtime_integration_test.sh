@@ -16,11 +16,11 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 25 run_mode legs = 15 positive modes + 10 negative
+# Battery at this HEAD: 26 run_mode legs = 16 positive modes + 10 negative
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/skill/
-# calm legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
+# calm/juice legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
 # and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
@@ -264,5 +264,12 @@ LOGR="$(LA_GATE_MODE=roster_follow timeout 300 "$GODOT" --headless --path "$PROJ
 [[ "$LOGR" == *'restored entry id'* && "$LOGR" == *'DROPPED — roster cap'* ]] || fail "roster_follow: expected the F4 DROPPED marker on the over-cap restore (world-side drop-arm silent)"
 run_mode roster_neg fail "NEG_ROSTER" "$PROOF_ROSTER"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; non-blank render)"
+# (L) MC 10120 Inc-3 S1 juice hit-flash: the white flash + VISUAL-NODE offset
+# punch on the live scene — active on the hit frame, held at +4f, EXACT base
+# return by +6f, and the enemy BODY GlobalPosition UNCHANGED across the whole
+# window (the target's physics process is off, so juice is the only candidate
+# mover — a punch applied to the body goes RED). Real attack wire, stage 95.
+run_mode JUICE_HITFLASH pass "JUICE_BODY_STILL"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice hit-flash green; non-blank render)"
 exit 0
