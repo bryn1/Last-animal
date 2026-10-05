@@ -76,7 +76,11 @@ public partial class CompanionFollowBody : Node3D
         // so the rig's bones have a readable silhouette on llvmpipe software GL.
         // MC 3889: composed quadruped visual (body + head + 4 legs), built by
         // CompanionVisual — the node is still named "Visual" as before.
-        AddChild(CompanionVisual.Build());
+        // MC 10145 S9: the head accent follows the bound follower's DERIVED
+        // trait; a body composed outside the roster path keeps the base look
+        // (Bonded = the pack gold itself).
+        AddChild(CompanionVisual.Build(
+            BoundFollower?.Trait ?? LastAnimal.Companion.CompanionTrait.Bonded));
     }
 
     public override void _Process(double delta)

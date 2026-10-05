@@ -830,3 +830,30 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   one word ("onto 25" -> "from 25 onto 26", dissent cited in-row).
   Evidence: .audits/20261005-1102-w2-restamp/ (EVIDENCE.md last line
   VERIFY_EXIT=0; comment-only diff proven, RED self-test shown).
+- MC 10145 / 10026.16 S9 follower traits + NF harden (code VM350, 2026-10-05,
+  Inc-3 W3, branch vm350/s9-traits): TRAIT = CompanionRoster.TraitFor(EntityId)
+  — pure-int fold unchecked(17*31+id) %4 over {Steadfast,Forager,Sentinel,
+  Bonded}, S5 PitchFor idiom, NO System.Random (F4); latched with the identity
+  at construction, re-latched ONLY via Follower.RestoreIdentity (NF5 seam: the
+  reuse path's stale latched BusKey is gone, key format unchanged per record).
+  RULING-4 held: trait NEVER persists — F2 grep -c Trait src/save/ == 0 AND
+  save_test V3HasNoTraitField proof-of-absence on the REAL serialized tree
+  (planted-bad persist -> RED, reverted). Presentation + print only: Forgive
+  loyalty-delta print carries the tag ([Steadfast] etc., no new signal, bus
+  diff zero), CompanionVisual head ACCENT from EXISTING palette constants only
+  (UiTheme tokens + gold-as-constant, zero new colours). NF6: restore seam
+  BOUNDS VALUES not sizes (RestoreBondId out of the -1 sentinel class,
+  RestoreLoyalty into the M03 clamp); F4 cap/trim legs additive-only zero-diff
+  (F6, git diff proven). NF7 CITATE-BEFORE-ACT: wage_betrayal leg drives the
+  BONDED skip arm (runtime_integration_test.sh:154-156 -> P1FixProof.cs case
+  20, quits at first Betrayal) — a DIFFERENT arm from the broken-bond
+  continuation (BetrayalSystem.cs:59 keeps manual-break state at Needing, the
+  state gate never excluded it, SkipPayment ran into the clamp forever);
+  option = guarded DELETE: skip-arm gate now also requires HasCompanion (the
+  F1 authority). Plants RED->GREEN all logged (hash-seed, NF5, NF6, trait-into-
+  save, NF7 gate-invert -> wage_betrayal RED "loyalty=3, state=Needing").
+  Gates solo + savegate: roster_test 23, companion_test 15, save_test 23, legs
+  roster_follow/roster_neg/wage_betrayal green at the markers, (i)-streams
+  A/A byte-stable. Battery sweep + docs restamp: W3 barrier (not this card).
+  Evidence: .audits/20261005-1227-s9-traits/ (EVIDENCE.md last line
+  VERIFY_EXIT=0).

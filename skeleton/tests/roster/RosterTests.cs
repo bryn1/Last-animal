@@ -20,6 +20,9 @@ using Xunit;
 //     roster-mean LAST under the reserved key;
 //   * F2 REGRESSION: the REAL QuestLog predicate permanently ignores the
 //     reserved "roster" key (the mean must never feed a quest predicate).
+//   * S9 (MC 10145): the TRAIT derivation table pinned as DATA (planted-bad:
+//     hash seed change -> red), the frozen/re-latched derived identity, and
+//     the NF5/NF6 restore-identity seam (values bounded, sizes not).
 // The visible bodies + Godot glue stay engine-side (world/WorldDirector.Roster.cs).
 namespace LastAnimal.Tests.Roster;
 
@@ -439,5 +442,109 @@ public class CompanionRosterTests
         Assert.Equal(3, accepted.Count);
         for (int i = 0; i < accepted.Count; i++)
             Assert.Same(accepted[i], roster[i]);                  // order intact, nothing swapped in
+    }
+
+    // --- S9 traits + NF5/NF6 restore-identity hardening (MC 10145) -----------
+
+    [Fact]
+    public void TraitFor_DerivationTable_IsPinnedAsData()
+    {
+        // RULING-4: TRAIT = EntityId hash % 4 over {Steadfast, Forager,
+        // Sentinel, Bonded}, the S5 PitchFor pure-int fold (fixed seed 17 —
+        // no System.Random, no string.GetHashCode). PINNED AS DATA: the
+        // planted-bad for this card changes the hash seed in
+        // CompanionRoster.TraitFor and THIS row must go RED. The repeat call
+        // per id is the determinism pin (same input, same answer, pure).
+        int[] ids = { 0, 7, 21, 22, 23, 24, 25, 100 };
+        CompanionTrait[] expected =
+        {
+            CompanionTrait.Bonded,     CompanionTrait.Sentinel,
+            CompanionTrait.Steadfast,  CompanionTrait.Forager,
+            CompanionTrait.Sentinel,   CompanionTrait.Bonded,
+            CompanionTrait.Steadfast,  CompanionTrait.Bonded,
+        };
+        for (int i = 0; i < ids.Length; i++)
+        {
+            Assert.Equal(expected[i], CompanionRoster.TraitFor(ids[i]));
+            Assert.Equal(expected[i], CompanionRoster.TraitFor(ids[i]));   // deterministic re-call
+        }
+        // All four names are reachable over the id domain (the % 4 fold is
+        // total and hits every arm; ids 0..3 are one full period for a
+        // stride-1 fold).
+        var reached = new HashSet<CompanionTrait>();
+        for (int id = 0; id < 4; id++) reached.Add(CompanionRoster.TraitFor(id));
+        Assert.Equal(4, reached.Count);
+    }
+
+    [Fact]
+    public void FollowerTrait_IsFrozenAtConstruction_LikeTheBusKey()
+    {
+        // Trait latches with the identity at construction (spawn paths set
+        // the bond id BEFORE the Follower is built — F2) and does NOT re-roll
+        // when BreakCompanion flips the id to -1 (the same no-drift contract
+        // TwoBetrayedRecruits_DistinctBusKeys pins for the key).
+        var roster = new CompanionRoster();
+        var f = NewFollower("follower", 21);                      // 21 -> Steadfast (table above)
+        Assert.Equal(CompanionTrait.Steadfast, f.Trait);
+        roster.TryAdd(f);
+
+        DrainToZero(f);
+        Assert.Equal(CompanionState.Betrayed, f.Machine.Tick());
+        Assert.NotNull(roster.ExecuteBetrayal(f));
+        Assert.Equal(-1, f.Component.CompanionEntityId);          // id flipped ...
+        Assert.Equal(CompanionTrait.Steadfast, f.Trait);          // ... the trait stayed
+    }
+
+    [Fact]
+    public void RestoreIdentity_ReLatchesBusKeyAndTrait_NF5()
+    {
+        // NF5 harden: the restore REUSE path rewrote the bond id in place and
+        // left the LATCHED key stale ("<name>-<construction-time id>"). The
+        // seam now re-latches key AND derived trait from the saved id (key
+        // format unchanged, per the DA-c2 NF5 record).
+        var f = NewFollower("follower", 21);
+        Assert.Equal("follower-21", f.BusKey);
+        f.RestoreIdentity(30, 60);
+        Assert.Equal(30, f.Component.CompanionEntityId);
+        Assert.Equal(60, f.Component.Loyalty);
+        Assert.Equal("follower-30", f.BusKey);                    // was: stale "follower-21"
+        Assert.Equal(CompanionRoster.TraitFor(30), f.Trait);      // 30 -> Forager (557 % 4)
+        Assert.Equal(CompanionTrait.Forager, f.Trait);            // pinned, not self-referential
+    }
+
+    [Fact]
+    public void RestoreIdentity_BoundsValuesNotSize_NF6()
+    {
+        // NF6 harden: a hand-edited save can carry ANY values; the restore
+        // seam bounds them — bond id out of the -1 unbond-sentinel class (a
+        // negative write used to leave a "name--1" member counted by the
+        // mean), loyalty into the M03 clamp range [0,100]. SIZES stay the
+        // cap's job (the F4 cap/trim legs above are UNCHANGED — F6).
+        var f = NewFollower("follower", 21);
+
+        f.RestoreIdentity(-5, 9999);
+        Assert.Equal(0, f.Component.CompanionEntityId);           // never the sentinel class
+        Assert.True(f.Component.HasCompanion);                    // hostile id cannot unbond a restored stack
+        Assert.Equal(100, f.Component.Loyalty);                   // clamped into M03's range
+        Assert.Equal("follower-0", f.BusKey);
+        Assert.Equal(CompanionTrait.Bonded, f.Trait);             // 0 -> Bonded (527 % 4)
+
+        f.RestoreIdentity(22, -7);
+        Assert.Equal(0, f.Component.Loyalty);
+        Assert.Equal(22, f.Component.CompanionEntityId);
+    }
+
+    [Fact]
+    public void RestoreBounds_Helpers_PinTheTable_NF6()
+    {
+        // The pure bounds the restore seam writes with, pinned as data.
+        Assert.Equal(0, CompanionRoster.RestoreBondId(-1));
+        Assert.Equal(0, CompanionRoster.RestoreBondId(0));
+        Assert.Equal(21, CompanionRoster.RestoreBondId(21));
+        Assert.Equal(0, CompanionRoster.RestoreLoyalty(-7));
+        Assert.Equal(0, CompanionRoster.RestoreLoyalty(0));
+        Assert.Equal(84, CompanionRoster.RestoreLoyalty(84));
+        Assert.Equal(100, CompanionRoster.RestoreLoyalty(100));
+        Assert.Equal(100, CompanionRoster.RestoreLoyalty(9999));
     }
 }

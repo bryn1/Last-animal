@@ -18,7 +18,7 @@ using LastAnimal.Npc;
 // (CompanionFollowBody/CompanionVisual) stay world-side in
 // world/WorldDirector.Roster.cs, index-aligned with Followers.
 //
-// Two contracts live HERE so they hold headless:
+// Three contracts live HERE so they hold headless:
 //   * UNIQUE BUS KEYS (DA-c2 D6): every follower's LoyaltyChanged key is
 //     "<name>-<EntityId>" — two followers can never cross-key one bus line.
 //   * EMIT-ORDER CONTRACT (plan §G D6): TickRoster emits per-follower loyalty
@@ -26,7 +26,21 @@ using LastAnimal.Npc;
 //     the reserved key "roster" — the existing last-value redraw (Hud.cs
 //     hearts) then always paints the mean, with NO Hud edit. QuestLog
 //     permanently ignores the reserved key (F2 ruling, src/story/QuestLog.cs).
+//   * DERIVED IDENTITY (MC 10145 S9): the TRAIT is a pure fold of the bond
+//     EntityId (TraitFor, S5 PitchFor idiom) — never persisted (F2) — and the
+//     restore REUSE seam re-latches key + trait + value bounds in one place
+//     (RestoreIdentity, NF5/NF6 harden).
 namespace LastAnimal.Companion;
+
+/// <summary>
+/// MC 10145 S9 (RULING-4): the follower TRAIT — DERIVED from the bond
+/// EntityId, NEVER persisted (F2 wall: grep -c Trait src/save/ == 0; the
+/// trait re-derives from the EntityId on every load). Presentation + print
+/// only: the loyalty-delta print carries the tag, CompanionVisual takes the
+/// per-trait accent. Per-SLOT deterministic — accepted by the ratified DA
+/// note: ids correlate with spawn order.
+/// </summary>
+public enum CompanionTrait { Steadfast, Forager, Sentinel, Bonded }
 
 /// <summary>
 /// The follower roster: N x (CompanionComponent + CompanionNeeds +
@@ -47,6 +61,31 @@ public sealed class CompanionRoster
 
     /// <summary>Loyalty bonus applied by Forgive (same size as M03 PayBonus).</summary>
     public const int ForgiveBonus = 5;
+
+    /// <summary>
+    /// S9 TRAIT derivation (RULING-4) — pure-int fold, the S5 PitchFor idiom
+    /// (autoload/SfxRouter.cs:71-76): fixed seed, unchecked, (uint) modulo.
+    /// NEVER System.Random, NEVER string.GetHashCode (its seed is per-process —
+    /// F4 cross-run determinism would break). Deterministic per EntityId, so
+    /// the trait is per-SLOT stable across runs (DA note honored in plan v3).
+    /// </summary>
+    public static CompanionTrait TraitFor(int entityId)
+    {
+        int h = unchecked(17 * 31 + entityId);
+        return (CompanionTrait)((uint)h % 4u);
+    }
+
+    /// <summary>NF6 value bound (MC 10145, DA-c2 NF6 record): the restore seam
+    /// takes VALUES from a possibly hand-edited save. A saved bond id can
+    /// never re-enter the -1 unbond-sentinel class from that seam (M03:
+    /// HasCompanion == id >= 0 — a negative write used to unbond a restored
+    /// stack, leaving a "name--1" member counted by the mean).</summary>
+    public static int RestoreBondId(int entityId) => Math.Max(0, entityId);
+
+    /// <summary>NF6: loyalty bound to the M03 clamp range [0, 100] before the
+    /// direct setter write (gameplay paths go through ModifyLoyalty, which
+    /// owns the same clamp).</summary>
+    public static int RestoreLoyalty(int loyalty) => Math.Max(0, Math.Min(100, loyalty));
 
     /// <summary>One follower: the existing stack objects, no new mechanism.</summary>
     public sealed class Follower
@@ -77,8 +116,18 @@ public sealed class CompanionRoster
         /// CompanionEntityId = entry.EntityId). A LIVE-computed key would drift
         /// every betrayer to "&lt;name&gt;--1" once BreakCompanion flips the bond
         /// id — two betrayed recruits would then share one LoyaltyChanged line.
+        /// NF5 harden (MC 10145): the ONE path that rewrites the id on a live
+        /// stack is the restore REUSE seam — it re-latches through
+        /// <see cref="RestoreIdentity"/>, never a silent in-place write.
         /// </summary>
-        public string BusKey { get; }
+        public string BusKey { get; private set; }
+
+        /// <summary>
+        /// S9 (RULING-4): the derived TRAIT, latched with the identity exactly
+        /// like BusKey (and re-latched by RestoreIdentity on the reuse path).
+        /// Derived state only — never persisted (F2: re-computed every load).
+        /// </summary>
+        public CompanionTrait Trait { get; private set; }
 
         public Follower(string name, CompanionComponent component,
                         CompanionNeeds needs, CompanionStateMachine machine)
@@ -90,6 +139,25 @@ public sealed class CompanionRoster
             LoyaltyLast = component.Loyalty;
             StateLast = machine.State;
             BusKey = name + "-" + component.CompanionEntityId;
+            Trait = CompanionRoster.TraitFor(component.CompanionEntityId);
+        }
+
+        /// <summary>
+        /// NF5 harden + NF6 bound (MC 10145, DA-c2 NF5/NF6 records): the
+        /// restore REUSE seam — the one path that applies a SAVED identity onto
+        /// a live stack (spawn paths set the id BEFORE construction — F2). It
+        /// re-latches BusKey and Trait from the saved id (key format unchanged,
+        /// per the NF5 record) and bounds the saved VALUES (NF6: id out of the
+        /// -1 unbond-sentinel class, loyalty into the M03 clamp range) — sizes
+        /// stay the cap's job (F4 legs untouched, F6).
+        /// </summary>
+        public void RestoreIdentity(int entityId, int loyalty)
+        {
+            int id = CompanionRoster.RestoreBondId(entityId);
+            Component.CompanionEntityId = id;
+            Component.Loyalty = CompanionRoster.RestoreLoyalty(loyalty);
+            BusKey = Name + "-" + id;
+            Trait = CompanionRoster.TraitFor(id);
         }
     }
 

@@ -1,9 +1,11 @@
-// SIZE: 331 l — roster-core half of the stage 2g roster wiring (MC 10080 split:
+// SIZE: 350 l — roster-core half of the stage 2g roster wiring (MC 10080 split:
 // the WILD-side members moved VERBATIM to WorldDirector.Roster.Wild.cs — pure
 // move, no logic edits). What lives HERE: the roster/bodies/wild state and its
 // read-only surfaces, Init/Tick, the cycle/break polls, the visible-body spawns
 // and the v3 Followers save seams. (The pre-split SIZE header understated this
 // file by 45 lines and was never true; that lie dies here — MC 3895 idiom.)
+// MC 10145 S9: +19 truthfully counted — the NF5/NF6 restore seam, the NF7
+// skip-arm harden and the trait-tagged loyalty-delta print.
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core.Framework;
@@ -90,9 +92,9 @@ public partial class WorldDirector
             // the roster REFUSES the bonus on a broken bond — no zombie affection.
             var forgiven = _roster.Selected;
             if (_roster.Forgive(forgiven))
-                GD.Print($"ROSTER: Forgive -> {forgiven.BusKey} (+{CompanionRoster.ForgiveBonus} loyalty)");
+                GD.Print($"ROSTER: Forgive -> {forgiven.BusKey} [{forgiven.Trait}] (+{CompanionRoster.ForgiveBonus} loyalty)");
             else
-                GD.Print($"ROSTER: Forgive refused on {forgiven.BusKey} — bond broken (DA W5 F1)");
+                GD.Print($"ROSTER: Forgive refused on {forgiven.BusKey} [{forgiven.Trait}] — bond broken (DA W5 F1)");
         }
         else if (payPressed)
         {
@@ -108,11 +110,19 @@ public partial class WorldDirector
             f.Needs.TickAccompaniment(delta);
             var state = f.Machine.Tick();
 
-            if (state != CompanionState.Betrayed)
+            if (state != CompanionState.Betrayed && f.Component.HasCompanion)
             {
                 // The skip arm runs exactly when THIS follower's pay arm did
                 // not (MC 1348 A3 else-if semantics, per follower). The pay
                 // itself lands below via the roster's own PayDueFollowers.
+                // NF7 harden (MC 10145, DA-c2 NF7 record): a MANUAL break_bond
+                // leaves the machine at Needing (CheckBetrayal requires
+                // HasCompanion, src/npc/BetrayalSystem.cs:59), so the state
+                // gate alone never excluded it — every unpaid interval ran
+                // SkipPayment into the clamp (loyalty stays 0: inert for the
+                // F1 chain, but the SkippedCycles/UnpaidCycles counters kept
+                // advancing on a dead bond). The bond flag — the F1 authority
+                // already used by PayDueFollowers — closes that arm.
                 bool payArm = f.Needs.SalaryDue && payPressed
                               && !recruitAteThePress && !bookOpen;
                 if (!payArm && f.Needs.ConsumeUnpaidInterval())
@@ -216,11 +226,17 @@ public partial class WorldDirector
     }
 
     /// <summary>A restored follower: fresh stack (defaults + the saved bond id
-    /// and loyalty) plus its visible body near the player.</summary>
+    /// and loyalty, VALUES BOUND per NF6) plus its visible body near the
+    /// player.</summary>
     private void SpawnRestoredFollower(FollowerEntry entry, int index)
     {
-        var comp = new LastAnimal.Npc.CompanionComponent { Id = entry.EntityId, Loyalty = entry.Loyalty };
-        comp.CompanionEntityId = entry.EntityId;
+        // NF6 value bounds (MC 10145): a hand-edited entry may carry any
+        // value; the -1 sentinel and out-of-clamp loyalty never enter a live
+        // stack from the restore seam. Sizes stay the cap's job below (F4/F6).
+        int eid = CompanionRoster.RestoreBondId(entry.EntityId);
+        var comp = new LastAnimal.Npc.CompanionComponent
+            { Id = eid, Loyalty = CompanionRoster.RestoreLoyalty(entry.Loyalty) };
+        comp.CompanionEntityId = eid;
         var needs = new CompanionNeeds();
         var machine = new CompanionStateMachine(index == 0 ? "companion" : "follower",
             comp, needs, _salary, _betrayal);
@@ -238,10 +254,10 @@ public partial class WorldDirector
         var hook = new CompanionAnimationHook("walkBaked", "walkBaked", "walkBaked");
         var body = new CompanionFollowBody(machine, hook)
         {
-            Name = $"Companion{entry.EntityId}",
+            Name = $"Companion{eid}",
             Target = Player,
             Y = 0.55f,
-            EntityId = entry.EntityId,
+            EntityId = eid,
             BoundFollower = follower,
         };
         AddChild(body);
@@ -289,10 +305,15 @@ public partial class WorldDirector
             var e = entries[i];
             if (i < _roster.Count)
             {
+                // NF5 harden + NF6 bounds (MC 10145): the reuse path applies
+                // the saved identity through the roster's own seam — BusKey and
+                // the derived trait RE-LATCH from the saved id (the old bare
+                // in-place write left the latched key stale, DA-c2 NF5) and the
+                // saved values are bound (NF6). The visible body follows the
+                // BOUND id, never the raw entry.
                 var f = _roster[i];
-                f.Component.CompanionEntityId = e.EntityId;
-                f.Component.Loyalty = e.Loyalty;
-                _bodies[i].EntityId = e.EntityId;
+                f.RestoreIdentity(e.EntityId, e.Loyalty);
+                _bodies[i].EntityId = f.Component.CompanionEntityId;
             }
             else
             {

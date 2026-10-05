@@ -143,6 +143,21 @@ public class SaveSystemTests
     }
 
     [Fact]
+    public void V3HasNoTraitField()
+    {
+        // MC 10145 S9 (RULING-4 / F2): the follower TRAIT is DERIVED — re-folded
+        // from the bond EntityId on every load — NEVER persisted. Proof-of-
+        // absence on the REAL save tree: the Representative state (its Followers
+        // row included) serializes with no trait field on the wire. Planted-bad
+        // for the S9 card: persist the trait once (field on FollowerEntry + the
+        // snapshot write) and THIS row goes RED — the wall is load-bearing, not
+        // decorative (companion of the repo grep -c Trait src/save/ == 0).
+        var json = System.Text.Json.JsonSerializer.Serialize(GameState.Representative());
+        Assert.DoesNotContain("Trait", json);
+        Assert.Contains("Followers", json);                       // the row IS on the wire — the absence above is not vacuous
+    }
+
+    [Fact]
     public void RoundTrip_PreservesPlayerHealth()
     {
         // MC 1348 N1: the save must capture player health so a load rescues a
