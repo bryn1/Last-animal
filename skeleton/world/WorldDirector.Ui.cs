@@ -58,6 +58,11 @@ public partial class WorldDirector
     /// </summary>
     private void InitUi()
     {
+        // MC 10103 F-B: the save-load hurt-rebaseline seam is wired BEFORE
+        // the UICanvas guard — the bus-emit poll runs in no-UI compositions
+        // too (same reason the baselines arm on the first poll, not here).
+        _saveLoad.BusHurtRebaseline = RebaselineBusHurtEdge;
+
         if (UICanvas == null) return;   // same guard as BuildUi (no UI host)
 
         _skillsPanel = new SkillsPanel { Name = "SkillsPanel" };
@@ -99,8 +104,10 @@ public partial class WorldDirector
     /// unchanged value emits nothing). F-2 (DA-c3): the boss edge is tracked
     /// by ACTOR REFERENCE — emit only when the tracked BossActor's IsDead
     /// turns true; a null swap (ClearZoneEnemies, WorldDirector.cs:342)
-    /// re-arms the tracker WITHOUT emitting (zone exit is not a death).
-    /// Read-only on every authority; DialogueSystem/queue code untouched.
+    /// re-arms the tracker WITHOUT emitting (zone exit is not a death),
+    /// except when the swapped-OUT actor died unemitted (MC 10103 F-A — the
+    /// swap emits the swallowed death). Read-only on every authority;
+    /// DialogueSystem/queue code untouched.
     /// </summary>
     private void PollBusEmits()
     {
@@ -124,7 +131,14 @@ public partial class WorldDirector
         var boss = BossActor;
         if (!ReferenceEquals(boss, _busBossTracked))
         {
-            // Reference swap (spawn or the zone-exit null): re-arm, never emit.
+            // Reference swap (spawn or the zone-exit null): re-arm. A swap of
+            // an ALIVE actor never emits (F-2: zone exit is not a death) —
+            // MC 10103 F-A: a swap carrying an UNEMITTED death does: a same-
+            // frame kill+travel can swap BossActor before the FIRST poll that
+            // could observe IsDead, so the outgoing actor's death rides the
+            // swap — emit it, then re-arm.
+            if (_busBossTracked != null && _busBossTracked.IsDead && !_busBossFallenEmitted)
+                _bus.EmitBossFallen(_busBossTracked.Ai.EntityId.ToString());
             _busBossTracked = boss;
             _busBossFallenEmitted = false;
         }
@@ -134,6 +148,13 @@ public partial class WorldDirector
             _busBossFallenEmitted = true;
         }
     }
+
+    /// <summary>MC 10103 F-B: the save-load hurt-rebaseline seam (injected
+    /// into SaveLoadController, invoked right after its RestoreHealth): a load
+    /// RESTORES health, it is not damage — re-arming the baseline keeps a
+    /// lower saved HP from emitting a false PlayerHurt edge. The next poll
+    /// re-baselines silently; a later real TakeDamage still emits once.</summary>
+    private void RebaselineBusHurtEdge() => _busHealthBaseline = false;
 
     /// <summary>TAB arm: flip the skills panel (owner ruling D5: toggle,
     /// no tree, no pause — a readout, like the empathy book).</summary>
