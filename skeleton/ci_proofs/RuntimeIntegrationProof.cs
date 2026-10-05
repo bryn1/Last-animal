@@ -74,6 +74,11 @@ using System.Linq;
 //                     frame, held at +4f, EXACT base return by +6f, enemy
 //                     BODY GlobalPosition UNCHANGED (stage 95,
 //                     RuntimeIntegrationProof.Juice.cs).
+//   JUICE_SHAKE     — MC 10121 Inc-3 S2: FollowCamera subscribes S0's
+//                     PlayerHurt/BossFallen; the shake window opens on the
+//                     emit, holds at +4f, and the camera returns to its
+//                     EXACT shake-free follow base by +12f (integer-frame
+//                     decay, F4; stage 96, RuntimeIntegrationProof.Shake.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -172,6 +177,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // calm_neg: the calm cast + window ride the SAME seam (MC 10031) —
         // off before _Ready; the NEG_CALM leg proves a funded press leaks zero.
         if (_mode == "calm_neg" && main is WorldDirector dcm) dcm.SetSkillActionsEnabled(false);
+        // JUICE_SHAKE (MC 10121 S2): the shake legs are scripted quiet (the
+        // bus_emit idiom) — a standing player would be whittled by the spawn
+        // set and stray PlayerHurt edges would re-arm the window mid-assert.
+        if (_mode == "JUICE_SHAKE" && main is WorldDirector dsh) dsh.SetSpawningEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -219,6 +228,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             _stage = 80;
             _stageFrames = 0;
             GD.Print($"LA_GATE: composed (bus mode) — enemies={_enemies.Count} (spawning off at boot)");
+            return;
+        }
+
+        // JUICE_SHAKE (MC 10121 S2): the shake stage drives its own scripted
+        // edges (TakeDamage + a consumer-test BossFallen emit); routes BEFORE
+        // the live-enemy guard — this mode boots with spawning off (quiet
+        // legs, bus_emit idiom). Stage body lives in Shake.cs.
+        if (_mode == "JUICE_SHAKE")
+        {
+            _stage = 96;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (shake mode) — enemies={_enemies.Count} (spawning off at boot)");
             return;
         }
 
@@ -411,6 +432,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- JUICE_HITFLASH (MC 10120 S1): stage body lives in
             // RuntimeIntegrationProof.Juice.cs (partial).
             case 95: RunJuiceStage(); break;
+            // ---- JUICE_SHAKE (MC 10121 S2): stage body lives in
+            // RuntimeIntegrationProof.Shake.cs (partial).
+            case 96: RunShakeStage(); break;
         }
         return false;
     }
