@@ -169,6 +169,11 @@
          its executor. Appended at the ItemGroup END (S2 Shake.cs precedent)
          so parallel W2 csproj hunks merge cleanly. -->
     <Compile Include="src/story/ActTwoSync.cs" />
+    <!-- Compile MC 10138 act-two quest tracker capture script (the
+         framebuffer leg HUD_QUESTLINE_ACT2 of ci/ui_test.sh: act-one title
+         at boot, act-two title mid-arc after the shipped restore-sync open).
+         Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="tests/ui/HudQuestAct2CaptureTest.cs" />
   </ItemGroup>
 
 </Project>

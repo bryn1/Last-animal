@@ -750,6 +750,7 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   disabled -> ACT2_OPENED RED; relaxed guard -> named unit tests RED).
   Known limitation flagged: HUD LiveQuestLine reads act-one log ("Quest: none"
   during act two) — Ui.cs is S0-owned, out of this card's file list.
+  [CLOSED 2026-10-05 by the MC 10138 rider row below.]
   Evidence: .audits/20261005-0632-s10-story/EVIDENCE.md (VERIFY_EXIT=0).
 
 - MC 10126 / 10026.13.6 rooted-fields-at-Quit latent sweep PART 2 (code VM350, 2026-10-05, branch
@@ -774,3 +775,19 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   EXIT=0 (render bars PASS). Full runtime_integration battery NOT run (orchestrator owns). SIZE
   headers restamped: ZoneBossProof 419->441, RosterIntegrationProof 278->298. Evidence:
   .audits/20261005-1003-latent2/EVIDENCE.md (VERIFY_EXIT=0).
+- MC 10138 / 10026.15.9 HUD act-two tracker rider (code VM350, 2026-10-05,
+  closes S10's flagged limitation): WorldDirector.Ui.cs LiveQuestLine is now
+  a union/priority read across BOTH act logs — the act-two row wins while its
+  log has a still-Active one (act-open edge through the arc), else act one's
+  first still-Active row; READ-SIDE only, _quests keeps its shipped act-one
+  identity (no reference swap — quest_arc case 5 reads QStatus("q_boss")
+  through Quests post-open; quest_arc solo green = preservation proof). New
+  ui_test run (I) HUD_QUESTLINE_ACT2 — tests/ui/HudQuestAct2CaptureTest.cs
+  opens the act through the shipped restore-sync save path (quest_arc2
+  FromSaveRows+Save/Load idiom, no proof-side API): baseline run pins the
+  act-one title, act run pins "The Way Down" mid-arc + quest-row pixel bars
+  (measured: play window maps +64+36 in the helper's 1280x720 root).
+  Planted-bad: union reverted -> run I GATE RED ("Quest: none" symptom) then
+  revert + re-green; ui_test/boot/main_composition/quest_test/quest_arc solo
+  green under SAVEGATE flock. Evidence: .audits/20261005-0954-hudact2/
+  EVIDENCE.md (VERIFY_EXIT=0).
