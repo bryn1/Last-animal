@@ -79,6 +79,14 @@ using System.Linq;
 //                     emit, holds at +4f, and the camera returns to its
 //                     EXACT shake-free follow base by +12f (integer-frame
 //                     decay, F4; stage 96, RuntimeIntegrationProof.Shake.cs).
+//   DISSOLVE_SUPPRESS — MC 10129 Inc-3 S3: kill a live enemy on the real
+//                     wire; from the death tick the body collision is OFF and
+//                     the corpse is outside every director targeting scan
+//                     (existing IsDead predicate reused, WorldDirector.cs:375),
+//                     a FORCED direct DealDamage still deals 0, the visual
+//                     dissolves 20f (integer counter, F4) and frees itself at
+//                     f+21; enemy-count/existence prints show the corpse
+//                     absent (stage 97, RuntimeIntegrationProof.Dissolve.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -315,6 +323,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // DISSOLVE_SUPPRESS (MC 10129 S3): the leg kills a live enemy through
+        // the REAL wire and asserts the death-tick suppression + 20f dissolve.
+        // It NEEDS the live spawn set (quiet-boot modes have no corpse to
+        // make), so it routes after the enemy guard — stage body lives in
+        // RuntimeIntegrationProof.Dissolve.cs.
+        if (_mode == "DISSOLVE_SUPPRESS")
+        {
+            _stage = 97;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (dissolve mode) — enemies={_enemies.Count}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -435,6 +456,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- JUICE_SHAKE (MC 10121 S2): stage body lives in
             // RuntimeIntegrationProof.Shake.cs (partial).
             case 96: RunShakeStage(); break;
+            // ---- DISSOLVE_SUPPRESS (MC 10129 S3): stage body lives in
+            // RuntimeIntegrationProof.Dissolve.cs (partial).
+            case 97: RunDissolveStage(); break;
         }
         return false;
     }

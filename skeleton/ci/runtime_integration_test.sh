@@ -281,4 +281,19 @@ echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verifie
 run_mode JUICE_SHAKE pass "JUICE_SHAKE_AT_BASE"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice shake green; non-blank render)"
+# (N) MC 10129 Inc-3 S3 death dissolve: a real-wire kill pins the death-tick
+# suppression — body collision mask 0 (the plan-named collision-off line; the
+# engine's layer-number API is 1-based, the 0-based literal is a silent no-op —
+# MC 10129 probe, evidence dir) while the director's EXISTING IsDead targeting
+# predicate (WorldDirector.cs:375, reused not re-authored) keeps the corpse out
+# of every targeting/count print — and the visual dissolves on a 20-frame
+# INTEGER counter (F4), freeing itself at f+21 (visual despawn). Through
+# f+1..+20 forced attacks deal 0: input presses never land (zero DamageDealt
+# events name the corpse id) AND a direct forced DealDamage(9999) returns
+# false with health pinned at 0 (the ghost-body evidence leg, DA P2-4; the
+# planted skip-collision-off goes RED at the mask read). Stage 97, real spawn
+# set, no save touched.
+run_mode DISSOLVE_SUPPRESS pass "DISSOLVE_GONE"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; non-blank render)"
 exit 0

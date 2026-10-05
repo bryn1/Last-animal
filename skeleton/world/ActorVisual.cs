@@ -14,9 +14,13 @@ using LastAnimal.Combat;
 // hit juice (white flash + VISUAL-NODE offset punch) on the composed root —
 // presentation transform + tint ONLY, decayed on integer frame counters (F4);
 // the EnemyActor body physics stay untouched (RULING-1, no physics impulse).
+// MC 10129 Inc-3 S3 adds the death dissolve on the SAME composed root: 20
+// frames of alpha/scale-down, the visual node frees itself at f+21 — same
+// integer-counter idiom (F4), presentation transform + tint + self-despawn
+// only; the body suppression lives in EnemyActor.KillHide, not here.
 namespace LastAnimal.World;
 
-/// <summary>Inc-3 S1 hit-juice tunables — RULING-1 face, ratified defaults
+/// <summary>Inc-3 juice/dissolve tunables — RULING-1 face, ratified defaults
 /// 6f flash / base return at +6f. Consts only: no wall-clock anywhere.</summary>
 public static class JuiceTuning
 {
@@ -25,6 +29,9 @@ public static class JuiceTuning
     public const int PunchReturnFrames = 6;
     public const float PunchDistance = 0.35f;   // short, sub-body-width metres
     public const float PunchDirMinLenSq = 1e-6f;   // flatter dirs read as head-on
+    /// <summary>MC 10129 S3: death-dissolve length; the visual node despawns
+    /// (frees itself) on frame f+21 when the counter drains at f+20.</summary>
+    public const int DissolveFrames = 20;
 }
 
 /// <summary>Builds a composed primitive silhouette for one enemy kind.</summary>
@@ -48,6 +55,17 @@ public static class ActorVisual
 
     /// <summary>True when the visual root sits at its exact base Position.</summary>
     public static bool IsVisualAtBase(Node3D? visual) => (visual as VisualJuice)?.IsPositionAtBase ?? false;
+
+    /// <summary>MC 10129 S3: arm the death dissolve on a built visual root —
+    /// 20 frames of alpha + scale-down, the visual node frees itself at f+21.
+    /// Presentation-only — never touches the body; non-juice roots no-op.</summary>
+    public static void PlayDeath(Node3D? visual)
+    {
+        (visual as VisualJuice)?.PlayDeath();
+    }
+
+    /// <summary>True while the death dissolve is still draining (f+1..+20).</summary>
+    public static bool IsDissolving(Node3D? visual) => (visual as VisualJuice)?.IsDissolving ?? false;
 
     /// <summary>
     /// Distinct, saturated per-type colours, none matching player blue
@@ -228,8 +246,10 @@ public partial class VisualJuice : Node3D
     private readonly StandardMaterial3D? _tint;
     private readonly Color _baseAlbedo, _baseEmission;
     private int _flashFrames, _punchFrames;
+    private int _dissolveFrames;               // MC 10129 S3: death-dissolve counter
     private Vector3 _punchDir;
     private Vector3 _basePos = Vector3.Zero;   // captured on _Ready (never written by the sim)
+    private Vector3 _baseScale = Vector3.One;  // MC 10129 S3: the BUILT scale (boss 2.75x rides it)
 
     public VisualJuice() { }
 
@@ -250,11 +270,19 @@ public partial class VisualJuice : Node3D
 
     public bool IsPositionAtBase => Position == _basePos;
 
-    public override void _Ready() => _basePos = Position;
+    /// <summary>MC 10129 S3: True while the death dissolve is draining.</summary>
+    public bool IsDissolving => _dissolveFrames > 0;
+
+    public override void _Ready()
+    {
+        _basePos = Position;
+        _baseScale = Scale;   // MC 10129 S3: Build() already applied the boss scale
+    }
 
     /// <summary>Arm one hit (white tint + full offset). Presentation-only.</summary>
     public void PlayHit(Vector3 hitDirWorld)
     {
+        if (_dissolveFrames > 0) return;   // S3: a dying visual takes no new juice
         var d = new Vector3(hitDirWorld.X, 0f, hitDirWorld.Z);
         _punchDir = d.LengthSquared() < JuiceTuning.PunchDirMinLenSq
             ? Vector3.Right
@@ -269,8 +297,45 @@ public partial class VisualJuice : Node3D
         Position = _basePos + _punchDir * JuiceTuning.PunchDistance;
     }
 
+    /// <summary>MC 10129 S3: arm one death dissolve (20 frames alpha + scale
+    /// down to nothing; the node frees itself at f+21). An in-flight hit juice
+    /// is retired to EXACT base first (the killing hit flashed this same frame),
+    /// so the dissolve always runs from the ratified base state. Alpha needs
+    /// the shared material switched to its alpha-blend transparency once.</summary>
+    public void PlayDeath()
+    {
+        if (_dissolveFrames > 0) return;
+        _flashFrames = 0;
+        _punchFrames = 0;
+        Position = _basePos;
+        if (_tint != null)
+        {
+            _tint.AlbedoColor = _baseAlbedo;
+            _tint.Emission = _baseEmission;
+            _tint.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;   // alpha fade needs the blend mode; once, never undone
+        }
+        _dissolveFrames = JuiceTuning.DissolveFrames;
+    }
+
     public override void _Process(double delta)
     {
+        if (_dissolveFrames > 0)
+        {
+            // S3: integer-frame dissolve (F4) — alpha and scale both read the
+            // EXACT counter fraction, never a delta accumulation. At the zero
+            // tick the node despawns itself: visual gone by f+21.
+            _dissolveFrames--;
+            float k = (float)_dissolveFrames / JuiceTuning.DissolveFrames;
+            if (_tint != null)
+                _tint.AlbedoColor = new Color(_baseAlbedo.R, _baseAlbedo.G, _baseAlbedo.B, k);
+            Scale = _baseScale * k;
+            if (_dissolveFrames == 0)
+            {
+                if (GetParent() is EnemyActor body) body.OnVisualDespawned();
+                QueueFree();
+            }
+            return;
+        }
         if (_punchFrames > 0)
         {
             _punchFrames--;

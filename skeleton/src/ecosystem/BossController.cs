@@ -14,6 +14,15 @@ using LastAnimal.Dna;
 // immutable BossPhaseState with a Changed flag; it does NOT touch the bus
 // or the scene. The C2 EcosystemAdapted emit and the SpawnSet re-application
 // are the caller's (WorldDirector's) job — same split as EcosystemSpawner.
+//
+// DEATH SITE (MC 10129 Inc-3 S3, the "death-site hook" the plan names for
+// this file): there is none HERE, and none is owed. The zone boss IS a plain
+// EnemyActor in the director's live set (ApplySpawnSet), so its death rides
+// the ONE kill path (WorldDirector.TryAttack -> EnemyActor.KillHide): the S3
+// death-tick suppression (collision mask 0, physics stop, damage zero) and
+// the 20-frame visual dissolve with the f+21 self-despawn apply to the boss
+// body through that same choke. A boss-specific hook here would be a second
+// mechanism beside the existing one and would break I3 — do not add one.
 namespace LastAnimal.Ecosystem;
 
 /// <summary>Immutable phase state of the zone boss (C15).</summary>
