@@ -91,7 +91,7 @@ public partial class EmpathyPanel : Control
         AddChild(panel);
 
         _stateLabel = new Label { Name = "EmpathyState", Position = new Vector2(10, 8) };
-        _stateLabel.AddThemeFontSizeOverride("font_size", 22);
+        _stateLabel.AddThemeFontSizeOverride("font_size", UiTheme.EmpathyFontSize);
 
         _summaryLabel = new Label { Name = "EmpathySummary", Position = new Vector2(10, 40) };
         _summaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -103,7 +103,7 @@ public partial class EmpathyPanel : Control
 
         foreach (var label in new[] { _stateLabel, _summaryLabel, _hintLabel })
         {
-            label.Modulate = new Color(0.95f, 0.9f, 1.0f);
+            label.Modulate = UiTheme.EmpathyTextColor;
             panel.AddChild(label);
         }
     }

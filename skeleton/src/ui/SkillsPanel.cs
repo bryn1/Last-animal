@@ -20,7 +20,8 @@ using System;
 //
 // Costs are read from the SkillState economy constants (single source), ids
 // from PlayerMutations (the unlock authority's wire ids). Palette: the labels
-// reuse the Hud gauge colour exactly — zero new colours (2f palette rule).
+// reuse the Hud gauge colour UiTheme.GaugeColor exactly — zero new colours
+// (2f palette rule; S6 pulled the literal into the UiTheme token home).
 namespace LastAnimal.Ui;
 
 /// <summary>
@@ -167,8 +168,8 @@ public partial class SkillsPanel : Control
     private static Label MakeRow(string name, string text, float y)
     {
         var label = new Label { Name = name, Text = text, Position = new Vector2(10, y) };
-        label.AddThemeFontSizeOverride("font_size", 20);
-        label.Modulate = new Color(1.0f, 1.0f, 1.0f);   // the Hud gauge colour — zero new colours
+        label.AddThemeFontSizeOverride("font_size", UiTheme.GaugeFontSize);
+        label.Modulate = UiTheme.GaugeColor;   // the Hud gauge colour — zero new colours
         return label;
     }
 }

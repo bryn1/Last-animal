@@ -44,6 +44,10 @@
     <Compile Include="src/ui/Hud.cs" />
     <Compile Include="src/ui/DialogueSystem.cs" />
     <Compile Include="src/ui/EmpathyPanel.cs" />
+    <!-- Compile MC 10123 stage S6 UI theme tokens (UiTheme: the single literal
+         home for the three panel files; the ui_test UI_TOKENS_SINGLE_SOURCE
+         leg greps those files raw-literal-clean). -->
+    <Compile Include="src/ui/UiTheme.cs" />
     <!-- Compile MC 3900 stage 2a story data layer (DialogueTable: pure logic,
          the injected text source of the dialogue view) + its headless
          exact-text capture proof (Godot SceneTree script, ci/ui_test.sh leg D). -->
@@ -138,6 +142,10 @@
     <Compile Include="tests/companion/CompanionRenderTest.cs" />
     <Compile Include="tests/ui/UiRenderTest.cs" />
     <Compile Include="tests/ui/UiHarnessSelfTest.cs" />
+    <!-- Compile MC 10123 stage S6 low-health vignette capture script (the
+         framebuffer leg HUD_VIGNETTE of ci/ui_test.sh: on <30 / off >=30
+         boundary + non-blank tint pixel). -->
+    <Compile Include="tests/ui/HudVignetteCaptureTest.cs" />
   </ItemGroup>
 
 </Project>

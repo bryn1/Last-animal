@@ -46,7 +46,21 @@
 #            the two frames are byte-identical there and this leg goes RED
 #            (planted-bad #2). No Camera3D exists in the capture scene, so
 #            every other pixel is static 2D — the diff is the panel or zero.
-# The gate passes only if A–F all behave as expected.
+#   (G) MC 10123 stage S6 — UI_TOKENS_SINGLE_SOURCE: the three panel files
+#       (Hud.cs, SkillsPanel.cs, EmpathyPanel.cs) must carry ZERO raw theme
+#       literals — no `new Color(` and no numeric font_size override. Their
+#       single home is src/ui/UiTheme.cs (which must exist). Planted-bad
+#       (evidence dir 20261005-s6-hud): re-adding
+#       `label.Modulate = new Color(1f, 0f, 0f);` to Hud.cs turns this RED.
+#   (H) MC 10123 stage S6 — HUD_VIGNETTE: the low-health red tint layer, ON
+#       strictly BELOW 30 and OFF AT 30 (the strict `<` boundary), via two
+#       graphical-test-helper runs of tests/ui/HudVignetteCaptureTest.cs
+#       (LA_VIGNETTE_HEALTH=29 / =30). Each run's self-check marker pins the
+#       alpha state in-code; the pixel bar measures a corner crop far from
+#       every label/panel rect — pure uniform backdrop in the OFF run, so
+#       the ONLY thing that can move it is the vignette: the ON run's tint
+#       pixel must be non-blank red AND measurably redder than the OFF run.
+# The gate passes only if A–H all behave as expected.
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
@@ -62,6 +76,7 @@ UI_HARNESS="res://tests/ui/UiHarnessSelfTest.cs"
 STORY_CAPTURE="res://tests/story/StoryTextCaptureTest.cs"
 UI_2F_LOGIC="res://tests/ui/SkillsPanelTest.cs"
 UI_2F_CAPTURE="res://tests/ui/SkillsPanelCaptureTest.cs"
+UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
@@ -73,6 +88,10 @@ UI_2F_MARKER="LA_2F_UI_TEST: PASS"
 # here fails F1/F2 loudly, never silently.
 MANNA_CROP="260x26+8+36"
 PANEL_CROP="420x200+8+440"
+# S6 vignette corner crop: far from every HUD label row (top-left) and from
+# the SkillsPanel rect (x 8..428, y 440..700). In the capture scene nothing
+# else paints there, so the ONLY thing that can move it is the vignette.
+VIGNETTE_CROP="200x120+900+480"
 
 fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -d "$TESTS_UI" ] || fail "ui tests dir not found: $TESTS_UI"
@@ -81,6 +100,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$PROJ/tests/story/StoryTextCaptureTest.cs" ] || fail "StoryTextCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/SkillsPanelTest.cs" ] || fail "SkillsPanelTest.cs not found"
 [ -f "$PROJ/tests/ui/SkillsPanelCaptureTest.cs" ] || fail "SkillsPanelCaptureTest.cs not found"
+[ -f "$PROJ/tests/ui/HudVignetteCaptureTest.cs" ] || fail "HudVignetteCaptureTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -199,5 +219,70 @@ echo "UI_HUD_TEST: F2 panel-region diff stddev=$DIFF_SD mean=$DIFF_MEAN (bar: st
 fnum "$DIFF_SD" 0.01 || fail "run F2: panel region identical before/after TAB (stddev=$DIFF_SD) — the ui_toggle handler did not paint the panel"
 fnum "$DIFF_MEAN" 0.003 || fail "run F2: panel region diff too small (mean=$DIFF_MEAN) — panel content missing"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F)"
+# ---------------------------------------------------------------------------
+# (G) MC 10123 stage S6 — UI_TOKENS_SINGLE_SOURCE: the three panel files carry
+#     ZERO raw theme literals (their home is src/ui/UiTheme.cs, which must
+#     exist). Pure static grep — no godot, no framebuffer. PLANTED-BAD (the
+#     gate's own anti-rubber-stamp): add `label.Modulate = new Color(1f,0f,0f);`
+#     to MakeLabel in src/ui/Hud.cs and this leg goes RED (see evidence dir
+#     .audits/*-s6-hud/ ui_tokens_planted_bad.log).
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run G — UI_TOKENS_SINGLE_SOURCE (three panel files raw-literal-clean)"
+[ -f "$PROJ/src/ui/UiTheme.cs" ] || fail "run G: UiTheme.cs absent (the single token home is missing)"
+for PANEL in Hud.cs SkillsPanel.cs EmpathyPanel.cs; do
+  HITS="$(grep -nE 'new Color\(|AddThemeFontSizeOverride\([^)]*,[[:space:]]*[0-9]' \
+          "$PROJ/src/ui/$PANEL" 2>/dev/null)"
+  if [ -n "$HITS" ]; then
+    echo "run G: UI_TOKENS_SINGLE_SOURCE — $PANEL reintroduced a raw theme literal (move it to UiTheme.cs):"
+    printf '%s\n' "$HITS"
+    fail "run G: raw theme literal(s) in $PANEL — UiTheme.cs is the single source"
+  fi
+done
+echo "UI_HUD_TEST: G ok — Hud/SkillsPanel/EmpathyPanel carry no raw colour/font-size literal (UiTheme.cs is the sole home)"
+
+# ---------------------------------------------------------------------------
+# (H) MC 10123 stage S6 — HUD_VIGNETTE: the low-health red tint layer, ON
+#     strictly below 30 and OFF at 30. TWO runs of HudVignetteCaptureTest.cs
+#     (LA_VIGNETTE_HEALTH=29 vs =30) under Xvfb, each self-checking its alpha
+#     state IN-SCENE (LA_VIGNETTE: PASS marker) AND measured at a far corner
+#     that ONLY the vignette can move: the 29-run tint pixel must be non-blank
+#     red, AND measurably redder than the 30-run (the strict `<` boundary).
+#     PLANTED-BAD: flip Hud.cs PaintVignette's `Life < UiTheme.LowHealthThreshold`
+#     to `<=` and the health=30 run turns the corner red -> this leg goes RED.
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run H — HUD_VIGNETTE on/below boundary + tint pixel non-blank"
+LOGH_ON="$("$GUI_HELPER" --cmd "LA_VIGNETTE_HEALTH=29 $GODOT --path $PROJ --script $UI_VIGNETTE > $CAPDIR/app-vig-29.log 2>&1" \
+          --wait 6 --out "$CAPDIR/la-vig-29.png" 2>&1)"
+printf '%s\n' "$LOGH_ON"
+[[ "$LOGH_ON" == *'RESULT=PASS'* ]] \
+  || fail "run H: health=29 capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-vig-29.log" 2>/dev/null)" == *'LA_VIGNETTE: PASS'* ]] \
+  || fail "run H: health=29 self-check marker missing (vignette did not report alpha>0 below 30)"
+
+LOGH_OFF="$("$GUI_HELPER" --cmd "LA_VIGNETTE_HEALTH=30 $GODOT --path $PROJ --script $UI_VIGNETTE > $CAPDIR/app-vig-30.log 2>&1" \
+           --wait 6 --out "$CAPDIR/la-vig-30.png" 2>&1)"
+printf '%s\n' "$LOGH_OFF"
+[[ "$LOGH_OFF" == *'RESULT=PASS'* ]] \
+  || fail "run H: health=30 capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-vig-30.log" 2>/dev/null)" == *'LA_VIGNETTE: PASS'* ]] \
+  || fail "run H: health=30 self-check marker missing (vignette did not report alpha==0 at the boundary)"
+
+# Red-channel mean of the far corner (a uniform backdrop OFF, red-tinted ON).
+# The 29-run must be non-blank red AND strictly redder than the 30-run: that
+# mean delta IS the on/off boundary painted on real pixels (t=0 pulse floor
+# 0.10 over a dark backdrop clears the 0.02 bar comfortably; a no-op vignette
+# leaves both means equal -> RED).
+RED29="$(convert "$CAPDIR/la-vig-29.png" -crop "$VIGNETTE_CROP" +repage \
+        -channel R -separate -delete 1,2 -format '%[fx:mean]' info: 2>/dev/null)"
+RED30="$(convert "$CAPDIR/la-vig-30.png" -crop "$VIGNETTE_CROP" +repage \
+        -channel R -separate -delete 1,2 -format '%[fx:mean]' info: 2>/dev/null)"
+RED_DELTA="$(awk -v a="$RED29" -v b="$RED30" 'BEGIN { printf "%.6f", a - b }')"
+echo "UI_HUD_TEST: H vignette-corner red mean: health29=$RED29  health30=$RED30  delta=$RED_DELTA (bar: red29>=0.15, delta>=0.02)"
+fnum "$RED29" 0.15 \
+  || fail "run H: health=29 corner red mean=$RED29 — the low-health tint pixel is blank (no red paint in the far corner)"
+fnum "$RED_DELTA" 0.02 \
+  || fail "run H: corner red delta=$RED_DELTA too small — the vignette does not turn ON below 30 / OFF at 30 (boundary not painted)"
+echo "UI_HUD_TEST: H ok — vignette ON <30 (tint pixel non-blank red), OFF at the 30 boundary"
+
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H)"
 exit 0
