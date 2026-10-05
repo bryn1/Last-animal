@@ -69,6 +69,11 @@ using System.Linq;
 //                     scene, incl. the F-2 guard: a zone exit with the boss
 //                     alive (no death) must NOT emit BossFallen
 //                     (RuntimeIntegrationProof.Bus.cs).
+//   JUICE_HITFLASH  — MC 10120 Inc-3 S1: the hit-flash + VISUAL-NODE punch
+//                     leg on the live scene — flash/punch active on the hit
+//                     frame, held at +4f, EXACT base return by +6f, enemy
+//                     BODY GlobalPosition UNCHANGED (stage 95,
+//                     RuntimeIntegrationProof.Juice.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -278,6 +283,17 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // JUICE_HITFLASH (MC 10120 S1): the juice stage drives its own single
+        // hit (frozen target, one attack press on the real wire); route to
+        // stage 95 — stage body lives in RuntimeIntegrationProof.Juice.cs.
+        if (_mode == "JUICE_HITFLASH")
+        {
+            _stage = 95;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (juice mode) — enemies={_enemies.Count}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -391,6 +407,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- bus_emit (MC 10098 S0): stage body lives in
             // RuntimeIntegrationProof.Bus.cs (partial).
             case 80: RunBusStage(); break;
+
+            // ---- JUICE_HITFLASH (MC 10120 S1): stage body lives in
+            // RuntimeIntegrationProof.Juice.cs (partial).
+            case 95: RunJuiceStage(); break;
         }
         return false;
     }
