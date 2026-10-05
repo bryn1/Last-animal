@@ -52,6 +52,11 @@ using System.Linq;
 //                     (QUEST_PERSIST; the v3 QuestStates wire).
 //   quest_neg       — the SetQuestHooksEnabled gate seam is off; the arc must
 //                     stall (NEG_QUEST), exit non-zero.
+//   quest_arc2      — MC 10132 S10: ACT TWO (QuestTable.RuinsArc) on the live
+//                     scene — act-open card, the four chained ruins-deep
+//                     completions, the act-two save round-trip on the shipped
+//                     QuestStates wire, close card (ACT2_* + ACT_CARD markers;
+//                     RuntimeIntegrationProof.Story2.cs).
 //   skill_use       — MC 3912 stage 2e: the skill economy end-to-end on the
 //                     live scene — kill gain, live unlock, armed multiplier
 //                     AT the single DealDamage site, arm consumed after one
@@ -288,6 +293,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // quest_arc2 (MC 10132 S10): the ACT-TWO chain drives its own input
+        // (speak, owned save/load, travel, pay, farm); route to stage 55 —
+        // NOT a 9x number: the S3 sibling takes a 9x stage on its branch,
+        // the quest-family slot 55 (between 50 and 60) merges collision-free.
+        if (_mode == "quest_arc2")
+        {
+            _stage = 55;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (act-two mode) — enemies={_enemies.Count} intro={_director.Quests.Status("q_intro")}");
+            return;
+        }
+
         // skill_use / skill_neg (MC 3912 2e): the skill chain drives its own
         // input (farm + measured hits + skill presses); skip the movement
         // press and route to stage 60 — stage bodies live in
@@ -370,7 +387,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -437,6 +454,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- quest_arc / quest_persist / quest_neg (MC 3904 2c): stage
             // bodies live in RuntimeIntegrationProof.Quests.cs (partial).
             case 50: RunQuestStage(); break;
+
+            // ---- quest_arc2 (MC 10132 S10 ACT TWO): stage body lives in
+            // RuntimeIntegrationProof.Story2.cs (partial).
+            case 55: RunStory2Stage(); break;
 
             // ---- skill_use / skill_neg (MC 3912 2e): stage bodies live in
             // RuntimeIntegrationProof.Skills.cs (partial).

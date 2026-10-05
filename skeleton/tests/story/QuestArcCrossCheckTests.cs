@@ -13,6 +13,9 @@ using LastAnimal.Story;
 // that missing cross-validation: static, engine-free, it joins the two
 // authored tables (and the spawner's zone set) into one referential-
 // integrity check over QuestTable.Default() + DialogueTable.Default().
+// S10 (MC 10132) widened every leg to BOTH authored arcs (QuestTable.RuinsArc)
+// and added leg 5: the act-card node references (QuestTable.ActTwo) resolve to
+// authored DialogueTable nodes too — a renamed act card fails the gate too.
 //
 // The zone set is READ from src/ecosystem/EcosystemSpawner.cs (the source of
 // truth for canonical zone ids) through the QuestBusContractTests source-read
@@ -22,8 +25,13 @@ namespace LastAnimal.Tests.Story;
 
 public class QuestArcCrossCheckTests
 {
-    private static QuestTable Quests() => QuestTable.Default();
     private static DialogueTable Nodes() => DialogueTable.Default();
+
+    /// <summary>BOTH authored tables (MC 10132 S10): the shipped act-one
+    /// Default() arc and the act-two RuinsArc() — every reference leg runs
+    /// over both, so a dangling reward/zone/card id on EITHER arc fails the
+    /// story gate naming the quest (DA P2 discipline, widened with the arc).</summary>
+    private static QuestTable[] Arcs() => new[] { QuestTable.Default(), QuestTable.RuinsArc() };
 
     /// <summary>Locate a repo file relative to the skeleton dir by walking up
     /// from the test assembly output (QuestBusContractTests.RepoFile idiom —
@@ -65,7 +73,8 @@ public class QuestArcCrossCheckTests
     public void DialogueShownArgs_NameAuthoredDialogueNodes()
     {
         var nodes = Nodes();
-        foreach (var q in Quests().Entries)
+        foreach (var arc in Arcs())
+        foreach (var q in arc.Entries)
         {
             if (q.Objective.Kind != QuestObjectiveKind.DialogueShown) continue;
             Assert.True(nodes.Has(q.Objective.Arg),
@@ -85,7 +94,8 @@ public class QuestArcCrossCheckTests
     {
         var zones = SpawnerZoneIds();
         int zoneRows = 0;
-        foreach (var q in Quests().Entries)
+        foreach (var arc in Arcs())
+        foreach (var q in arc.Entries)
         {
             if (q.Objective.Kind != QuestObjectiveKind.ZoneReached) continue;
             zoneRows++;
@@ -93,7 +103,8 @@ public class QuestArcCrossCheckTests
                 $"quest '{q.Id}': ZoneReached arg '{q.Objective.Arg}' names no zone of " +
                 "EcosystemSpawner.ZoneIds — the objective can never be satisfied");
         }
-        Assert.True(zoneRows >= 1, "the authored arc carries no ZoneReached row (intro beat missing?)");
+        Assert.True(zoneRows >= 2, "the authored arcs carry fewer than two ZoneReached rows " +
+            "(act-one intro + act-two descent are both required)");
     }
 
     // ------------------------------------------------------------------
@@ -108,7 +119,8 @@ public class QuestArcCrossCheckTests
     public void RewardBeats_NameAuthoredDialogueNodes()
     {
         var nodes = Nodes();
-        foreach (var q in Quests().Entries)
+        foreach (var arc in Arcs())
+        foreach (var q in arc.Entries)
             Assert.True(nodes.Has(q.Reward),
                 $"quest '{q.Id}': reward beat names node '{q.Reward}', which " +
                 "DialogueTable.Default() does not author — the reward can never play");
@@ -123,7 +135,8 @@ public class QuestArcCrossCheckTests
     [Fact]
     public void KindsThatConsumeNoArg_KeepItEmpty()
     {
-        foreach (var q in Quests().Entries)
+        foreach (var arc in Arcs())
+        foreach (var q in arc.Entries)
         {
             var kind = q.Objective.Kind;
             if (kind == QuestObjectiveKind.DialogueShown || kind == QuestObjectiveKind.ZoneReached)
@@ -133,5 +146,27 @@ public class QuestArcCrossCheckTests
                     $"quest '{q.Id}': kind '{kind}' consumes no arg, yet carries '{q.Objective.Arg}' " +
                     "— dead data that no satisfaction path reads");
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Leg 5 (MC 10132 S10) — the act-two open/close cards are DIALOGUE
+    // references like the rewards: every id QuestTable.ActTwo names must be
+    // authored by DialogueTable.Default(), or that act beat plays the fallback
+    // line and the "table-driven act card" (RULING-5) silently degrades. Same
+    // rename-dangling vector the reward leg closes, now closed for the cards.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void ActCardNodes_NameAuthoredDialogueNodes()
+    {
+        var nodes = Nodes();
+        foreach (var node in QuestTable.ActTwo.OpenNodes)
+            Assert.True(nodes.Has(node),
+                $"act card '{QuestTable.ActTwo.Id}' open beat names node '{node}', which " +
+                "DialogueTable.Default() does not author — the open card cannot play its text");
+        foreach (var node in QuestTable.ActTwo.CloseNodes)
+            Assert.True(nodes.Has(node),
+                $"act card '{QuestTable.ActTwo.Id}' close beat names node '{node}', which " +
+                "DialogueTable.Default() does not author — the close card cannot play its text");
     }
 }

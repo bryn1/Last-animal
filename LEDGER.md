@@ -731,3 +731,23 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   the ghost body); byte-stable ROSTER-family streams untouched (no persisted
   fields — F2 zero-delta). Evidence: .audits/20261005-0532-s3-dissolve/
   (EVIDENCE.md last line VERIFY_EXIT=0; probe, RED + GREEN logs).
+
+- MC 10132 / 10026.15.8 S10 story act-two (code VM350, 2026-10-05, Inc-3 W2):
+  build on SHIPPED seams only — QuestTable.RuinsArc() +4 ruins-deep quests over
+  the pure QuestLog machine (shipped objective kinds only, R5; Default() and
+  the save schema untouched — act-two rows ride the v3 QuestStates wire, F2
+  zero save-file delta proven by git-diff-empty src/save/), 8 authored
+  DialogueTable nodes, table-driven act open/close cards through the shipped
+  DLQ queue (no cutscene system, F3 — quest_arc DLQ_* legs re-run green),
+  act opens off the shipped save->load restore-sync edge, boss-corpse cascade
+  deliberately NOT consumed. New mode quest_arc2 (stage 55, partial
+  RuntimeIntegrationProof.Story2.cs, battery leg (N) at file END): W6 pin held
+  — each of the four completions rides its OWN distinct driven observation
+  (zone-enter / fresh speaks / the single wage path / six fresh extractions).
+  quest_test 58+ (full act-two state-machine walk incl. illegal-transition
+  throws + F-DA2 double-load leg, fix cycle 2), story_test 15+, save/boot/smoke solo green; planted-bad x3 RED then
+  revert + re-green (dropped restore row -> ACT2_PERSIST RED; act-open gate
+  disabled -> ACT2_OPENED RED; relaxed guard -> named unit tests RED).
+  Known limitation flagged: HUD LiveQuestLine reads act-one log ("Quest: none"
+  during act two) — Ui.cs is S0-owned, out of this card's file list.
+  Evidence: .audits/20261005-0632-s10-story/EVIDENCE.md (VERIFY_EXIT=0).
