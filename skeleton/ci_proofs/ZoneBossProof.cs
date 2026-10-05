@@ -1,4 +1,4 @@
-// SIZE: >400 (419 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file); ONE SceneTree state machine per MC 3895 DA P2-1.
+// SIZE: >400 (441 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l); ONE SceneTree state machine per MC 3895 DA P2-1.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -143,6 +143,7 @@ public partial class ZoneBossProof : SceneTree
                     GD.Print("LA_GATE: ZONE_TRAVEL_RUINS — ruins reachable in play");
                     GD.Print("LA_GATE: PASS — zone travel verified (meadow -> canyon -> ruins)");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();   // MC 10126 rooted-fields idiom
                     Quit(0);
                     return true;
                 }
@@ -212,6 +213,7 @@ public partial class ZoneBossProof : SceneTree
                     GD.Print("LA_GATE: BOSS_PHASE_FIRED — phase transition emitted EcosystemAdapted and re-fielded the SpawnSet");
                     GD.Print("LA_GATE: PASS — boss reachability + phase behaviour verified");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();   // MC 10126 rooted-fields idiom
                     Quit(0);
                     return true;
                 }
@@ -299,12 +301,32 @@ public partial class ZoneBossProof : SceneTree
                     GD.Print("LA_GATE: DEATH_MOVEMENT_RESTORED");
                     GD.Print("LA_GATE: PASS — death recovery verified (dead stops, load resurrects, movement works)");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();   // MC 10126 rooted-fields idiom
                     Quit(0);
                     return true;
                 }
                 break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// MC 10126 (10026.13.6): same latent class as MC 10112's BridgeMvpProof fix —
+    /// the proof is the C# MainLoop, the LAST managed object standing at shutdown.
+    /// Its live-scene fields root the scene's C# wrappers until after the native
+    /// ObjectDB is gone, so their GC finalizers hit freed objects ("Leaked unsafe
+    /// reference ... csharp_script.cpp:179", exit 134/139). All three PASS Quits
+    /// here (zone_travel/boss_phase/death_load) root the fields Compose() assigns.
+    /// Release the wrappers and flush finalizers BEFORE Quit, while the ObjectDB is
+    /// alive. Idiom REUSED from BridgeMvpProof.ReleaseHeldRefsBeforeQuit (MC 10112),
+    /// as extended by MC 10117. Bypass Quit(1) Fail paths stay untouched (10117 scope).
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _bus = null; _director = null; _playerBody = null; _main = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     /// <summary>Planar (XZ) distance — gravity jitter on Y must not count as

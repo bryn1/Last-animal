@@ -330,6 +330,7 @@ public partial class RosterIntegrationProof : SceneTree
                           roster.Count == CompanionRoster.Cap && bodies == CompanionRoster.Cap && roster[1].Component.Loyalty == 60, $"N={roster.Count} bodies={bodies} f1loy={roster[1].Component.Loyalty}");
                     if (_failed) return;
                     GD.Print("LA_GATE: ROSTER_OVERSIZED_TRIMMED — hand-edited 5-entry save: N=3, scene bodies=3, the 2 surplus entries DROPPED with the marker (DA W5 F4)\nLA_GATE: PASS — roster chain verified end-to-end (recruit, follow, independent wages per follower, save/load N, cycle/forgive/break, pay-after-break refusal, mean-last emit order, oversized-save trim)");
+                    ReleaseHeldRefsBeforeQuit();    // MC 10126 rooted-fields idiom (method in entry file)
                     Quit(0); return;
                 }
         }

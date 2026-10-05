@@ -1,4 +1,4 @@
-// SIZE: 278 l — MC 3943 2g roster proof (DA W5 F1 + W5 c3 F-A oversized-save
+// SIZE: 298 l — MC 3943 2g roster proof (DA W5 F1 + W5 c3 F-A oversized-save
 // trim leg). MC 10036 split (was 600 l, AT the ceiling): the roster_follow arc
 // moved VERBATIM to RosterIntegrationProof.Follow.cs (partial half); this file
 // keeps the mode router, the shared helpers and the roster_neg leg.
@@ -238,6 +238,26 @@ public partial class RosterIntegrationProof : SceneTree
         _failed = true;
         GD.PrintErr($"LA_GATE: FAIL — {why}");
         Quit(1);
+    }
+
+    /// <summary>
+    /// MC 10126 (10026.13.6): the proof is the C# MainLoop; its live-scene fields
+    /// (Compose() at :104-108 + _main at :98) root the scene's C# wrappers past
+    /// native teardown, so their GC finalizers hit freed ObjectDB entries ("Leaked
+    /// unsafe reference", exit 134/139). The one roster_follow PASS Quit (Follow.cs
+    /// stage 16) roots ALL of these — released + finalizers flushed BEFORE Quit,
+    /// while the ObjectDB is alive. Fields declared in this entry file, so the
+    /// method lives here and the partial calls it (RuntimeIntegrationProof.Bus.cs
+    /// MC 10117 precedent). roster_neg/bypass Quit(1) paths untouched (10117 scope).
+    /// Idiom REUSED from BridgeMvpProof.ReleaseHeldRefsBeforeQuit (MC 10112).
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _bus = null; _director = null; _playerBody = null;
+        _hud = null; _empathy = null; _main = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     // ---- roster_neg: the 4th recruit is refused at the cap (D1) --------------

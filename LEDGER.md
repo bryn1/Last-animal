@@ -751,3 +751,26 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Known limitation flagged: HUD LiveQuestLine reads act-one log ("Quest: none"
   during act two) — Ui.cs is S0-owned, out of this card's file list.
   Evidence: .audits/20261005-0632-s10-story/EVIDENCE.md (VERIFY_EXIT=0).
+
+- MC 10126 / 10026.13.6 rooted-fields-at-Quit latent sweep PART 2 (code VM350, 2026-10-05, branch
+  vm350/latent2 off 5e1f3e2): the MC 10117 sweep's recorded out-of-scope observation closed — idiom
+  REUSED again (ReleaseHeldRefsBeforeQuit: null live-scene wrappers + GC flush while ObjectDB alive,
+  BEFORE Quit; BridgeMvpProof/MC 10112 mechanism, no new mechanism). 6 PASS Quit(0) sites FIXED,
+  zero SAFE-BY-CITATION among PASS paths: (1-3) ZoneBossProof zone_travel/boss_phase/death_load
+  (Compose() roots _bus/_director/_playerBody, _Process :100-101 guards prove them non-null at all
+  three Quits; method +file :324); (4) RosterIntegrationProof.Follow.cs stage-16 roster_follow Quit
+  :333 (roots all of Compose()'s bus/director/player/hud/empathy + _main; method lives in the entry
+  file per the Bus.cs MC 10117 precedent, fields declared there); (5-6) MainCompositionProof
+  headless PASS Quit + GUI-hold-cap Quit (all four wrappers _main/_player/_body/_camera assigned in
+  _Initialize on every path reaching _Process; the :124 guard proves body/camera non-null at both
+  Quits — the gate's GUI leg is helper-KILLED so it never Quits and cannot leak). Bypass Quit(1)
+  sites untouched per 10117 scope (Fail paths + roster_neg detection), negative control re-proved
+  red (NEG_ROSTER, exit 1). Detection: build-through CONTROL validated (sed marker -> leg log),
+  plant-drop at the zone_travel site measured N=10 exit 0 / leaks 0 — plant RED DID NOT FIRE on
+  this HEAD (matches MC 10117's N=15-20 non-detection; below the flush threshold here, INFERRED),
+  recorded honestly, no false RED promised. GREEN N=5/site x5 sites = 25/25 exit 0, zero "Leaked
+  unsafe reference" over all 45 logs (savegate flock held for save-touching legs, lockfile never
+  deleted, no run queued out). Regression solo: ci/bridge_mvp_test.sh EXIT=0, ci/main_composition_test.sh
+  EXIT=0 (render bars PASS). Full runtime_integration battery NOT run (orchestrator owns). SIZE
+  headers restamped: ZoneBossProof 419->441, RosterIntegrationProof 278->298. Evidence:
+  .audits/20261005-1003-latent2/EVIDENCE.md (VERIFY_EXIT=0).

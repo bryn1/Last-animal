@@ -117,6 +117,24 @@ public partial class MainCompositionProof : SceneTree
         Quit(1);
     }
 
+    /// <summary>
+    /// MC 10126 (10026.13.6): the proof is the C# MainLoop; its live-scene fields
+    /// (_main/_player/_body/_camera, all assigned in _Initialize on every PASS path)
+    /// root the scene's C# wrappers past native teardown, so their GC finalizers hit
+    /// freed ObjectDB entries ("Leaked unsafe reference", exit 134/139). Release +
+    /// flush finalizers BEFORE every PASS Quit while the ObjectDB is alive — both the
+    /// headless Quit and the GUI-hold-cap Quit (the helper-killed leg never reaches
+    /// a Quit, so it needs nothing). Idiom REUSED from
+    /// BridgeMvpProof.ReleaseHeldRefsBeforeQuit (MC 10112), per MC 10117.
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _main = null; _player = null; _body = null; _camera = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
+    }
+
     private int _frames;
 
     public override bool _Process(double delta)
@@ -133,6 +151,7 @@ public partial class MainCompositionProof : SceneTree
             if (_guiHoldElapsed >= GuiHoldSeconds)
             {
                 GD.Print("MAIN_COMPOSITION_PROOF: GUI_HOLD complete — quit(0)");
+                ReleaseHeldRefsBeforeQuit();    // MC 10126 rooted-fields idiom
                 Quit(0);
                 return true;
             }
@@ -195,6 +214,7 @@ public partial class MainCompositionProof : SceneTree
             GD.Print("MAIN_COMPOSITION_PROOF: GUI_HOLD — window stays alive for capture");
             return false;
         }
+        ReleaseHeldRefsBeforeQuit();            // MC 10126 rooted-fields idiom
         Quit(0);
         return true;
     }
