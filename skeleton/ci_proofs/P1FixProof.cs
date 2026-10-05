@@ -153,6 +153,7 @@ public partial class P1FixProof : SceneTree
                     GD.Print("LA_GATE: CORPSE_DAMAGE_STOPPED — corpse damage loop gone (MC 1348 A2)");
                     GD.Print("LA_GATE: PASS — corpse-damage regression verified");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();
                     Quit(0);
                     return true;
                 }
@@ -195,6 +196,7 @@ public partial class P1FixProof : SceneTree
                     GD.Print("LA_GATE: BETRAYAL_FIRED — wage/betrayal pillar reachable in play (MC 1348 A3)");
                     GD.Print("LA_GATE: PASS — wage/betrayal regression verified");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();
                     Quit(0);
                     return true;
                 }
@@ -237,6 +239,7 @@ public partial class P1FixProof : SceneTree
                     GD.Print("LA_GATE: EMPATHY_BOOK_CLOSED — the book input dismisses the panel (MC 1348 A4)");
                     GD.Print("LA_GATE: PASS — empathy-book regression verified");
                     _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();
                     Quit(0);
                     return true;
                 }
@@ -284,6 +287,7 @@ public partial class P1FixProof : SceneTree
                 GD.Print("LA_GATE: BOOT_SET_CLEARED — zone travel despawns the boot enemy set (MC 1348 A5)");
                 GD.Print("LA_GATE: PASS — zone-travel boot-set regression verified");
                 _asserted = true;
+                ReleaseHeldRefsBeforeQuit();
                 Quit(0);
                 return true;
         }
@@ -305,6 +309,26 @@ public partial class P1FixProof : SceneTree
         _playerBody!.GlobalPosition = new Vector3(p.X - 0.8f, p.Y, p.Z);
         _victim = target;
         GD.Print($"LA_GATE: player teleported into range of {target.Name} at ({p.X:0.##},{p.Y:0.##},{p.Z:0.##})");
+    }
+
+    /// <summary>
+    /// MC 10117 (10026.13.5): same latent class as MC 10112's BridgeMvpProof fix —
+    /// the proof is the C# MainLoop; its live-scene fields root the scene's C#
+    /// wrappers past native teardown and their finalizers hit freed ObjectDB
+    /// entries ("Leaked unsafe reference", exit 134/139, detection ~1/4 — TEST
+    /// T-1). Release + flush finalizers BEFORE every PASS Quit while the ObjectDB
+    /// is alive. All four modes root these fields at their Quit (see evidence
+    /// citations). Idiom REUSED from BridgeMvpProof.ReleaseHeldRefsBeforeQuit.
+    /// </summary>
+    private void ReleaseHeldRefsBeforeQuit()
+    {
+        _victim = null;
+        _bootEnemies.Clear();
+        _bus = null; _director = null; _playerBody = null;
+        _empathy = null; _main = null;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        System.GC.Collect();
     }
 
     private void Check(string what, bool ok, string detail)

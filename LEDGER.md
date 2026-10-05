@@ -506,3 +506,21 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Gates green on this branch (all solo, savegate mutex held 21:37–close): quest_test
   QUEST_EXIT=0 (46 passed), bridge_mvp BRIDGE_EXIT=0, export EXPORT_EXIT=0.
   Evidence: .audits/202610042128-e55426c7/evidence/10112-evidence.md (+ copied logs).
+- MC 10117 / 10026.13.5 rooted-fields-at-Quit latent sweep (code VM350, 2026-10-05, branch
+  vm350/10117-latent-sweep): the MC 10112 class extended to the sibling harnesses, idiom REUSED
+  (ReleaseHeldRefsBeforeQuit — null live-scene wrapper fields + GC.Collect/WaitForPendingFinalizers
+  while ObjectDB alive, BEFORE Quit). Three sites FIXED, zero SAFE-BY-CITATION: (1)
+  RuntimeIntegrationProof stage-6 PASS Quit (:358) — the shared PASS exit for positive/save/
+  dna_speak/quest/skill/calm (all partials end _stage=6 — grep VERIFIED their only own Quits are
+  Fail/Quit(1)); (2) RuntimeIntegrationProof.Bus.cs bus_emit PASS Quit (:337) — bypasses stage 6,
+  fields declared in the entry partial, call added; (3) P1FixProof all four PASS Quit(0)
+  (:156/:198/:240/:287) — every mode roots Compose()'s bus/director/player/empathy/main, plus
+  _victim (corpse) and _bootEnemies (zone_travel). Detection (T-1): plant-drop RED DID NOT FIRE
+  at N=20/15/20 headless (+5 positive X-render) — and pre-fix baseline is likewise 0/5 green:
+  at master 99d457d these legs sit BELOW the flush threshold (INFERRED; the W0 shifter colored
+  the bridge leg, not these). Structural rootedness at every Quit is line-cited VERIFIED, so the
+  sweep ships the idiom as the shared-mechanism corollary demands; plant non-detection recorded,
+  not a false RED. Restored GREEN 15/15 + head-check 2/2, zero "Leaked unsafe reference".
+  Regression ci/bridge_mvp_test.sh BRIDGE_EXIT=0. runtime_integration_test.sh full battery NOT
+  run (orchestrator owns). Evidence: .audits/20261005-0035-10117-latent-sweep/ (91 logs,
+  EVIDENCE.md VERIFY_EXIT=0).

@@ -334,6 +334,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                     GD.Print("LA_GATE: BUS_FALLEN_ONCE — one BossFallen per tracked-actor death edge");
                     GD.Print("LA_GATE: PASS — S0 bus-emit seam verified (shown/closed/hurt each once per edge; BossFallen only on the tracked boss's death, F-2)");
                     _asserted = true;
+                    // MC 10117: this PASS Quit bypasses the stage-6 hold, so it must
+                    // carry the same release (fields are declared in the entry file;
+                    // idiom reused from BridgeMvpProof/MC 10112).
+                    ReleaseHeldRefsBeforeQuit();
                     Quit(0);
                 }
                 break;
