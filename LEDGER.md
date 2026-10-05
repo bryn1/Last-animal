@@ -698,11 +698,6 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   independent runs byte-identical across MAP/SFX_ROUTER lines.
   Evidence: .audits/20261005-0445-s5-sfx/EVIDENCE.md (VERIFY_EXIT=0).
 
-- MC 10130 / 10026.15.6 S5 SFX coverage remap (code VM350, 2026-10-05, Inc-3
-  W2): SFX routing remap + audio coverage leg; planted-bad RED + revert pair,
-  audio_test + boot_test solo exit 0 on final tree, two independent runs
-  byte-identical across MAP/SFX_ROUTER lines.
-  Evidence: .audits/20261005-0445-s5-sfx/EVIDENCE.md (VERIFY_EXIT=0).
 - MC 10132 / 10026.15.8 S10 story act-two (code VM350, 2026-10-05, Inc-3 W2):
   build on SHIPPED seams only — QuestTable.RuinsArc() +4 ruins-deep quests over
   the pure QuestLog machine (shipped objective kinds only, R5; Default() and
@@ -715,8 +710,8 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   RuntimeIntegrationProof.Story2.cs, battery leg (N) at file END): W6 pin held
   — each of the four completions rides its OWN distinct driven observation
   (zone-enter / fresh speaks / the single wage path / six fresh extractions).
-  quest_test 57+ (full act-two state-machine walk incl. illegal-transition
-  throws), story_test 15+, save/boot/smoke solo green; planted-bad x3 RED then
+  quest_test 58+ (full act-two state-machine walk incl. illegal-transition
+  throws + F-DA2 double-load leg, fix cycle 2), story_test 15+, save/boot/smoke solo green; planted-bad x3 RED then
   revert + re-green (dropped restore row -> ACT2_PERSIST RED; act-open gate
   disabled -> ACT2_OPENED RED; relaxed guard -> named unit tests RED).
   Known limitation flagged: HUD LiveQuestLine reads act-one log ("Quest: none"

@@ -31,6 +31,9 @@
          is NOT compiled — the wire test uses its own temp-dir store. -->
     <Compile Include="../../src/story/QuestTable.cs" />
     <Compile Include="../../src/story/QuestLog.cs" />
+    <!-- S10 fix cycle 2 (F-DA2): the restore-sync machine the double-load leg
+         drives — the SAME source the Story.cs partial executes. -->
+    <Compile Include="../../src/story/ActTwoSync.cs" />
     <Compile Include="../../src/save/GameState.cs" />
     <Compile Include="../../src/save/SaveSystem.cs" />
     <!-- The test files themselves (EnableDefaultCompileItems=false, so they

@@ -237,25 +237,24 @@ public partial class WorldDirector
 
     private void SyncActTwoFromRestore()
     {
-        if (_questsAct2.ToSaveRows().Count > 0)
+        // The arms themselves are the pure ActTwoSync machine (I1: quest-
+        // state logic lives in the core, where the act-two unit tests can
+        // drive it — F-DA2 fix cycle 2); this seam is its executor and owns
+        // only the engine-side halves: the one-time feed subscription, the
+        // open card, and the open latch.
+        switch (ActTwoSync.Run(_questsAct1, _questsAct2, _act2Opened, ref _act2CloseShown))
         {
-            // The save was taken mid-act (or past its end): adopt the open
-            // state WITHOUT a card and WITHOUT a second feed subscription.
-            AdoptActTwoOpen();
-            if (_questsAct2.IsArcComplete) _act2CloseShown = true;
-            return;
+            case ActTwoSyncAction.Adopt:
+                AdoptActTwoOpen();   // adopt silently: no card, no re-subscribe
+                break;
+            case ActTwoSyncAction.Rollback:
+                _act2Opened = false;   // restored logs are the truth (closeShown
+                break;                 // was cleared by the arm)
+            case ActTwoSyncAction.FreshOpen:
+                OpenActTwo();   // fresh open: the act begins on this session's load
+                break;
+            // SilentReStart / None: every effect is pure and Run applied it.
         }
-        if (_act2Opened && !_questsAct1.IsArcComplete)
-        {
-            // Rollback: the loaded save predates the act — the restored logs
-            // are the truth, act two is closed again (its evidence rewound
-            // with the snapshot by FromSaveRows itself).
-            _act2Opened = false;
-            _act2CloseShown = false;
-            return;
-        }
-        if (!_act2Opened && _questsAct1.IsArcComplete)
-            OpenActTwo();   // fresh open: the act begins on this session's load
     }
 
     /// <summary>Act open (the act-one finale edge, or a restore that finds

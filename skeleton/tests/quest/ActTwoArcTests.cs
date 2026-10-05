@@ -246,4 +246,63 @@ public class ActTwoArcTests
         Assert.Throws<ArgumentException>(() => new ActCard("x", new[] { "a" }, new[] { "" }));
         Assert.Throws<ArgumentException>(() => new ActCard("", new[] { "a" }, new[] { "b" }));
     }
+
+    // ------------------------------------------------------------------
+    // F-DA2 (DA-verdict 0ad8c81f, fix cycle 2): the DOUBLE-LOAD of a
+    // migration-shaped save — the stranding state the shipped three-arm
+    // restore-sync missed. The leg drives the REAL ActTwoSync machine with
+    // the director's engine-side follow-ups: load, load again, NO save
+    // between — the chain must come out ALIVE.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Restore_MigrationShapedSave_DoubleLoad_ChainStaysAlive()
+    {
+        // Migration shape: a pre-S10 save — act-one ids complete, ZERO
+        // act-two rows on the shipped v3 wire vocabulary (same list shape the
+        // CrossTableRestore leg feeds).
+        var migration = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+        };
+
+        var act1 = new QuestLog(QuestTable.Default());
+        var act2 = ActTwoLog();
+        bool opened = false, closeShown = false;
+        var openCardsPlayed = 0;
+
+        void Load()   // QuestRestoreRows + the director's follow-ups (Story.cs partial)
+        {
+            act1.FromSaveRows(migration);
+            act2.FromSaveRows(migration);
+            switch (ActTwoSync.Run(act1, act2, opened, ref closeShown))
+            {
+                case ActTwoSyncAction.Adopt: opened = true; break;   // AdoptActTwoOpen, silent
+                case ActTwoSyncAction.Rollback: opened = false; break;
+                case ActTwoSyncAction.FreshOpen:                     // OpenActTwo:
+                    opened = true; openCardsPlayed++;                //   card + Start
+                    act2.Start(act2.Table.Entries[0].Id);
+                    break;
+                // SilentReStart / None: Run applied every pure effect.
+            }
+        }
+
+        Load();                                                       // load 1
+        Assert.Equal(1, openCardsPlayed);
+        Assert.Equal("q_r_descent", act2.ActiveQuestId);
+
+        Load();                                                       // load 2, NO save between
+        Assert.Equal(1, openCardsPlayed);    // a load is not a beat: NO second open card
+        Assert.False(closeShown);            // the act is live again from row one
+        Assert.Equal("q_r_descent", act2.ActiveQuestId);              // chain ALIVE, not stranded
+
+        // …and COMPLETABLE: the same driven walk as the fact-for-fact leg
+        // completes every row from the re-Started state.
+        act2.ObserveZoneEntered("ruins");
+        act2.ObserveSpoken(2);
+        act2.ObserveWagePaid("q_r_bread");
+        act2.ObserveKill(6);
+        Assert.True(act2.IsArcComplete);
+    }
 }

@@ -160,6 +160,11 @@
          + world/WorldDirector.Story.cs. Appended at the ItemGroup END (S2's
          Shake.cs precedent) so parallel W2 csproj hunks merge cleanly. -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Story2.cs" />
+    <!-- Compile MC 10132 S10 FIX CYCLE 2 (F-DA2): the act-two restore-sync
+         machine — quest-state logic, pure home (I1); the Story.cs partial is
+         its executor. Appended at the ItemGroup END (S2 Shake.cs precedent)
+         so parallel W2 csproj hunks merge cleanly. -->
+    <Compile Include="src/story/ActTwoSync.cs" />
   </ItemGroup>
 
 </Project>
