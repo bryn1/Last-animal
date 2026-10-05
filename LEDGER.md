@@ -506,3 +506,17 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Gates green on this branch (all solo, savegate mutex held 21:37–close): quest_test
   QUEST_EXIT=0 (46 passed), bridge_mvp BRIDGE_EXIT=0, export EXPORT_EXIT=0.
   Evidence: .audits/202610042128-e55426c7/evidence/10112-evidence.md (+ copied logs).
+
+- MC 10122 / 10026.15.3 S4 music ducking + bus mix (code VM350, 2026-10-05, Inc-3
+  W1, branch vm350/s4-duck): MusicManager per-bus const levels table + S4 duck —
+  -8 dB while the S0 DialogueShown/DialogueClosed bracket holds (subscribed
+  SfxRouter-style in SubscribeMix, self-wired from Boot via /root/EventBus; zero
+  edit to DialogueSystem), -12 dB under SetBossStance (boss wins over dialogue),
+  release decays on a 30-frame INTEGER counter (F4; no Tween/Timer/delta).
+  Audio state runtime-only (F2 zero save delta) and the _Process path prints
+  nothing, so the marker streams stay untouched (F4-CMP) — legs assert bus
+  STATE through the audio gate. audio_test.sh +3 named legs (pattern copied):
+  MIX_DUCK_ON_SHOW/MIX_DUCK_OFF_CLOSE/MIX_BOSS_STANCE green; planted-bad
+  (never-release mutation) -> MIX_DUCK_OFF_CLOSE RED, gate exit 1, mutation
+  reverted; audio_test + boot_test solo exit 0 on final tree, existing SfxRouter
+  legs green. Evidence: .audits/20261005-0111-s4-duck/EVIDENCE.md (+3 logs).

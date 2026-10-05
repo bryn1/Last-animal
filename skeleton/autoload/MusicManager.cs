@@ -32,10 +32,31 @@ public partial class MusicManager : Node
     // routing table; one randomizer per signal gives variation (AudioStreamRandomizer).
     private readonly Dictionary<string, AudioStreamRandomizer> _sfx = new();
 
+    // --- S4 mix duck (MC 10122 / 10026.15.3, Inc-3 stage S4) -------------------
+    // The Music bus ducks while dialogue is active (the S0 DialogueShown/
+    // DialogueClosed bracket, subscribed SfxRouter-style) and harder under a
+    // boss-fight stance. Pure volume automation over the ONE per-bus table
+    // below; runtime-only (F2: zero save delta), prints nothing — so it stays
+    // OUTSIDE the ci marker streams (F4-CMP): assertions read bus STATE back.
+    public const float DialogueDuckDb = -8f;    // dialogue box on screen (S0)
+    public const float BossDuckDb = -12f;       // boss-fight stance held
+    private const int DuckReleaseFrames = 30;   // decay in integer frames (F4)
+
+    // Per-bus const mix levels (dB): every bus volume derives from this table;
+    // the duck below only ever offsets the Music bus from its table base.
+    private static readonly Dictionary<string, float> BusBaseDb = new() { [SfxBus] = 0f, [MusicBus] = 0f };
+
+    private bool _mixSubscribed, _dialogueActive, _bossStance;
+    private float _duckDb;              // duck offset currently applied
+    private float _releaseFromDb;       // duck captured when the stance let go
+    private int _releaseFramesLeft;     // release counter, no wall-clock (F4)
+
     // Music bus + cross-scene music entry point (pure infrastructure, no logic).
     public void Boot()
     {
         EnsureBuses();
+        ApplyBusLevels();
+        SubscribeMix(GetNodeOrNull<EventBus>("/root/EventBus"));  // autoload path; headless tests wire their own bus
         LoadSfx();
         GD.Print("MusicManager: booted (buses: ", SfxBus, "/", MusicBus, ")");
     }
@@ -110,5 +131,54 @@ public partial class MusicManager : Node
         player.Autoplay = true;
         player.Finished += () => player.Play(); // seamless loop (OggVorbis loops via its stream too)
         GD.Print($"MusicManager: playing music on bus \"{MusicBus}\"");
+    }
+
+    /// <summary>SfxRouter-style wiring: hold the dialogue duck over the S0 bracket.</summary>
+    public void SubscribeMix(EventBus? bus)
+    {
+        if (bus is null || _mixSubscribed) return;
+        _mixSubscribed = true;
+        bus.DialogueShown += _ => _dialogueActive = true;
+        bus.DialogueClosed += _ => _dialogueActive = false;
+    }
+
+    /// <summary>Boss-fight stance, held by whoever runs the fight; strongest duck wins.</summary>
+    public void SetBossStance(bool active) => _bossStance = active;
+    public float MusicDuckDb => _duckDb;   // currently applied duck offset (test seam)
+
+    private void ApplyBusLevels()          // seat every named bus at its table base
+    {
+        foreach (var (bus, db) in BusBaseDb)
+        {
+            int i = AudioServer.GetBusIndex(bus);
+            if (i >= 0) AudioServer.SetBusVolumeDb(i, db);
+        }
+    }
+
+    // F4: integer frame counter only — duck holds at full depth while a stance is
+    // active (boss wins over dialogue) and decays to the table base over
+    // DuckReleaseFrames process frames once released. No Tween/Timer/delta,
+    // and nothing is printed from this path (marker streams stay untouched).
+    public override void _Process(double delta)
+    {
+        float target = _bossStance ? BossDuckDb : _dialogueActive ? DialogueDuckDb : 0f;
+        if (target != 0f)
+        {
+            _duckDb = target;                 // duck engages on the spot
+            _releaseFromDb = target;
+            _releaseFramesLeft = DuckReleaseFrames;
+        }
+        else if (_duckDb != 0f)
+        {
+            _releaseFramesLeft--;             // linear counter decay to zero
+            _duckDb = _releaseFramesLeft > 0
+                ? _releaseFromDb * _releaseFramesLeft / DuckReleaseFrames
+                : 0f;
+        }
+        int music = AudioServer.GetBusIndex(MusicBus);
+        if (music < 0) return;
+        float want = BusBaseDb[MusicBus] + _duckDb;
+        if (AudioServer.GetBusVolumeDb(music) != want)
+            AudioServer.SetBusVolumeDb(music, want);
     }
 }

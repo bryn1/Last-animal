@@ -44,5 +44,14 @@ printf '%s\n' "$LOG"
 [[ "$LOG" == *'M06_AUDIO_TEST: PASS'* ]] \
   || fail "expected 'M06_AUDIO_TEST: PASS' marker in output (a check went red)"
 
-echo "M06_AUDIO_TEST: GATE PASS — EventBus-triggered non-silent SFX on the Sfx bus, music on Music bus"
+# (4) S4 mix legs (MC 10122): each named duck leg must report ok, not merely run.
+# Same leg pattern as (3): bash-native substring assertion + fail().
+[[ "$LOG" == *'MIX_DUCK_ON_SHOW: ok'* ]] \
+  || fail "mix leg MIX_DUCK_ON_SHOW not green (Music bus did not duck -8 dB on DialogueShown)"
+[[ "$LOG" == *'MIX_DUCK_OFF_CLOSE: ok'* ]] \
+  || fail "mix leg MIX_DUCK_OFF_CLOSE not green (Music bus did not release within the 30-frame decay after DialogueClosed)"
+[[ "$LOG" == *'MIX_BOSS_STANCE: ok'* ]] \
+  || fail "mix leg MIX_BOSS_STANCE not green (Music bus did not duck -12 dB under the boss stance, or did not release)"
+
+echo "M06_AUDIO_TEST: GATE PASS — EventBus-triggered non-silent SFX on the Sfx bus, music on Music bus, S4 duck legs (show/close/boss) green"
 exit 0

@@ -8,6 +8,10 @@ using LastAnimal.Core.Audio;
 // Phase-7 DoD (PHASE0.md Phase 7): a headless test fires an EventBus signal that
 // triggers a non-silent SFX on the correct bus.
 //
+// S4 (MC 10122) adds three named mix legs — MIX_DUCK_ON_SHOW / MIX_DUCK_OFF_CLOSE
+// / MIX_BOSS_STANCE — asserting Music-bus volume STATE across the S0 dialogue
+// emits and the boss stance, driven by frame counts only (no wall-clock).
+//
 // Godot has no audio device in --headless mode, so "non-silent" is asserted from the
 // actual stream data: the SFX streams must load with GetLength() > 0 (real PCM, not
 // silent), the router must place them on the "Sfx" bus, and the player must be Playing.
@@ -22,7 +26,9 @@ using LastAnimal.Core.Audio;
 public partial class AudioTest : SceneTree
 {
     private int _failures = 0;
-    private int _stage = 0;               // 0=compose, 1=fire, 2=assert, 3=done
+    private int _stage = 0;               // 0=compose, 1=fire, 2..5=mix legs (verdict at 5)
+    private int _wait;                    // frames waited inside the current mix leg
+    private bool _bossLegOk = true;       // MIX_BOSS_STANCE spans engage + release
     private SfxRouter? _sfx;
     private MusicManager? _music;
     private EventBus? _bus;
@@ -43,6 +49,7 @@ public partial class AudioTest : SceneTree
         _sfx = new SfxRouter();
         root.AddChild(_sfx);
         _sfx.Subscribe(_bus, _music);
+        _music.SubscribeMix(_bus);        // S4 duck: same SfxRouter-style wiring
 
         // --- Gate 1: bus infrastructure exists (music + sfx buses) ------------
         _music.Boot();                              // EnsureBuses + LoadSfx
@@ -69,7 +76,6 @@ public partial class AudioTest : SceneTree
         // a live tree, so the positional player is genuinely Playing on the Sfx bus.
         if (_stage == 1)
         {
-            _stage = 2;
             _bus!.EmitDnaExtracted(new DnaSignature("sig_9000", "wolf"));
 
             // The router parented the fired player under itself; grab it and assert.
@@ -85,24 +91,95 @@ public partial class AudioTest : SceneTree
             }
             Check("EventBus signal -> non-silent SFX on Sfx bus", routedOk,
                   routedDetail + " (fired player must be on Sfx bus, playing, len>0)");
+
+            // --- Gate 4: music autoload can start a non-silent Ogg on the Music bus --
+            var ogg = GD.Load<AudioStreamOggVorbis>("res://assets/audio/music_theme.ogg");
+            Check("music Ogg loads non-silent (len>0)", ogg != null && ogg.GetLength() > 0.0,
+                  $"music_theme.ogg GetLength()={(ogg?.GetLength() ?? -1):0.000}s");
+            if (ogg != null)
+                _music!.PlayMusic(ogg);
+
+            // --- MIX_DUCK_ON_SHOW: drive the S0 bracket, assert bus volume STATE -----
+            // Frame advancement only: Quit() (never a return value) ends this
+            // run, so every leg below returns false = keep iterating (MC 1344.1
+            // semantics, same as RuntimeIntegrationProof). No wall-clock sleeps:
+            // each tick IS a frame; decay is asserted against frame counts.
+            _bus.EmitDialogueShown("mix_probe");
+            // The --script run also boots the autoload MusicManager (log-proven:
+            // "GameLoop: ready"); two instances would race on the one Music bus,
+            // so the shadow autoload is freed before the mix legs assert on it.
+            Root.GetNodeOrNull<Node>("MusicManager")?.QueueFree();
+            _stage = 2; _wait = 0;
+            return false;
         }
 
-        // --- Gate 4: music autoload can start a non-silent Ogg on the Music bus --
-        var ogg = GD.Load<AudioStreamOggVorbis>("res://assets/audio/music_theme.ogg");
-        Check("music Ogg loads non-silent (len>0)", ogg != null && ogg.GetLength() > 0.0,
-              $"music_theme.ogg GetLength()={(ogg?.GetLength() ?? -1):0.000}s");
-        if (ogg != null)
-            _music!.PlayMusic(ogg);
+        if (_stage == 2 && ++_wait >= 2)
+        {
+            MixCheck("MIX_DUCK_ON_SHOW", "Music bus ducks -8 dB while DialogueShown held",
+                     BusNear(MusicManager.DialogueDuckDb),
+                     $"bus={MusicBusDb():0.000}dB duck={_music!.MusicDuckDb:0.000}dB");
+            _bus!.EmitDialogueClosed("mix_probe");
+            _stage = 3; _wait = 0;
+            return false;
+        }
 
-        // --- verdict -----------------------------------------------------------
+        if (_stage == 3 && ++_wait >= 32)   // 30-frame release decay + margin
+        {
+            MixCheck("MIX_DUCK_OFF_CLOSE", "Music bus decays back to base 30 frames after DialogueClosed",
+                     BusNear(0f),
+                     $"bus={MusicBusDb():0.000}dB duck={_music!.MusicDuckDb:0.000}dB after {_wait}f");
+            _music.SetBossStance(true);
+            _stage = 4; _wait = 0;
+            return false;
+        }
+
+        if (_stage == 4 && ++_wait >= 2)
+        {
+            _bossLegOk = BusNear(MusicManager.BossDuckDb);
+            MixLog("MIX_BOSS_STANCE", $"engage bus={MusicBusDb():0.000}dB duck={_music!.MusicDuckDb:0.000}dB"
+                     + $" (want {MusicManager.BossDuckDb}dB) {(_bossLegOk ? "ok" : "FAIL")}");
+            _music.SetBossStance(false);
+            _stage = 5; _wait = 0;
+            return false;
+        }
+
+        if (_stage == 5 && ++_wait >= 32)
+        {
+            bool released = BusNear(0f);
+            MixCheck("MIX_BOSS_STANCE", "Music bus ducks -12 dB under boss stance and decays back on release",
+                     _bossLegOk && released,
+                     $"released={released} bus={MusicBusDb():0.000}dB duck={_music!.MusicDuckDb:0.000}dB after {_wait}f");
+            Verdict();
+            return false;
+        }
+        return false;
+    }
+
+    private void Verdict()
+    {
         if (_failures == 0)
-            GD.Print("M06_AUDIO_TEST: PASS — EventBus triggered non-silent SFX on Sfx bus; music on Music bus");
+            GD.Print("M06_AUDIO_TEST: PASS — EventBus triggered non-silent SFX on Sfx bus; music on Music bus; S4 duck legs green");
         else
             GD.Print($"M06_AUDIO_TEST: FAIL ({_failures} check(s) failed)");
 
         Quit(_failures == 0 ? 0 : 1);
-        return false;   // stop iterating once verified + quit requested
     }
+
+    private static float MusicBusDb()
+        => AudioServer.GetBusVolumeDb(AudioServer.GetBusIndex(MusicManager.MusicBus));
+
+    private static bool BusNear(float wantDb)
+        => System.MathF.Abs(MusicBusDb() - wantDb) < 0.05f;
+
+    /// <summary>Named mix leg: one line per leg, counted into the verdict.</summary>
+    private void MixCheck(string leg, string what, bool ok, string detail)
+    {
+        MixLog(leg, $"{(ok ? "ok" : "FAIL")} {what} ({detail})");
+        if (!ok) _failures++;
+    }
+
+    private static void MixLog(string leg, string msg)
+        => GD.Print($"{leg}: {msg}");
 
     private static bool HasBus(string name)
     {
