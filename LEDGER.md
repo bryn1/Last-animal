@@ -676,3 +676,37 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   DA, P4) — a same-frame load+damage suppresses that frame's PlayerHurt edge (payload
   unresolvable at frame granularity; the TickUi rebaseline owns it) — zero behaviour.
   Evidence: .audits/20261005-0250-w1-restamp/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10129 / 10026.15.5 S3 death dissolve (Inc-3 W2, 2026-10-05, code VM350,
+  branch vm350/s3-dissolve): KillHide (the ONE death tick, WorldDirector.cs:392)
+  now PINS the full suppression — collision mask 0 + physics stop + damage zero —
+  and arms the 20-frame VISUAL dissolve instead of the instant hide: alpha +
+  scale-down on the composed root ride ONE integer frame counter (F4, the S1
+  VisualJuice idiom REUSED; JuiceTuning.DissolveFrames=20), the visual node
+  frees ITSELF at f+21 and clears the body's Visual ref (OnVisualDespawned).
+  Targeting exclusion REUSES the director's EXISTING predicate (WorldDirector.cs
+  :375 TryAttack "if (e.IsDead) continue;", mirrored at :228 damage sum and :416
+  TryInteract) — no second targeting list. API FACT pinned by probe: Godot 4.x
+  collision layer NUMBERS are 1-BASED — the plan's literal SetCollisionLayerValue
+  (0,false) is a SILENT NO-OP (probe: mask stays 1; the first plant of it proved
+  a VACUOUS-TRUE leg read); the suppression is SetCollisionLayerValue(1,false),
+  mask→0, asserted via GetCollisionLayer(). BossController.cs: comment-only —
+  the boss IS an EnemyActor in _enemies, its death rides the same KillHide
+  choke; a boss-specific hook would duplicate it and break I3 (the plan's
+  "death-site hook" read: named, cited, zero behaviour). Companion-broken beat
+  DROPPED per plan. Battery leg (N) DISSOLVE_SUPPRESS (marker DISSOLVE_GONE,
+  stage-97 partial RuntimeIntegrationProof.Dissolve.cs + .csproj + .uid same
+  commit): real-wire kill; f+1..+20 forced input presses never land (zero
+  DamageDealt events name the corpse id) AND a direct forced DealDamage(9999)
+  returns false, health pinned 0; DISSOLVE_ABSENT mirror scan prints the corpse
+  absent from the live/targeting population; corpse-scoped asserts (other live
+  enemies cannot false-redden it). Solo leg green x4 + planted skip-collision-
+  off RED (mask read, named) + revert re-green x2, all under the SAVEGATE mutex;
+  ecosystem_test + combat_test solo exit 0; ZoneBossProof boss_phase +
+  DEATH_SAVE_OWNED + corpse_damage (A2, KillHide neighbour) + JUICE_HITFLASH
+  (S1, VisualJuice neighbour) all UNCHANGED green; bash -n on the battery.
+  Leg-count/ARCHITECTURE §6 restamp deferred to W2 wave-close per F5. F4-CMP
+  declaration: collision-off legitimately changes numeric body-mover hunk(s) of
+  any leg that walks through a fresh corpse (mask was ON before this card —
+  the ghost body); byte-stable ROSTER-family streams untouched (no persisted
+  fields — F2 zero-delta). Evidence: .audits/20261005-0532-s3-dissolve/
+  (EVIDENCE.md last line VERIFY_EXIT=0; probe, RED + GREEN logs).

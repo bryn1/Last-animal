@@ -48,7 +48,7 @@ public partial class EnemyActor : CharacterBody3D
         // CompanionVisual pattern, 0b5ada2), replacing the inline BoxMesh all
         // enemies shared. The node keeps the name "Visual". It rides the body
         // (this shell's own movement IS the sim follow), so there is no second
-        // follow mechanism; KillHide hides it, QueueFree frees it.
+        // follow mechanism; KillHide dissolves it (20f, gone by f+21 — S3), QueueFree frees it.
         var mesh = ActorVisual.Build(Kind, isBoss);
         AddChild(mesh);
         Visual = mesh;
@@ -105,11 +105,28 @@ public partial class EnemyActor : CharacterBody3D
 
     public void KillHide()
     {
-        Visible = false;
-        SetPhysicsProcess(false);
         // MC 1348 A2: a dead actor deals no damage. _PhysicsProcess early-returns
         // before the per-tick assignment, so the last value would stay frozen here
         // and the director's damage sum would keep counting it every frame.
+        // MC 10129 Inc-3 S3: the death tick now PINS the full suppression — the
+        // plan-named collision-off line. ONE API fact pinned here: Godot 4.x
+        // collision layer NUMBERS are 1-based, so the plan's literal (0,false)
+        // is a SILENT NO-OP (probe: mask stays 1 — see the MC 10129 evidence
+        // dir); clearing value 1 drops the default first bit and the mask hits
+        // 0: a body on no layer is untouchable by anything. Targeting exclusion
+        // REUSES the director's own predicate (world/WorldDirector.cs TryAttack
+        // "if (e.IsDead) continue;", mirrored in the damage sum and TryInteract):
+        // no second targeting list is added beside it. The old instant
+        // Visible=false is replaced by the 20-frame visual dissolve — the visual
+        // node frees ITSELF at f+21 (ActorVisual.PlayDeath, F4 counter), then
+        // clears this body's presentation reference through OnVisualDespawned.
+        SetCollisionLayerValue(1, false);
+        SetPhysicsProcess(false);
         DamageDealt = 0;
+        ActorVisual.PlayDeath(Visual);
     }
+
+    /// <summary>MC 10129 S3: the visual node has dissolved and freed itself;
+    /// null the presentation reference so no caller ever reads a freed wrapper.</summary>
+    public void OnVisualDespawned() => Visual = null;
 }
