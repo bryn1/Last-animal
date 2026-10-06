@@ -13,6 +13,11 @@
 #   the 3x betrayal burst at the cap is deterministic (DA-c2 D9-6), UNIQUE
 #   bus keys, the roster-mean-LAST emit-order contract (D6), and the F2
 #   regression on the REAL QuestLog: loyalty predicates ignore "roster".
+#   MC 10183 Inc-4 S12 row 6 (S9 c2+c4 carries): the reuse-seam rebond of a
+#   dead-bond stack carries a BOUNDED wage clock (DueSeconds pinned at
+#   PayIntervalSeconds) and pays AT MOST ONE deferred SkipPayment post-rebond
+#   — the unit-level save-surgery check; the run_mode leg stays DEFERRED per
+#   the ratified DA W5 c2 rationale (reproduced in the card evidence).
 #
 # Usage:
 #   ./ci/roster_test.sh [project_dir]   (defaults to dir above ci/)
