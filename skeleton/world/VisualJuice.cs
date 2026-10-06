@@ -16,7 +16,10 @@ public static class JuiceTuning
     /// <summary>Frames held before the flash/punch return EXACTLY to base.</summary>
     public const int HitFlashFrames = 6;
     public const int PunchReturnFrames = 6;
-    public const float PunchDistance = 0.35f;   // short, sub-body-width metres
+    /// <summary>MC 10183 R1 (owner-discretion rec, "Rec on all" 2026-10-06):
+    /// 0.35 m = 39% of the 0.9 m collision box read as teleport-off-footprint
+    /// at the 6f return; 0.30 keeps the beat strictly under a third of it.</summary>
+    public const float PunchDistance = 0.30f;
     public const float PunchDirMinLenSq = 1e-6f;   // flatter dirs read as head-on
     /// <summary>MC 10129 S3: death-dissolve length; the visual node despawns
     /// (frees itself) on frame f+21 when the counter drains at f+20.</summary>

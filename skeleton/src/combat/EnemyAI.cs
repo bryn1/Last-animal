@@ -9,7 +9,9 @@ using System;
 // Port notes (semantics preserved from the prior art, engine-free per I3):
 //   - Enemy types Goblin/Orc/Skeleton/Demon and their HP/damage/speed/range
 //     table are ported 1:1 (the prior art's Vec2 positions are now XZ-plane
-//     CombatVec3; Y is unused for movement).
+//     CombatVec3; Y is unused for movement). MC 10183 R2 (owner discretion,
+//     "Rec on all" 2026-10-06) re-tuned Skeleton to 65/18 — the first and only
+//     deviation from the ported table, rationale at the switch arm.
 //   - The C11 state set is patrol|chase|attack|flee; the prior art's
 //     Idle/Wander pair merges into the single "patrol" state. After an
 //     attack/patrol lull the enemy returns to patrol instead of Idle.
@@ -67,7 +69,11 @@ public class EnemyAI
             case Type.Orc:
                 Health = MaxHealth = 60; Damage = 15; Speed = 1.5f; AttackRange = 1.5f; ChaseRange = 4.0f; _fleeThreshold = 0.2f; break;
             case Type.Skeleton:
-                Health = MaxHealth = 45; Damage = 10; Speed = 2.0f; AttackRange = 1.2f; ChaseRange = 4.5f; _fleeThreshold = 0.25f; break;
+                // MC 10183 R2 (owner-discretion rec): 45/10 put the RUINS denizen
+                // strictly below the canyon orc once the spawner's depth bonuses
+                // apply (45a+25 < 60a+20 hp, 10 < 15 dmg) — the shipped depth ramp
+                // inverted. 65/18 restores the monotone ladder (demon 100/25 above).
+                Health = MaxHealth = 65; Damage = 18; Speed = 2.0f; AttackRange = 1.2f; ChaseRange = 4.5f; _fleeThreshold = 0.25f; break;
             case Type.Demon:
             default:
                 Health = MaxHealth = 100; Damage = 25; Speed = 1.0f; AttackRange = 2.0f; ChaseRange = 6.0f; _fleeThreshold = 0.1f; break;
