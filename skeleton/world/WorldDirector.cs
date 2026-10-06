@@ -1,6 +1,6 @@
-// SIZE: inherited >400 (501 l after the MC 3943 2g move — was 539; the live
-// companion loop left for world/WorldDirector.Roster.cs) — reasons per MC 3895
-// DA P2-1; see SIZE REASON block below (THE single composition root).
+// SIZE: inherited >400 (506 l at the MC 10167 W4 restamp; 501 after MC 3943 2g,
+// 539 pre-2g — live companion loop left for Roster.cs; since 2g: +4 l S1 hunk
+// a6704d0, +1 l W1 note 87ba446) — reasons per MC 3895 DA P2-1; block below.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
