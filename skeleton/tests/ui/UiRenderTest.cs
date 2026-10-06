@@ -120,6 +120,25 @@ public partial class UiRenderTest : SceneTree
             Check("Hud.Life moved via combat seam", _hud.Life == 60, $"life={_hud.Life}");
             Check("Hud.Manna moved via combat seam", _hud.Manna == 25, $"manna={_hud.Manna}");
 
+            // --- MC 10146 / 10026.17: vignette paints on CHANGE only --------
+            // OFF-state colour (VignetteColor at alpha 0) IS the build-time
+            // seed, so while Life is AT/ABOVE the threshold the tint layer
+            // must never be written; below it the pulse colour differs every
+            // frame, so every refresh writes (the guard must not swallow the
+            // animation). PLANTED-BAD (this card): drop the change-guard in
+            // PaintVignette and the OFF-state writes grow — these legs RED.
+            Check("Hud vignette writes 0 colour changes while OFF (idle)",
+                  _hud.VignetteColorWrites == 0, $"writes={_hud.VignetteColorWrites} (want 0)");
+            for (int i = 0; i < 5; i++) _hud.UpdateLife(60);
+            Check("Hud vignette stays write-free across 5 idle redraws",
+                  _hud.VignetteColorWrites == 0, $"writes={_hud.VignetteColorWrites} (want 0)");
+            _hud.UpdateLife(10);   // below the threshold: ON, pulse advances
+            Check("Hud vignette writes once when the pulse turns ON",
+                  _hud.VignetteColorWrites == 1, $"writes={_hud.VignetteColorWrites} (want 1)");
+            for (int i = 0; i < 4; i++) _hud.UpdateLife(10);
+            Check("Hud vignette pulse writes EVERY frame while ON",
+                  _hud.VignetteColorWrites == 5, $"writes={_hud.VignetteColorWrites} (want 5)");
+
             GD.Print("M10_UI_RENDER_TEST: staged assertions done; letting UI paint");
         }
 

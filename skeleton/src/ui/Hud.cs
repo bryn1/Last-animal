@@ -81,6 +81,11 @@ public partial class Hud : Control
     private ColorRect? _vignette;
     private int _vignetteTick;
 
+    /// <summary>MC 10146 / 10026.17: count of the colour writes actually
+    /// issued to the tint layer by PaintVignette. Read-only capture-test
+    /// surface (proof-only, no logic) — the run A leg pins the count.</summary>
+    public int VignetteColorWrites { get; private set; }
+
     // 2f live sources (plan §G D4): re-invoked at every redraw, never copied
     // into a field — the View holds providers, not values.
     private Func<int>? _liveManna;
@@ -318,6 +323,7 @@ public partial class Hud : Control
         var colour = UiTheme.VignetteColor;
         colour.A = on ? tint : 0f;
         _vignette.Color = colour;
+        VignetteColorWrites++;
     }
 
     private void Redraw()
