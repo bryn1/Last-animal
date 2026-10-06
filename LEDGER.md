@@ -1016,3 +1016,54 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   release leg" greps ZERO in the repo tree — carried by the Inc-4 plan draft
   (MC 10026.18) and the board only, not cited here per no-invention.
   Evidence: .audits/20261006-1021-w4-close/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10183 / 10026.22 S12 feel-debt pass (code VM350, 2026-10-06, Inc-4 W1, branch
+  vm350/s12-feeldebt off 1be0b82): playtest-tune rows 1–3, 5–7 closed, row 4 held —
+  (1) punch-axis NOT-A-BUG, independent re-derivation this session: PlayHit's world-XZ
+  dir lands in the Visual child's local Position whose PARENT (EnemyActor CharacterBody3D)
+  frame is rotation-free — the only LookAt in the world/ grep (EnemyActor.cs:82) rotates
+  the VISUAL child, and a node's Position is parent-frame regardless of its own rotation;
+  world dirs correct by construction, the MC 10146 math row holds, zero code;
+  (2) VisualJuice + JuiceTuning SPLIT out of world/ActorVisual.cs into world/VisualJuice.cs
+  (at-cap hygiene unblocking S14; code moved as-is, csproj Compile + engine-minted .uid in
+  the same commit, static facade unchanged for callers; ActorVisual 357→219 l);
+  (3) S3 F-DA rows — F-DA1 NOT-A-BUG (KillHide suppression is UNTIMED: collision-off /
+  physics-off / damage-0 pinned at the death tick, EnemyActor.cs:123–125, nothing a
+  render-tick-stretched dissolve can outlive; F4 idiom); F-DA2 FIXED — dead
+  EnemyActor.Damage(int) DELETED (repo-wide grep zero callers incl. .gd/.tscn/Call; the
+  ONLY damage door is the one CombatSystem.DealDamage site); F-DA3 by-design (corpse-until-
+  zone-clear is the A2 contract every consumer IsDead-guards; a corpse timer would be a
+  SECOND despawn mechanism — refused); F-DA4 NOT-A-BUG (end-of-frame-deferred QueueFree,
+  cosmetic-only loss, S3 ordering proof cited); (4) F-DA5 REOPEN-TRIGGER re-checked at tip
+  (kill choke still zero boss-conditional branches), untouched per brief; (5) vignette
+  re-draw-rate CLOSED on the MC 10146 paint-on-change guard + honest S12 annotation
+  (OFF=0 writes pinned 0/0 by run A; ON=every-redraw IS the ratified R6 pulse — further
+  smoothing = damping the pulse, refused; ci/ui_test.sh re-verified exit 0 at this HEAD);
+  (6) S9 c2 save-surgery check landed at UNIT-gate level in the roster suite (reuse-seam
+  rebond of a dead-bond stack: clock BOUNDED, AT MOST ONE deferred SkipPayment asserted —
+  red on the un-bound code, 580≠30, before green 24/24) + S9 c4 DUESECONDS BOUND at
+  PayIntervalSeconds (Math.Min in CompanionNeeds.TickAccompaniment — invisible on the live
+  cadence, closes the dead-bond growth, makes the c2 "ONE skip" enforced not argued;
+  runtime-only, F2 zero save delta; brief's "BetrayalSystem.cs" cite grep-corrected:
+  DueSeconds lives ONLY in CompanionNeeds.cs); the run_mode leg stays DEFERRED per the
+  ratified DA W5 c2 rationale — reproduced verbatim in the evidence dir, declared not
+  silent; (7) R1/R2 owner-discretion numbers (verbatim "Rec on all" 2026-10-06) with
+  A/A-controlled evidence: PunchDistance 0.35→0.30 (39% of the 0.9 m collision box read
+  as teleport-off-footprint at the 6f return; DIRECTIONAL class — smoke color-count A/A
+  2977/2974 baseline, 2977 after, inside spread; JUICE_HITFLASH asserts states not
+  magnitude) + Skeleton 45hp/10dmg→65/18 (the shipped depth ramp INVERTED at ruins:
+  spawned skeleton 45a+25 < orc 60a+20 hp and 10<15 dmg, tier-2 boss 223/41 < tier-1
+  264/54; 65/18 restores both ladders — deterministic integer table in evidence; EnemyAI
+  ctor + EcosystemSpawner.StatsOf + ZoneBossProof.BaseHealth moved together; 1:1-port note
+  annotated as the first deviation). Timing consts (HitFlashFrames/PunchReturnFrames/
+  DissolveFrames) declared UNCHANGED — the juice/dissolve legs pin that face in their own
+  PASS-marker text. Zero new signals (EventBus [Signal] census 15 re-counted, diff zero),
+  F2 zero save delta (save_test green; GameState diff zero), battery +0 legs (existing
+  legs re-verified: 15 named runtime legs green BEFORE and AFTER the pass — before/after
+  legs-summaries in the evidence dir; gates solo under savegate, all exit 0 at the FINAL
+  tree: build + combat/ecosystem/companion/save/ui/boot/smoke + roster re-run 24/24).
+  RED proofs: row6-leg red on the un-bound code (pre-fix log) → green after (MC 10146
+  idiom — the check goes red on the un-fixed code itself, no plant needed); roster gate
+  two-pass calibration re-asserts its own red every run. NOT touched: F-DA5, the
+  battery-leg assertions (ZoneBossProof moved ONLY its BaseHealth track-table to follow
+  the tuned const), the shared checkout. Evidence: .audits/20261006-1844-s12/
+  (EVIDENCE.md last line VERIFY_EXIT=0).
