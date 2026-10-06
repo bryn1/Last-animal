@@ -1016,3 +1016,41 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   release leg" greps ZERO in the repo tree — carried by the Inc-4 plan draft
   (MC 10026.18) and the board only, not cited here per no-invention.
   Evidence: .audits/20261006-1021-w4-close/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10184 / 10026.23 S13 world render pass + decor soft fade (code VM350,
+  2026-10-06, Inc-4 W1): two commits, zero C# mechanism, F2 zero-delta. (A)
+  Per-zone LOOK as pure data INSIDE the existing Environment sub-resources of
+  all three zone tscns — glow + volumetric-exempt env fog + adjustment
+  (color-grade), light_energy re-pulsed (meadow 1.4->1.5 warmth/glow; canyon
+  1.2->1.35 DEFINED haze: warm fog + contrast/sat 1.15/1.18 + aerial
+  perspective 0.4, graded NOT washed out; ruins 1.1->1.15 dark-but-graded:
+  cool moonlit fog, black-point 0.02 lift against crush — identity darkness
+  kept, NOT brightened away; LEDGER Inc-1 register honored). Gotcha pinned
+  for S15/S18: fog_sky_affect defaults 1.0 — env fog WASHED THE SKY on the
+  first pass (a1-washout colors 141/85/447, mean 0.25->0.74); shipped fix
+  fog_sky_affect=0 + aerial perspective. A/A noise row FIRST (colors
+  identical across aa1/aa2, spread 0): meadow 870->1160, canyon
+  1814->2656, ruins 1333->1805; smoke spawn-view colors 2977->3435 (historical
+  band 2380-3038 restated: the grade pass intentionally adds richness ABOVE
+  it; content bar --min-colors 1200 stays green). Grade is a declared
+  TUNING-EVIDENCE class per plan S13 (captures + colors table = the proof;
+  no fake pixel gate). (B) OWNER-ACCEPTED FADE (ruling 2026-10-06 verbatim
+  "Rec on all" accepting "accept 45m cull now + soft distance-fade in S13"):
+  zone.gd's single 45 m pop line became a staggered multi-band hide — root i
+  hides beyond 45/42/39 m by band (i % 3), re-shows with 2 m hysteresis;
+  alpha/material fades REJECTED for GL Compatibility (shared imported
+  materials cross-fade every instance; TRANSPARENT_alpha pulls decor into the
+  sorted transparent pass — flicker + full-opacity shadows). Spawn view
+  UNCHANGED BY CONSTRUCTION: max spawn-camera decor distances derived 33.91/
+  36.01/33.58 m vs nearest hide threshold 39 m (margins 5.09/2.99/5.42);
+  smoke colors 3435 (A) vs 3481 (A+B) same-frame-noise apart, mean/stddev
+  identical to 3 decimals; capture windows show the fade honestly (meadow
+  hidden roots 5->7 draw-calls 28->18; canyon byte-identical — all 12 roots
+  beyond 45 m under BOTH schemes for that fixed camera; ruins 2->3,
+  32->29). S11 marker string kept verbatim + fade suffix on the same line
+  ("decor distance cull armed at 45m over 12 roots; soft fade 3 bands
+  39..45m, hysteresis 2m" — live in evidence b1 logs). THE LEDGER CARRIED
+  ITEM "S11 45 m walk-play hard-pop OWNER call — accept vs fog/fade vs
+  hysteresis (MC 10165)" IS NOW RESOLVED: accepted + fade shipped. Gates:
+  ci/smoke.sh green x3, ci/export_check.sh green (PE OK 135 MB). Battery +0
+  legs (plan §S13). Evidence: .audits/20261006-1820-s13/ (EVIDENCE.md last
+  line VERIFY_EXIT=0).
