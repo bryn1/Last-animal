@@ -926,8 +926,13 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   tried first, REJECTED at runtime by GL Compatibility (FINDING F2), shipped a
   zone-root throttled 45m distance hide (spawn-view decor reach <=~36m ->
   playable frame untouched, solo ci/smoke.sh green in-band); per-zone draw
-  calls meadow 46->28 canyon 63->8 ruins 38->32 + wall-ms -5.7..-6.4:
-  THRESHOLD CLAIM CLAIMED (all six deltas beat A/A spread, better direction).
+  calls meadow 46->28 canyon 63->8 ruins 38->32: CLAIMED on draw_calls
+  alone (constant per frame, spread 0.0, mechanically corroborated).
+  b1 (fix-1, DA 202610060741-377fb068): wall-ms -5.7..-6.4 re-ruled
+  DIRECTIONAL/no-claim — the render-identical a1 control alone swung
+  meadow -4.591 (81% of the claimed delta) and canyon's 0.017 "spread"
+  vs its +2.476 control swing; pooled render-identical bound 11.317ms
+  contains all three deltas; ships on draw_calls, not wall-ms.
   (2) SfxRouter pool reuse 2e90edf (idle-first, cap 12; MAP legs moved to the
   router routing seam, planted double-route RED routed+=2 then revert green;
   solo ci/audio_test.sh 0) — capture windows contain no router: HONEST-DOWNGRADE,
@@ -936,6 +941,11 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   NOT IMPLEMENTED FINDING F1 — import flags live in gitignored .import files,
   export flags invisible to the dev-scene harness. FINDING F4: headless stdout
   block-buffers; perf sampling must flush to file. Verify instrument re-derives
-  the whole claim table from raw samples, proven red (planted missing file).
+  the whole claim table from raw samples under the fix-1 rule (wall-ms claims
+  must exceed the pooled render-identical control bound), proven red (planted
+  missing file; planted wall-ms CLAIMED regression in perf.md).
+  OWNER call surfaced 2026-10-06 (DA W3): 45m hard cull pops visibly in
+  walk-play (no fog/fade/bounds); spawn view pinned (<=36.0m reach) —
+  accept vs fog/fade vs hysteresis.
   Evidence: /home/svarkor/last-animal/.audits/20261006-0840-s11-perf/
   (perf.md + EVIDENCE.md last line VERIFY_EXIT=0). Close battery: wave barrier.
