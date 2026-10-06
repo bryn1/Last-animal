@@ -306,6 +306,13 @@ public partial class Hud : Control
     /// counter (F4) between min and max so every captured frame while low
     /// shows a measurable tint; AT/ABOVE the threshold the alpha is EXACTLY 0
     /// and the counter parks (HUD_VIGNETTE pins both sides of the boundary).
+    /// S12 RE-DRAW-RATE NOTE (MC 10183, re-verifies the MC 10146 fix): the
+    /// re-draw-rate question closes ON this guard, not below it — OFF the
+    /// colour is constant so zero writes land (run A pins 0 across idle
+    /// redraws); ON the pulse colour DIFFERS every redraw by construction,
+    /// so every redraw paints — that full rate IS the ratified R6 pulse
+    /// (HUD_VIGNETTE, run H). Smoothing the ON rate further would damp the
+    /// pulse itself: a semantics change to a ratified face, refused.
     /// </summary>
     private void PaintVignette()
     {

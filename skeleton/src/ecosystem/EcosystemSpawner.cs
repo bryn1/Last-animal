@@ -216,7 +216,7 @@ public class EcosystemSpawner
     {
         EnemyAI.Type.Goblin => (30, 5, 3.0f),
         EnemyAI.Type.Orc => (60, 15, 1.5f),
-        EnemyAI.Type.Skeleton => (45, 10, 2.0f),
+        EnemyAI.Type.Skeleton => (65, 18, 2.0f),   // MC 10183 R2: mirrors EnemyAI (depth-ramp monotonicity — see EnemyAI.cs)
         _ => (100, 25, 1.0f), // Demon
     };
 

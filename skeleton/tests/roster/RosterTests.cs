@@ -547,4 +547,41 @@ public class CompanionRosterTests
         Assert.Equal(100, CompanionRoster.RestoreLoyalty(100));
         Assert.Equal(100, CompanionRoster.RestoreLoyalty(9999));
     }
+
+    // --- MC 10183 Inc-4 S12 row 6 (S9 carries c2 + c4) ----------------------
+
+    [Fact]
+    public void RebondedDeadBond_ClockBounded_PaysAtMostOneDeferredSkip()
+    {
+        // Save-surgery check at the UNIT-gate level (S9 c2, deferred P3 —
+        // the run_mode leg stays DEFERRED per the DA-c2 rationale, reproduced
+        // in the card evidence, declared not silent). Reachability note: in
+        // production the surgically re-bonded dead stack cannot form (the
+        // snapshot writes bonded-only; the restore DROPS broken stacks
+        // before the reuse seam) — RestoreIdentity is nonetheless the ONE
+        // live-stack mutation site such an edited save lands on, so its
+        // carried wage clock is pinned HERE.
+        // c4 (DueSeconds bound): the wage clock keeps ticking on a dead bond
+        // (DA W5 F1 keeps the clock live) — it must stay BOUNDED at
+        // PayIntervalSeconds, never accumulate without end.
+        var f = NewFollower("follower", 21, loyalty: 50);
+        f.Component.BreakCompanion();                 // manual break: machine stays Needing (NF7 shape)
+        for (int s = 0; s < 600; s++) f.Needs.TickAccompaniment(1);
+        Assert.True(f.Needs.SalaryDue);
+        Assert.Equal(30.0, f.Needs.DueSeconds);       // pinned at the interval, never past it (pre-bound: 580)
+
+        // The reuse seam re-bonds (surgery analogue: id and loyalty from the
+        // edited entry, NF6 bounds as always).
+        f.RestoreIdentity(9, 20);
+
+        // TickRoster-mirror skip arm (bond flag true post-rebond): across
+        // TWO consume opportunities the carried buffer drains EXACTLY ONE
+        // deferred SkipPayment; the next one needs a full fresh interval.
+        int skips = 0;
+        for (int s = 0; s < 2; s++)
+            if (f.Needs.ConsumeUnpaidInterval()) { f.Machine.SkipPayment(); skips++; }
+        Assert.Equal(1, skips);                       // pre-bound: the buffer burst-skipped (up to 10)
+        Assert.Equal(17, f.Component.Loyalty);        // exactly ONE SkipPenalty (3), clamp uninvolved
+        Assert.False(f.Needs.ConsumeUnpaidInterval());
+    }
 }
