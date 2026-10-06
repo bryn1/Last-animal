@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 // Last Animal — M06 audio (MC 890.7, artemis, 2026-09-03).
@@ -14,6 +15,42 @@ namespace LastAnimal.Core.Audio;
 public partial class SfxRouter : Node
 {
     private MusicManager? _music;
+
+    // MC 10165 S11 pool reuse (Inc-3 plan action class 2): Fire() recycles a
+    // finished player instead of node-spawn-per-signal (the old path created an
+    // AudioStreamPlayer3D and QueueFree'd it on every signal — node churn was
+    // the cost, not the audio). Idle-first scan keeps routing deterministic:
+    // the same signal sequence always re-arms the same player sequence (F4).
+    // When the whole pool is busy at the cap, re-arming round-robin is bounded
+    // behaviour the old unbounded churn never had.
+    private readonly List<AudioStreamPlayer3D> _pool = new();
+    private const int PoolCap = 12;
+    private int _steal;
+
+    // Test seam (MC 10165): under pooling the router's child COUNT no longer
+    // measures routing (a finished player re-arms without a new child), so the
+    // AudioTest MAP legs assert on this count + the last routed player.
+    // A planted double-route increments twice in one emit and trips the leg —
+    // strictly stronger than the old spawn-count proxy, which was blind to a
+    // double route that re-armed an idle player.
+    public int RoutedCount { get; private set; }
+    public AudioStreamPlayer3D? LastRouted { get; private set; }
+
+    private AudioStreamPlayer3D AcquirePooled()
+    {
+        foreach (var p in _pool)
+            if (!p.Playing) return p;                 // stream finished: re-arm in place
+        if (_pool.Count < PoolCap)
+        {
+            var fresh = _music!.SpawnSfxPlayer();     // positional, on the Sfx bus
+            _pool.Add(fresh);
+            AddChild(fresh);                          // tree residency once, at birth
+            return fresh;
+        }
+        var next = _pool[_steal++ % PoolCap];         // all busy: bounded re-arm
+        next.Stop();
+        return next;
+    }
 
     /// <summary>Wire SFX to the given EventBus via the shared MusicManager autoload.</summary>
     public void Subscribe(EventBus bus, MusicManager music)
@@ -52,14 +89,14 @@ public partial class SfxRouter : Node
             GD.Print($"SFX_ROUTER: fire \"{sfx}\" SKIPPED (stream not loaded)");
             return;
         }
-        var player = _music!.SpawnSfxPlayer();   // positional, on the Sfx bus
-        player.Stream = rand;                    // randomizer -> variation on repeat
-        if (entityId is not null)
-            player.PitchScale = PitchFor(entityId);  // deterministic, per-EntityId (S5)
-        // Playback requires the node be inside the scene tree; parent it under the
-        // router so the engine can mix it (Positional 3D -> Sfx bus).
-        AddChild(player);
-        player.Play();
+        var player = AcquirePooled();              // recycled positional player (S11)
+        player.Stream = rand;                      // randomizer -> variation on repeat
+        // Explicit pitch: a recycled player carries its previous fire's pitch,
+        // so the no-entity case must restate 1.0 rather than rely on the default.
+        player.PitchScale = entityId is not null ? PitchFor(entityId) : 1.0f;
+        player.Play();                             // node is already tree-resident (pool)
+        RoutedCount++;
+        LastRouted = player;
         GD.Print($"SFX_ROUTER: fired \"{sfx}\"  bus={player.Bus}  playing={player.Playing}" +
                  $"  streamLen={player.Stream?.GetLength():0.000}s");
     }
