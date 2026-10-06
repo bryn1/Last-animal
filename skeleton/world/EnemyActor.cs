@@ -97,11 +97,11 @@ public partial class EnemyActor : CharacterBody3D
     /// <summary>Damage this enemy dealt to the player on the last AI tick.</summary>
     public int DamageDealt { get; private set; }
 
-    public void Damage(int amount)
-    {
-        if (Ai != null && !Ai.IsDead)
-            Ai.TakeDamage(amount);
-    }
+    // MC 10183 S12 row 3 (S3 F-DA2): the dead public Damage(int) seam is GONE —
+    // repo-wide grep zero callers (.cs/.gd/.tscn/Call); the ONLY damage path to
+    // an enemy is the director's single CombatSystem.DealDamage call site
+    // (WorldDirector TryAttack). A wrapper no caller can reach is an inert
+    // second damage door; the S3 DA verdict filed it as the dead seam (P4).
 
     public void KillHide()
     {
