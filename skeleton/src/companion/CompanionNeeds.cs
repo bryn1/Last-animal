@@ -57,7 +57,16 @@ public class CompanionNeeds
         // tracks how long the current wage has sat unpaid.
         if (SalaryDue)
         {
-            DueSeconds += deltaSeconds;
+            // MC 10183 Inc-4 S12 row 6 (S9 c4 bound): the unpaid buffer is
+            // BOUNDED at one interval. A bonded follower's skip arm drains a
+            // full interval the moment it completes (ConsumeUnpaidInterval),
+            // so the cap is INVISIBLE on the live cadence; it closes the
+            // dead-bond growth (DA W5 F1 keeps the clock ticking while
+            // PayDueFollowers/skip-arm guards run) and makes the DA-c2 "ONE
+            // deferred SkipPayment" on a surgically re-bonded stack literally
+            // true — the carried buffer is at most one interval. Runtime-only
+            // (F2: nothing here persists).
+            DueSeconds = Math.Min(DueSeconds + deltaSeconds, PayIntervalSeconds);
             return;
         }
         _sinceSettled += deltaSeconds;
