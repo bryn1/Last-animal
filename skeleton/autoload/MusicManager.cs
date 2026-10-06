@@ -109,11 +109,14 @@ public partial class MusicManager : Node
     public AudioStreamRandomizer? GetSfx(string id)
         => _sfx.TryGetValue(id, out var s) ? s : null;
 
-    /// <summary>Create a positional AudioStreamPlayer3D on the Sfx bus that frees itself on finish.</summary>
+    /// <summary>Create a positional AudioStreamPlayer3D on the Sfx bus.
+    /// S11 (MC 10165): no more self-QueueFree-on-Finished — the SfxRouter
+    /// pool (its only caller) creates once and recycles finished players, so
+    /// node churn replaced the free-on-finish buildup it used to paper over;
+    /// the pool caps at its own limit and lives under the router.</summary>
     public AudioStreamPlayer3D SpawnSfxPlayer()
     {
         var p = new AudioStreamPlayer3D { Bus = SfxBus };
-        p.Finished += () => p.QueueFree();   // short-lived; frees after play to avoid buildup
         return p;
     }
 

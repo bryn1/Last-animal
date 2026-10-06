@@ -10,14 +10,56 @@ extends Node3D
 
 @export var zone_id: StringName = &"zone"
 
+# MC 10165 S11 zone-visibility culling (Inc-3 plan action class 1): the
+# engine's own VisibilityRange properties were tried FIRST and are NOT
+# available on the GL Compatibility renderer (runtime "invalid assignment"
+# under the CI Xvfb fallback — see .audits/*s11-perf* a1 evidence), so the
+# zone root runs a throttled distance test and hides decor roots beyond
+# DECOR_CULL_DISTANCE_M from the CURRENT camera — still the zone scene's
+# own concern, no parallel culling system. In-game the follow camera never
+# exceeds ~36 m to any decor at the spawn view (derived from the tscn
+# transforms + FollowCamera offset); deep in a zone the far ring simply
+# stops being drawn. The fixed perf-capture cameras sit 50-80 m from that
+# ring, so the capture windows measurably shed its draw calls.
+const DECOR_CULL_DISTANCE_M := 45.0
+const DECOR_CULL_INTERVAL := 0.5   # s between checks; 10-12 roots per zone — cheap
+
 @onready var ground: Node3D = $Ground
+
+var _decor_roots: Array[Node3D] = []
+var _cull_acc: float = DECOR_CULL_INTERVAL   # first _process culls immediately
 
 func _ready() -> void:
     # M12 hook surface: record the zone id on the Spawners node so
     # EcosystemSpawner.OnZoneEnter(zoneId) (C15) has a stable, queryable anchor.
     spawners().set_meta("zone_id", String(zone_id))
+    cull_far_decor_collect()
     print("[zone] %s ready; zone_id=%s" % [name, zone_id])
     bake_navmesh.call_deferred()
+
+func cull_far_decor_collect() -> void:
+    var decor := get_node_or_null("Decor")
+    if decor == null:
+        return
+    for c in decor.get_children():
+        if c is Node3D:
+            _decor_roots.append(c)
+    if _decor_roots.size() > 0:
+        print("[zone] %s: decor distance cull armed at %.0fm over %d roots" % [name, DECOR_CULL_DISTANCE_M, _decor_roots.size()])
+
+func _process(delta: float) -> void:
+    if _decor_roots.is_empty():
+        return
+    _cull_acc += delta
+    if _cull_acc < DECOR_CULL_INTERVAL:
+        return
+    _cull_acc = 0.0
+    var cam := get_viewport().get_camera_3d()
+    if cam == null:
+        return   # no view (headless): never hide
+    var cp: Vector3 = cam.global_position
+    for d in _decor_roots:
+        d.visible = cp.distance_to(d.global_position) <= DECOR_CULL_DISTANCE_M
 
 func spawners() -> Node3D:
     return get_node_or_null("Spawners") if has_node("Spawners") else self

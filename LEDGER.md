@@ -914,3 +914,28 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   NON-COMMENT battery line -> RED; a planted false count 28=18+10 -> RED; both
   reverted, re-green.
   Evidence: .audits/20261006-0700-w3-close/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10165 / 10026.20 S11 perf pass (code VM350, 2026-10-06, Inc-3 W4):
+  capture under the REAL Xvfb surface reusing the gates' own mechanism —
+  capture_wrapper.gd PERF_WINDOW mode (per-frame Performance.get_monitor
+  TIME_PROCESS + RENDER_TOTAL_DRAW_CALLS_IN_FRAME + wall interval, flushed
+  PERF_LOG; M07 PNG path untouched) + tools/perf_probe.sh (meadow/canyon/
+  ruins x 60-frame windows; headless zero-surface rejected by design). A/A
+  noise-control row FIRST on the unchanged tip: draw_calls spread 0.0 all
+  zones, wall-ms spread <=4.65. Action classes capped per plan, zero src/
+  gameplay edits: (1) zone-visibility culling fc115a3 — engine VisibilityRange
+  tried first, REJECTED at runtime by GL Compatibility (FINDING F2), shipped a
+  zone-root throttled 45m distance hide (spawn-view decor reach <=~36m ->
+  playable frame untouched, solo ci/smoke.sh green in-band); per-zone draw
+  calls meadow 46->28 canyon 63->8 ruins 38->32 + wall-ms -5.7..-6.4:
+  THRESHOLD CLAIM CLAIMED (all six deltas beat A/A spread, better direction).
+  (2) SfxRouter pool reuse 2e90edf (idle-first, cap 12; MAP legs moved to the
+  router routing seam, planted double-route RED routed+=2 then revert green;
+  solo ci/audio_test.sh 0) — capture windows contain no router: HONEST-DOWNGRADE,
+  table WITHOUT threshold (draw_calls identical +-0.0; wall moves = between-pass
+  drift ~10ms on render-identical trees, FINDING F3). (3) import/export flags:
+  NOT IMPLEMENTED FINDING F1 — import flags live in gitignored .import files,
+  export flags invisible to the dev-scene harness. FINDING F4: headless stdout
+  block-buffers; perf sampling must flush to file. Verify instrument re-derives
+  the whole claim table from raw samples, proven red (planted missing file).
+  Evidence: /home/svarkor/last-animal/.audits/20261006-0840-s11-perf/
+  (perf.md + EVIDENCE.md last line VERIFY_EXIT=0). Close battery: wave barrier.

@@ -212,27 +212,29 @@ public partial class AudioTest : SceneTree
     }
 
     /// <summary>S5 mapping-table pair (MC 10130): scripted emission of one signal
-    /// must spawn EXACTLY ONE new routed player — on the Sfx bus, carrying the
-    /// shared randomizer instance of the mapped stream, at the deterministic
-    /// EntityId pitch. A planted double-route spawns two players and trips the
-    /// one-spawn check (line prints FAIL, the gate goes RED).</summary>
+    /// must route EXACTLY ONE player — on the Sfx bus, carrying the shared
+    /// randomizer instance of the mapped stream, at the deterministic EntityId
+    /// pitch. S11 (MC 10165) pooled the router, so "exactly one" is counted on
+    /// the router's routing seam (child count can no longer see a re-arm); a
+    /// planted double-route increments it twice in one emit and trips the leg
+    /// (line prints FAIL, the gate goes RED).</summary>
     private void MapPair(string signal, System.Action emit, string wantStream, float wantPitch)
     {
-        int before = _sfx!.GetChildCount();
+        int before = _sfx!.RoutedCount;
         emit();
-        int spawned = _sfx.GetChildCount() - before;
-        if (spawned != 1)
+        int routed = _sfx.RoutedCount - before;
+        var p = _sfx.LastRouted;
+        if (routed != 1 || p is null)
         {
             MixCheck($"MAP {signal}->{wantStream}", "routed EXACTLY once", false,
-                     $"spawns+={spawned} (double-route or unmapped signal)");
+                     $"routed+={routed} (double-route or unmapped signal)");
             return;
         }
-        var p = _sfx.GetChild<AudioStreamPlayer3D>(before);
         bool streamOk = ReferenceEquals(p.Stream, _music!.GetSfx(wantStream));
         bool pitchOk = System.MathF.Abs(p.PitchScale - wantPitch) < 1e-4f;
         bool ok = p.Bus == MusicManager.SfxBus && p.Playing && streamOk && pitchOk;
         MixCheck($"MAP {signal}->{wantStream}", "routed EXACTLY once", ok,
-                 $"spawns+=1 bus={p.Bus} playing={p.Playing} stream={wantStream}:{streamOk}" +
+                 $"routed+=1 bus={p.Bus} playing={p.Playing} stream={wantStream}:{streamOk}" +
                  $" pitch={p.PitchScale:0.000}/{wantPitch:0.000}:{pitchOk}");
     }
 
