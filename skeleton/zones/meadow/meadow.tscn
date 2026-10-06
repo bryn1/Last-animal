@@ -27,6 +27,21 @@ ambient_light_source = 2
 ambient_light_color = Color(1, 0.96, 0.88, 1)
 ambient_light_energy = 0.55
 tonemap_mode = 2
+; MC 10184 S13 world render pass: warmth/glow identity. Fog is the plain
+; (volumetric-exempt) environment fog — GL Compatibility has no volumetric
+; pass. Values are tuning-evidence (plan S13 dissent class), look proven by
+; the before/after captures in .audits/*-s13/, not by a pixel gate.
+fog_enabled = true
+fog_light_color = Color(0.95, 0.97, 1, 1)
+fog_light_energy = 0.6
+fog_density = 0.0055
+fog_sky_affect = 0.0
+glow_enabled = true
+glow_strength = 0.4
+glow_bloom = 0.15
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 1.12
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_1"]
 cell_size = 0.25
@@ -61,7 +76,7 @@ environment = SubResource("Environment_1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
 transform = Transform3D(0.866, -0.5, 0, 0, 0, 0.866, 0.5, 0.866, 0, 0, 4, 0)
-light_energy = 1.4
+light_energy = 1.5
 light_color = Color(1, 0.96, 0.88, 1)
 shadow_enabled = true
 

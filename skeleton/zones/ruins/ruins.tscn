@@ -26,6 +26,25 @@ ambient_light_source = 2
 ambient_light_color = Color(0.6, 0.68, 0.85, 1)
 ambient_light_energy = 0.5
 tonemap_mode = 2
+; MC 10184 S13 world render pass: dark-BUT-GRADED identity (LEDGER Inc-1:
+; "ruins intentionally dark" — the darkness is identity, so the pass GRADES
+; it: cool moonlit fog, slight black-point lift against crush, restrained
+; glow — without brightening. Volumetric-exempt env fog (GL Compatibility).
+; Tuning-evidence values (plan S13 dissent class); look proven by
+; .audits/*-s13/ captures, not a pixel gate.
+fog_enabled = true
+fog_light_color = Color(0.55, 0.62, 0.8, 1)
+fog_light_energy = 0.7
+fog_density = 0.009
+fog_sky_affect = 0.0
+fog_aerial_perspective = 0.25
+glow_enabled = true
+glow_strength = 0.45
+glow_bloom = 0.1
+adjustment_enabled = true
+adjustment_black = 0.02
+adjustment_contrast = 1.12
+adjustment_saturation = 0.95
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_1"]
 cell_size = 0.25
@@ -69,7 +88,7 @@ environment = SubResource("Environment_1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
 transform = Transform3D(0.866, -0.5, 0, 0, 0, 0.866, 0.5, 0.866, 0, 0, 4, 0)
-light_energy = 1.1
+light_energy = 1.15
 light_color = Color(0.75, 0.82, 1, 1)
 shadow_enabled = true
 
