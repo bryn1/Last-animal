@@ -108,7 +108,9 @@ migration (2026-09-24). Its own audit-fix loop runs on MC 1348 N-findings; A6-A1
   pinned 8.0.130), F7 (README per-run byte counts — DESTALED 2026-10-04 MC 10059: artifact block
   marked M00-era with a pointer to the latest export evidence), F8 (data dir named "Preflight"
   though it ships the full game), A14 (PlayerActions/UI-build split), WorldDirector.cs over the
-  400-line ceiling (header reason stands — 501 l at 5922b25, SIZE header present).
+  400-line ceiling (header reason stands — 506 l re-derived at the MC 10167 W4
+  close; was 501 l at 5922b25, +4 l S1 trigger hunk a6704d0, +1 l W1 comment-only
+  F-DA1 note 87ba446 — SIZE header restamped in the W4 close commit).
 - PUSH: ~~BLOCKED~~ RESOLVED 2026-10-01 — the bryn1 account key (`~/.ssh/github_bryn1`) pushed the
   full lineage to the canonical remote (see AAA section). Original blocker (no deploy key on vm105)
   recorded here for history.
@@ -949,3 +951,68 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   accept vs fog/fade vs hysteresis.
   Evidence: /home/svarkor/last-animal/.audits/20261006-0840-s11-perf/
   (perf.md + EVIDENCE.md last line VERIFY_EXIT=0). Close battery: wave barrier.
+- MC 10167 / W4 wave-close restamp + FINAL Inc-3 battery barrier (design VM350,
+  2026-10-06, Inc-3 W4): FULL battery swept at tip da0bdaf (branch vm350/w4-close)
+  — ALL 20 rows exit 0: one-time --import (fresh worktree) + ui/audio/boot/combat/
+  companion/dna_npc/ecosystem/empathy_book/main_composition/quest/roster/save/
+  skill/story tests + smoke + bridge_mvp + runtime_integration (29 distinct mode=
+  legs x 2 log lines = 58 lines, all driven to their markers — 19 positive green,
+  10 negative controls RED-by-design with their named NEG_* markers; GATE PASS
+  banners x3) + determinism_cmp positive A/A ((i) 11 lines byte-stable IDENTICAL,
+  (ii) 4 masked-IDENTICAL) + export_check (Windows exe 138,045,192 B, PE magic OK).
+  savegate held across the whole sweep as a mkdir DIRECTORY per convention,
+  released after. Docs restamp, comment/doc-only: (1) ARCHITECTURE gains the
+  S11 surfaces, existence-grepped first — §3 capture row: capture_wrapper.gd
+  PERF_WINDOW mode (env-flag-gated per-frame Performance sampling, flushed
+  PERF_LOG, MIN_LIFE_MS; M07 PNG path byte-identical unset); §3 zones row:
+  zone.gd decor-cull (throttled 0.5 s zone-root distance test,
+  DECOR_CULL_DISTANCE_M=45, spawn-view reach <=~36 m, GL Compatibility REJECTS
+  VisibilityRange — FINDING F2); §6: tools/perf_probe.sh TOOL row + perf-instrument
+  note (draw_calls the stable column, spread 0.0 / wall-ms ~10 ms between-pass
+  drift on render-identical trees, no wall-ms claims) citing the S11 LEDGER row;
+  §6 audio MAP legs restamped — since S11 counted on the router routing seam
+  (SfxRouter.RoutedCount/LastRouted; pool idle-first, PoolCap 12, bounded
+  round-robin re-arm; MusicManager.SpawnSfxPlayer QueueFree churn contract
+  dropped), strictly stronger than the child-count proxy; stale S5-era
+  "per-stream fired-counts" wording removed. (2) Battery header re-derived by
+  anchored run_mode grep: 29 = 19 positive + 10 negative UNCHANGED (S11 added
+  zero legs) — header already true, zero edit. (3) §3 signal census re-derived:
+  grep '[Signal] public delegate' skeleton/autoload/EventBus.cs = 15 — UNCHANGED
+  (S11 zero new signals), zero edit. (4) ALL proof/source wc re-derived: every
+  ci_proofs count UNCHANGED (S11 touched zero — Proof 555 / Bus 566 / Chain 221 /
+  Juice 126 / Shake 121 / Story2 288 / Dissolve 209 / P1Fix 356; §6 parenthetical
+  restamped re-derived-at-da0bdaf); S11-touched files zone.gd 88 / SfxRouter 114 /
+  capture_wrapper 99 / perf_probe 89 / AudioTest 257 / MusicManager 187 — all
+  <400, no SIZE header owed (grepped: none grew one). (5) SIZE-header sweep FOUND
+  ONE REAL DRIFT: WorldDirector.cs header read 501 l vs wc 506 at tip (+4 l S1
+  trigger hunk a6704d0, +1 l W1's own comment-only F-DA1 note 87ba446; prior
+  wave-closes swept ci_proofs SIZE headers only and missed it) — header
+  comment-only restamped to a self-consistent 506 l, REMAINING register row
+  restamped the same commit. (6) The three MC 10164 DA-noted prose imprecisions
+  ("mode= = 29" vs 58 lines / "48 checks" vs 45 / "15 module gates" vs
+  14+smoke+bridge): grep of repo docs (LEDGER/ARCHITECTURE/ci headers) = ZERO
+  hits — all three lived only in the W3 EVIDENCE folder (out of repo scope);
+  W4 evidence wording carries the corrected forms up front. (7) RED self-tests
+  of the restamp instrument (verify.sh): planted NON-COMMENT battery line ->
+  RED; planted false count 28=18+10 -> RED; both reverted, re-green.
+  INC-3 ARC CLOSURE: S0-S11 ALL SHIPPED OR GATED — S0 bus-emit seam (3bfcee5,
+  11->15 signals), S1 hit-flash, S2 camera shake, S3 death dissolve, S4 music
+  duck, S5 SFX remap, S6 HUD tokens+vignette, S7 latent closure + the
+  determinism_cmp tool, S9 follower traits (+NF5/6/7 harden), S10 story act-two
+  (+10138 HUD tracker rider), S11 perf pass (fix-1 merged at da0bdaf). S8 Command
+  Bark NEVER SHIPPED — stays QUEUED, HARD-GATED on the owner RULING-3 rec
+  artifact (board MC 10131/10026.15.7 status read 2026-10-06; the LEDGER names
+  S8 once, the S1 row's merge-order note — queue status is board-carried).
+  Wave-close chain COMPLETE: W0 (10097 restamp + 10112 barrier) -> W1 (10119) ->
+  W2 (10139) -> W3 (10164) -> W4 (this row). Items THIS LEDGER carries forward:
+  R1 juice defaults + R2 damage numbers — OWNER GATE standing row (MC 10146);
+  F-DA5 reopen TRIGGER — fires only if a boss-conditional kill ships (MC 10146);
+  S9 c2 re-bond DEFER-P3, save-surgery-bound, ONE-skip effect (MC 10146);
+  F-DA2 dead-seam hygiene-DEFER, inert + guard-read (MC 10146); S11 45 m
+  walk-play hard-pop OWNER call — accept vs fog/fade vs hysteresis (MC 10165);
+  C16 real-Windows launch smoke — owner acceptance step (REMAINING register);
+  Bus.cs 566 l no in-file SIZE header — TOOL/NOTE inside the 600 test ceiling,
+  flagged not fixed (W2-era). NOT LEDGER-carried: the dispatch-named "gh-token
+  release leg" greps ZERO in the repo tree — carried by the Inc-4 plan draft
+  (MC 10026.18) and the board only, not cited here per no-invention.
+  Evidence: .audits/20261006-1021-w4-close/ (EVIDENCE.md last line VERIFY_EXIT=0).

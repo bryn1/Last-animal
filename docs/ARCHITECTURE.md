@@ -95,8 +95,17 @@ the composition root (see §3).
   TEST-seam `SpawnWildFollower`)), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
+  `scripts/capture_wrapper.gd` also carries the MC 10165 S11 `PERF_WINDOW=N` capture
+  mode — env-flag-gated per-frame `Performance.get_monitor` sampling
+  (`TIME_PROCESS` + `RENDER_TOTAL_DRAW_CALLS_IN_FRAME` + wall interval, flushed
+  `PERF_LOG`, `MIN_LIFE_MS` keep-alive); measurement-only, the M07 PNG path stays
+  byte-identical with the flag unset.
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
-  `redtest/`).
+  `redtest/`). `zone.gd` carries the MC 10165 S11 decor-cull: a throttled (0.5 s)
+  zone-root distance test hides `Decor` roots beyond `DECOR_CULL_DISTANCE_M = 45`
+  from the active camera (spawn-view decor reach <=~36 m in all zones — the playable
+  frame is untouched; engine `VisibilityRange` tried first, REJECTED at runtime by
+  GL Compatibility — FINDING F2, S11 LEDGER row).
 - **Input map**: WASD + arrows + attack, skill_1..3 (Q/R/F — F is the live
   Calming Speak press since MC 10031, riding the 2e-reserved binding, map
   zero-diff), ui_toggle
@@ -151,6 +160,14 @@ The content guard (card 10111) is MERGED: two RED conditions at
 `cmp_pair` — a zero-keyed side, or the harness FAIL banner (`LA_GATE: FAIL — `)
 carried by either side — shipped at 7a8bd10; TOOL status unchanged (zero
 gate callers; the guard lives inside the tool).
+`tools/perf_probe.sh` — MC 10165 S11 perf-capture driver (meadow/canyon/ruins
+x 60-frame windows through the capture_wrapper `PERF_WINDOW` mode, reusing the
+gates' own `graphical-test-helper.sh` Xvfb capture; headless zero-surface rejected
+by design). TOOL, not a gate leg — no gate script calls it. Perf-instrument fact
+(S11 LEDGER row, .audits/20261006-0840-s11-perf/perf.md): `draw_calls` is the
+stable column (A/A spread 0.0) — wall-ms drifts ~10 ms between-pass even on
+render-identical trees (no wall-ms threshold claims), and GL Compatibility
+rejects `VisibilityRange` at runtime.
 `skill_test.sh` carries the named F-acts F1..F6 plus the calm rows
 `F7_calm_cost_spend_once` / `F8_calm_refuse_no_spend` / `F9_calm_unlock_positions`
 (MC 10031). `audio_test.sh` carries the named mix legs `MIX_DUCK_ON_SHOW` /
@@ -161,7 +178,13 @@ the boss stance) and the named S5 mapping legs `MAP QuestStarted->loyalty` /
 `MAP QuestCompleted->dna_extract` / `MAP EmpathyBookOpened->dna_spoken` /
 `MAP PlayerHurt->betrayal` / `MAP BossFallen->ecosystem` +
 `MAP pitch-determinism` (MC 10130 S5: each signal routes EXACTLY once to its
-stream — a double-route prints FAIL; per-stream fired-counts pin the table).
+stream — a double-route prints FAIL). Since MC 10165 S11 the MAP legs count
+`routed` at the router's read-only routing seam (`SfxRouter.RoutedCount` /
+`LastRouted`) instead of the child-count proxy — the S11 player pool (idle-first
+reuse, `PoolCap = 12`, bounded round-robin re-arm at cap; `MusicManager.SpawnSfxPlayer`
+dropped its QueueFree-on-Finished churn contract) makes the count strictly stronger:
+a planted double-route trips `routed+=2` even when it re-arms an idle player;
+stream/bus/playing/pitch are asserted on `LastRouted`.
 `ui_test.sh` carries the named runs `UI_TOKENS_SINGLE_SOURCE`
 (the three panel files raw-literal-clean, theme tokens single-sourced in
 `UiTheme.cs`), `HUD_VIGNETTE` (low-health red tint on/below boundary,
@@ -204,8 +227,8 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
 split duty: the entry harness had reached the 600-l proof ceiling; re-derived
-at the W3 tip 93962d1 (MC 10146 touched zero ci_proofs files — all counts
-below unchanged since the W2 stamp): Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
+at the W4 tip da0bdaf (MC 10165 S11 touched zero ci_proofs files — all counts
+below unchanged since the W2/W3 stamp): Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
