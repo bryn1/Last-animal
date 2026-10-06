@@ -857,3 +857,28 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   A/A byte-stable. Battery sweep + docs restamp: W3 barrier (not this card).
   Evidence: .audits/20261005-1227-s9-traits/ (EVIDENCE.md last line
   VERIFY_EXIT=0).
+- MC 10146 / 10026.17 tune-sweep (Inc-3 post-W3 playtest items, code VM350, 2026-10-06,
+  branch vm350/tune-sweep off aee5650): 7 card items closed — (1) S1 DA P4 punch-axis
+  NOT-A-BUG math row: Node3D.Position is in the PARENT frame and the body never rotates
+  (EnemyActor.cs:82 LookAt rotates the Visual child only; _visuals chain identity,
+  main.tscn rotation-free) so world-XZ punch dirs are correct; (2) ActorVisual at-cap
+  NOT-A-BUG: file holds zero cap/instancing logic (one spawn-time Build caller,
+  EnemyActor.cs:52; the per-enemy material IS the S1 tint surface); (3) S3 F-DA1..4
+  four rows: F-DA1 by-design (F4 integer counter, suppression UNTIMED — nothing to
+  outlive), F-DA2 dead seam hygiene-DEFER (inert, !IsDead-guarded, no caller), F-DA3
+  by-design (pre-existing A2; corpse timer = second despawn mechanism, refused), F-DA4
+  NOT-A-BUG (end-of-frame-deferred QueueFree order proven, cosmetic); (4) F-DA5 reopen
+  TRIGGER recorded (fires only if a boss-conditional kill ever ships — none exists at
+  tip, zero boss branches in the kill choke), no code; (5) vignette FIXED: PaintVignette
+  writes the tint layer on CHANGE only (ColorRect.set_color queue_redraws
+  unconditionally — the OFF-state constant colour re-queued the full-screen layer every
+  TickUi frame), run A gains the VignetteColorWrites pin leg (RED pre-fix 7/12/13/17 ->
+  GREEN 0/0/1/5; the check went red on the un-fixed code itself — no plant needed),
+  full ui_test.sh A–I solo green under savegate incl. run H byte-side pins; (6) S9 c2
+  DEFER-P3 (re-bonding a dead bond needs save surgery — Snapshot writes bonded-only,
+  restore drops broken stacks first; effect bounded to ONE skip into the loyalty clamp),
+  c4 WONTFIX (grep-verified no-consumer: DueSeconds lives ONLY in CompanionNeeds, its
+  reader path sits behind the HasCompanion gate, runtime-only — no save path); (7) R1
+  juice defaults + R2 damage numbers = OWNER GATE standing row, zero constants touched.
+  Zero new signals, F2 zero save delta, no new mechanism. Gates solo: ui_test exit 0.
+  Evidence: .audits/20261005-0643-tune-sweep/ (EVIDENCE.md last line VERIFY_EXIT=0).
