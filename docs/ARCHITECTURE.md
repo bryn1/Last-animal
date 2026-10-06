@@ -101,11 +101,18 @@ the composition root (see §3).
   `PERF_LOG`, `MIN_LIFE_MS` keep-alive); measurement-only, the M07 PNG path stays
   byte-identical with the flag unset.
 - **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
-  `redtest/`). `zone.gd` carries the MC 10165 S11 decor-cull: a throttled (0.5 s)
-  zone-root distance test hides `Decor` roots beyond `DECOR_CULL_DISTANCE_M = 45`
-  from the active camera (spawn-view decor reach <=~36 m in all zones — the playable
-  frame is untouched; engine `VisibilityRange` tried first, REJECTED at runtime by
-  GL Compatibility — FINDING F2, S11 LEDGER row).
+  `redtest/`). `zone.gd` (GDScript) carries the decor-cull, MC 10165 S11 + MC 10184
+  S13 soft fade as SHIPPED: a throttled (0.5 s) zone-root distance test hides
+  `Decor` roots across THREE staggered bands — root i hides beyond 45/42/39 m by
+  `i % 3` and re-shows only with 2 m hysteresis (no band-edge flicker) — replacing
+  the single S11 `DECOR_CULL_DISTANCE_M = 45` hard hide, which popped visibly in
+  walk-play (owner ruling 2026-10-06: accept the cull + ship the staggered fade).
+  No-pop BY CONSTRUCTION: measured spawn-camera decor reach 33.91/36.01/33.58 m
+  (meadow/canyon/ruins) vs the nearest band at 39 m. Alpha/material fades
+  REJECTED for GL Compatibility (shared imported materials cross-fade every
+  instance; TRANSPARENT_alpha pulls decor into the sorted transparent pass);
+  engine `VisibilityRange` tried first, REJECTED at runtime by GL Compatibility —
+  FINDING F2, S11 LEDGER row).
 - **Input map**: WASD + arrows + attack, skill_1..3 (Q/R/F — F is the live
   Calming Speak press since MC 10031, riding the 2e-reserved binding, map
   zero-diff), ui_toggle

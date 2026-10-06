@@ -991,7 +991,10 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   restamped the same commit. (6) The three MC 10164 DA-noted prose imprecisions
   ("mode= = 29" vs 58 lines / "48 checks" vs 45 / "15 module gates" vs
   14+smoke+bridge): grep of repo docs (LEDGER/ARCHITECTURE/ci headers) = ZERO
-  hits — all three lived only in the W3 EVIDENCE folder (out of repo scope);
+  hits AT W4 STAMP — re-grepped at W1 close (MC 10196): the ONLY repo hits for
+  the three quoted strings are this row's own self-quotes (grep the strings and
+  the hit is this very line — the claims themselves lived only in the W3
+  EVIDENCE folder, out of repo scope);
   W4 evidence wording carries the corrected forms up front. (7) RED self-tests
   of the restamp instrument (verify.sh): planted NON-COMMENT battery line ->
   RED; planted false count 28=18+10 -> RED; both reverted, re-green.
@@ -1085,11 +1088,13 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   DueSeconds lives ONLY in CompanionNeeds.cs); the run_mode leg stays DEFERRED per the
   ratified DA W5 c2 rationale — reproduced verbatim in the evidence dir, declared not
   silent; (7) R1/R2 owner-discretion numbers (verbatim "Rec on all" 2026-10-06) with
-  A/A-controlled evidence: PunchDistance 0.35→0.30 (39% of the 0.9 m collision box read
-  as teleport-off-footprint at the 6f return; DIRECTIONAL class — smoke color-count A/A
+  A/A-controlled evidence: PunchDistance 0.35→0.30 (0.35 = 39% of the 0.9 m collision box
+  read as teleport-off-footprint at the 6f return; exactly 1/3 at PunchDistance 0.30 /
+  0.9 m box — DA restamp MC 10196, W1 close: NOT strictly under a third, the VisualJuice.cs
+  comment wording carries to W2; DIRECTIONAL class — smoke color-count A/A
   2977/2974 baseline, 2977 after, inside spread; JUICE_HITFLASH asserts states not
   magnitude) + Skeleton 45hp/10dmg→65/18 (the shipped depth ramp INVERTED at ruins:
-  spawned skeleton 45a+25 < orc 60a+20 hp and 10<15 dmg, tier-2 boss 223/41 < tier-1
+  spawned skeleton 45a+25 < orc 60a+20 hp and 10<15 dmg, tier-2 boss 223/40 < tier-1
   264/54; 65/18 restores both ladders — deterministic integer table in evidence; EnemyAI
   ctor + EcosystemSpawner.StatsOf + ZoneBossProof.BaseHealth moved together; 1:1-port note
   annotated as the first deviation). Timing consts (HitFlashFrames/PunchReturnFrames/
@@ -1105,3 +1110,32 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   battery-leg assertions (ZoneBossProof moved ONLY its BaseHealth track-table to follow
   the tuned const), the shared checkout. Evidence: .audits/20261006-1844-s12/
   (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10196 / 10026.24 Inc-4 W1 wave-close (code VM350, 2026-10-06): barrier
+  battery at 60d1e96 (fresh detached worktree, one-time --import first) — 20/20
+  lines exit 0: import + 16 ci/*_test.sh + smoke + export_check (Windows exe
+  138,047,504 B, PE magic OK) + determinism_cmp positive A/A tool run ((i) 11
+  lines byte-stable IDENTICAL, (ii) 4 masked-IDENTICAL) + the runtime battery
+  runtime_integration_test.sh = 29/29 legs (19 positive green to their markers,
+  GATE PASS banners x3, render bar RESULT=PASS; 10 negative controls RED-by-design
+  with their named NEG_* markers — 8 print the literal "break detected",
+  NEG_CONTROLLER and NEG_SAVE_VERSION carry their own markers, expected not a
+  defect). savegate held across the whole sweep as a mkdir DIRECTORY per
+  convention, released after. Zero new mechanism: existing ci/ scripts verbatim.
+  S12 (10183, merge 60d1e96) + S13 (10184, merge aaee0c3) DA-gated SHIP.
+  Restamp in this row's commit: smoke spawn colors 3401 at this HEAD (the
+  historical 2380-3038 band is superseded LOW-END by the S13 grade — intentional
+  richness; content bar --min-colors 1200 unaffected); S12 row ruins-boss dmg
+  223/41 -> 223/40 (Math.Round ToEven on 40.5) + punch box-fraction restamped to
+  "exactly 1/3 at PunchDistance 0.30 / 0.9 m box" (the code-comment "strictly
+  under a third" wording carries to W2 with S14); ARCHITECTURE zones row
+  restamped from the stale single 45 m hard-hide to the shipped S13 mechanism
+  (three staggered bands hide 45/42/39 m by root index %3, 2 m re-show
+  hysteresis, GDScript zone.gd; no-pop by construction: spawn-reach
+  33.91/36.01/33.58 m vs nearest band 39 m). W4 self-quoted grep-ZERO row
+  re-grepped at this close: the ONLY repo hits for the three quoted strings are
+  that row's own self-quotes (restated inline there); the gh-token row re-verified
+  zero-hit (zero edit); da0bdaf mentions checked — all SHA-pinned historical,
+  zero edit. Carries into W2: S14 stale-comment fix (ActorVisual.Build LookAt
+  wording + VisualJuice.cs PunchDistance "strictly under a third"), S15/S18
+  fog_sky_affect=0 rule, S18 main.tscn-instances-meadow-only fact.
+  Evidence: .audits/202610062247-w1-close/ (EVIDENCE.md last line VERIFY_EXIT=0).
