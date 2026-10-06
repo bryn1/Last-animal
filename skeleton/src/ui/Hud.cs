@@ -322,8 +322,19 @@ public partial class Hud : Control
                      (UiTheme.VignetteMaxAlpha - UiTheme.VignetteMinAlpha) * tri / half;
         var colour = UiTheme.VignetteColor;
         colour.A = on ? tint : 0f;
-        _vignette.Color = colour;
-        VignetteColorWrites++;
+        if (colour != _vignette.Color)
+        {
+            // MC 10146 / 10026.17 tune-sweep: paint-on-change ONLY. Godot's
+            // ColorRect.set_color queue_redraws UNCONDITIONALLY (engine fact,
+            // scene/gui/panel.cpp), so the pre-guard unconditional write
+            // re-queued this full-screen layer on EVERY TickUi redraw while
+            // the vignette sat OFF (its colour is a constant there — equal to
+            // the build-time seed). Below the threshold the pulse colour
+            // differs every frame, so the pulse still paints every redraw —
+            // HUD_VIGNETTE (run H) pins both sides and stays byte-stable.
+            _vignette.Color = colour;
+            VignetteColorWrites++;
+        }
     }
 
     private void Redraw()
