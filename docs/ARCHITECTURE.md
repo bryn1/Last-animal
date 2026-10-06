@@ -35,7 +35,7 @@ the composition root (see §3).
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
 | `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs`, `ActTwoSync.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1) + the act-two restore-sync arms (MC 10132 F-DA2: `Run` decides None/Adopt/Rollback/FreshOpen/SilentReStart — quest-state logic stays pure, `WorldDirector.Story.cs` `SyncActTwoFromRestore` only executes the returned action's engine-side halves). Engine-free (MC 3900 2a, MC 3904 2c). |
-| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies), dialogue (`Show(nodeId, fromReward=false)` — the MC 3915 reward-beat flag `ActiveNodeIsReward`, one-arg callers unchanged), empathy panel, TAB skills panel (MC 3933 2f). |
+| `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies; the low-health vignette writes the tint layer on CHANGE only — Godot's `ColorRect.set_color` queue_redraws unconditionally, so the OFF-state constant colour must not re-queue the full-screen layer every TickUi frame; `Hud.VignetteColorWrites` is the read-only capture-test counter of writes actually issued, MC 10146), dialogue (`Show(nodeId, fromReward=false)` — the MC 3915 reward-beat flag `ActiveNodeIsReward`, one-arg callers unchanged), empathy panel, TAB skills panel (MC 3933 2f). |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
 
@@ -165,7 +165,12 @@ stream — a double-route prints FAIL; per-stream fired-counts pin the table).
 `ui_test.sh` carries the named runs `UI_TOKENS_SINGLE_SOURCE`
 (the three panel files raw-literal-clean, theme tokens single-sourced in
 `UiTheme.cs`), `HUD_VIGNETTE` (low-health red tint on/below boundary,
-non-blank tint pixel) (MC 10123 S6) and run (I) `HUD_QUESTLINE_ACT2`
+non-blank tint pixel) (MC 10123 S6), the run (A) `VignetteColorWrites` pin
+legs (MC 10146 tune-sweep fix: `UiRenderTest.cs` pins 0/0/1/5 tint-layer
+colour writes — zero while OFF across 5 idle redraws, one at the pulse ON
+edge, one per frame while ON; drop the change-guard in `Hud.PaintVignette`
+and these legs go RED — the check reded on the un-fixed code itself), and
+run (I) `HUD_QUESTLINE_ACT2`
 (MC 10138: baseline pins the act-one tracker title; the act-two run, opened
 through the shipped restore-sync path, pins "The Way Down" mid-arc with
 quest-row pixel bars — closing S10's flagged LiveQuestLine limitation).
@@ -198,8 +203,9 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
-split duty: the entry harness had reached the 600-l proof ceiling; at the W2
-tip Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
+split duty: the entry harness had reached the 600-l proof ceiling; re-derived
+at the W3 tip 93962d1 (MC 10146 touched zero ci_proofs files — all counts
+below unchanged since the W2 stamp): Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's

@@ -882,3 +882,35 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   juice defaults + R2 damage numbers = OWNER GATE standing row, zero constants touched.
   Zero new signals, F2 zero save delta, no new mechanism. Gates solo: ui_test exit 0.
   Evidence: .audits/20261005-0643-tune-sweep/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10164 / W3 wave-close restamp + battery barrier (design VM350, 2026-10-06, Inc-3 W3):
+  FULL battery swept at tip 93962d1 (branch vm350/w3-close) — ALL exit 0: one-time
+  --import + ui/audio/boot/combat/companion/dna_npc/ecosystem/empathy_book/
+  main_composition/quest/roster/save/skill/story tests + smoke + bridge_mvp +
+  runtime_integration (all 29 legs driven to their markers — 19 positive green,
+  10 negative controls red with their named NEG_* markers) + determinism_cmp
+  positive A/A (byte-stable IDENTICAL + numeric-mask IDENTICAL) + export_check
+  (Windows exe, PE magic OK). savegate held across the whole sweep (stale Oct-5
+  regular-file lock archived, re-taken as mkdir per convention). Docs restamp,
+  comment/doc-only: (1) ARCHITECTURE §6 named-legs + §2 src inventory gain the
+  MC 10146 vignette paint-on-change surface — ui_test run (A) VignetteColorWrites
+  pin legs 0/0/1/5 (UiRenderTest.cs, 4 existence-grepped checks) + the Hud.cs
+  change-guard and read-only capture-test counter; run (H) HUD_VIGNETTE is
+  MC 10123's and was already listed (MC 10146 added no run-H leg — cited only
+  what exists); ui_test.sh run (A) header comment gained the same disclosure
+  (comment-only). (2) Battery header re-derived by anchored whitespace-tolerant
+  run_mode grep: 29 legs = 19 positive + 10 negative, UNCHANGED since the W2
+  stamp (MC 10146 added zero battery legs) — header already true, zero edit.
+  (3) ALL proof wc re-derived at tip: Proof.cs 555 / Bus.cs 566 / Chain.cs 221 /
+  Juice.cs 126 / Shake.cs 121 / Story2.cs 288 / Dissolve.cs 209 / P1FixProof.cs
+  356 — all unchanged (MC 10146 touched zero ci_proofs files); Hud.cs 372 < 400
+  (no SIZE header required per the MC 10146 verdict), UiRenderTest.cs 166 < 600;
+  stale-era count greps zero tree-wide; §6 size parenthetical restamped
+  re-derived-at-93962d1. (4) every in-file SIZE header checked vs wc: Proof.cs
+  555/555, BridgeMvp 507/507, Roster 298/298, ZoneBoss 441/441 exact; Quests
+  ~560 vs 559 + Story2 ~300 vs 288 honest tildes — no drift. (5) §3 signal
+  census re-derived: grep '[Signal] public delegate' skeleton/autoload/EventBus.cs
+  = 15 — UNCHANGED (MC 10146 added zero signals); doc already read 15, no edit
+  owed. (6) RED self-tests of the restamp instrument (verify.sh): a planted
+  NON-COMMENT battery line -> RED; a planted false count 28=18+10 -> RED; both
+  reverted, re-green.
+  Evidence: .audits/20261006-0700-w3-close/ (EVIDENCE.md last line VERIFY_EXIT=0).

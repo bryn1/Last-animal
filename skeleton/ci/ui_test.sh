@@ -14,6 +14,10 @@
 #       four gauges and moves DnaMeter (DnaExtracted/DnaSpoken) + CompanionHearts
 #       (LoyaltyChanged) FROM the EventBus; DialogueSystem.Show paints a node;
 #       EmpathyPanel.Open surfaces a REAL M04 BookEntry read from EmpathyBook.Query.
+#       Since MC 10146 the run also pins the vignette paint-on-change surface:
+#       Hud.VignetteColorWrites == 0/0/1/5 (zero colour writes while OFF across
+#       idle redraws, one at the pulse ON edge, one per frame while ON) — drop
+#       the change-guard in Hud.PaintVignette and run A goes RED.
 #   (B) run the UiHarnessSelfTest     -> must exit NON-zero (deliberately broken;
 #       proves the gate can fail — not a rubber stamp).
 #   (C) run the UI under graphical-test-helper (Xvfb) -> RESULT=PASS means the
