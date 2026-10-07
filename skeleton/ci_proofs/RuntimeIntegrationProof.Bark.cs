@@ -17,8 +17,15 @@ using LastAnimal.Save;
 //     (BARK_GONE_x);
 //   - roster EMPTY (planted EMPTY Followers list through the same product
 //     rebuild — the one path that also FREES the bodies, DA W5 F4): zero
-//     visible bubbles across the whole window + margin — the walk sees GHOSTS
+//     visible bubbles across the whole window + margin, EVERY frame walked
+//     (F1, MC 10238: the wait is floored above BarkSettleFrames and the walk
+//     count asserted) — the walk sees GHOSTS
 //     a stale-list or un-freed-body implementation would leak (non-vacuous);
+//   - F2 load-seam regression (S24, MC 10238): a fresh press then LoadGame
+//     INSIDE the open window — the rebuild REUSES the bodies in place (the
+//     DA's carry path) and the ONE load seam's ClearBarkWindows leaves them
+//     window-free: zero walked bubbles AND zero open counters on every
+//     post-load frame across window + margin (BARK_LOAD_CLEAR);
 //   - every press: zero gameplay delta across the window (hp/Manna/DNA/
 //     position/roster/loyalty-sum — BARK_NO_GAMEPLAY_DELTA_x, player physics
 //     frozen over the window so position is bit-still, Motion/KillPulse
@@ -37,7 +44,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     private const int BarkSettleFrames = 30;      // let physics rest after compose/load
     private const int BarkEmptyMarginFrames = 4;  // window + margin for the zero-walk
 
-    private int _bkPhase, _bkSub, _bkFrames;
+    private int _bkPhase, _bkSub, _bkFrames, _bkWalks;
     private int _bkOpenFrame, _bkWindowV, _bkLastVisible;
     private bool _bkPlantedSave;                  // OWNED: delete-before-plant, delete-at-end
     private Vector3 _bkPos;
@@ -56,10 +63,11 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 4: BarkPlantAndCheck(0, "BARK_ROSTER_EMPTY"); break;
             case 5: BarkEmptyTest(); break;
             case 6: BarkClose(); break;
+            case 7: BarkLoadInWindowTest(); break;
         }
     }
 
-    private void BarkNext(int phase) { _bkPhase = phase; _bkFrames = 0; _bkSub = 0; }
+    private void BarkNext(int phase) { _bkPhase = phase; _bkFrames = 0; _bkSub = 0; _bkWalks = 0; }
 
     // ---- shared machinery ----------------------------------------------------
 
@@ -197,7 +205,7 @@ public partial class RuntimeIntegrationProof : SceneTree
                 CheckGameplayDelta(suffix);
                 if (_failed) return;
                 GD.Print($"LA_GATE: BARK_NO_GAMEPLAY_DELTA_{suffix} — hp/Manna/DNA/position/roster/loyalty bit-unchanged across the bark window (presentation authority, F4)");
-                BarkNext(n == 1 ? 2 : 4);   // after 1: plant the 3; after 3: plant the empty
+                BarkNext(n == 1 ? 2 : 7);   // after 1: plant the 3; after 3: F2 load-in-window (phase 7), then plant the empty
                 break;
 
             default:
@@ -234,7 +242,15 @@ public partial class RuntimeIntegrationProof : SceneTree
             _bkSub = 1;
             return;
         }
-        int wait = _bkWindowV + BarkEmptyMarginFrames;
+        // F1 (MC 10238): the wait is floored ABOVE BarkSettleFrames — the press
+        // lands at frame BarkSettleFrames, so this loop walks EVERY frame from
+        // press+1 through press+window+margin (S8 DA wall F1: with the old
+        // window+margin wait the exit was already true on the FIRST visit,
+        // exactly one walk; an async/deferred-open leak at press+2+ passed
+        // green forever). The walk count is asserted, so the marker sentence
+        // is the truth.
+        int wait = BarkSettleFrames + _bkWindowV + BarkEmptyMarginFrames;
+        _bkWalks++;
         int w = CountBubbles(_main);
         if (w != 0 || _director!.FollowerBodies.Count != 0)
         {
@@ -246,8 +262,69 @@ public partial class RuntimeIntegrationProof : SceneTree
             Input.ActionRelease("bark");
             CheckGameplayDelta("0");
             if (_failed) return;
-            GD.Print($"LA_GATE: BARK_EMPTY_ZERO — real bark press on the EMPTY roster: walked count 0 every frame across {_bkWindowV}+{BarkEmptyMarginFrames}f, no ghosts (bodies freed with the roster by the product rebuild)");
+            GD.Print($"LA_GATE: BARK_EMPTY_ZERO — real bark press on the EMPTY roster: walked count 0 on EVERY one of {_bkWalks} walks across the {_bkWindowV}f window + {BarkEmptyMarginFrames}f margin (wait floored above settle, F1), no ghosts (bodies freed with the roster by the product rebuild)");
             BarkNext(6);
+        }
+    }
+
+    /// <summary>F2 regression (MC 10238, S8 DA wall): press bark, then LoadGame
+    /// INSIDE the open window. The planted roster-3 save is still on disk, so
+    /// the rebuild REUSES the three bodies in place — the DA's proven carry
+    /// path (window carried across the seam, id re-latched). The load seam's
+    /// ClearBarkWindows (calm-clear mirror) must leave the reused bodies
+    /// window-free: ZERO walked bubbles AND zero open counters on EVERY
+    /// post-load frame across window + margin (BARK_LOAD_CLEAR).</summary>
+    private void BarkLoadInWindowTest()
+    {
+        var bodies = _director!.FollowerBodies;
+        switch (_bkSub)
+        {
+            case 0:   // fresh press on the live roster-3 (save still planted)
+                if (_bkFrames < BarkSettleFrames) return;
+                Input.ActionPress("bark");
+                _bkSub = 1;
+                break;
+
+            case 1:   // window open -> LoadGame INSIDE it (the F2 repro, now a regression)
+                {
+                    int w = CountBubbles(_main);
+                    if (w == 0)
+                    {
+                        if (_bkFrames > 120) Fail("BARK_LOAD_INWINDOW: the fresh bark press never opened a window (poll dead?)");
+                        return;
+                    }
+                    if (w != 3) { Fail($"BARK_LOAD_INWINDOW: walked bubble count {w} != 3 at open"); return; }
+                    _bkWindowV = bodies[0].BarkWindowFrames;
+                    if (_bkWindowV <= 0)
+                    { Fail($"BARK_LOAD_INWINDOW: window not positive at open (V={_bkWindowV})"); return; }
+                    Input.ActionRelease("bark");
+                    _director.LoadGame();          // MID-window: both load entries ride RestoreFollowers
+                    _bkOpenFrame = _bkFrames;      // the post-load walk window starts here
+                    _bkSub = 2;
+                }
+                break;
+
+            case 2:   // post-load: ZERO walked bubbles + ZERO open counters, EVERY frame
+                {
+                    int open = 0;
+                    foreach (var b in bodies) if (b.BarkWindowFrames > 0) open++;
+                    int w = CountBubbles(_main);
+                    _bkWalks++;
+                    if (w != 0 || open != 0)
+                    { Fail($"BARK_LOAD_CLEAR: stale bubble rode the REUSED body through the load seam (walk={w}, open-windows={open}, V-at-load={_bkWindowV}, post-load walk {_bkFrames - _bkOpenFrame}) — the ONE load seam must clear bark windows as it clears calm windows (S24 F2)"); return; }
+                    if (_bkFrames - _bkOpenFrame < _bkWindowV + BarkEmptyMarginFrames) return;
+                    Check("load-in-window: the rebuild reused the same 3-body roster (the carry path, not a fresh spawn)",
+                          _director.RosterView.Count == 3 && bodies.Count == 3,
+                          $"N={_director.RosterView.Count} bodies={bodies.Count}");
+                    if (_failed) return;
+                    GD.Print($"LA_GATE: BARK_LOAD_CLEAR — bark-press then LoadGame INSIDE the window (V={_bkWindowV} at load): walked bubble count 0 AND zero open counters on every one of {_bkWalks} post-load walks (>= window+margin) — the reused bodies came back window-free (load-seam bark clear, F2, mirror of the calm clear)");
+                    BarkNext(4);
+                }
+                break;
+
+            default:
+                Fail("bark: load-in-window sub machine overflow");
+                break;
         }
     }
 
@@ -270,7 +347,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         }
         if (_failed) return;
         GD.Print("LA_GATE: BARK_CENSUS_15 — EventBus source read at runtime holds exactly 15 signals");
-        GD.Print("LA_GATE: PASS — S8 command bark verified end-to-end (pure presentation: real press, roster 1/3 EXACT walked counts, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts, zero gameplay delta, census 15, zero save delta)");
+        GD.Print("LA_GATE: PASS — S8 command bark verified end-to-end (pure presentation: real press, roster 1/3 EXACT walked counts, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on EVERY walked frame, bark-press + LoadGame inside the window carries ZERO bubbles, zero gameplay delta, census 15, zero save delta)");
         _asserted = true;
         ReleaseHeldRefsBeforeQuit();
         Quit(0);

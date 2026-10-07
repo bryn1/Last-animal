@@ -1,5 +1,5 @@
-// SIZE: 510 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 142-l
+// SIZE: 516 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 148-l
 // mode doc mode_sets_check parses and the 28-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
@@ -181,7 +181,13 @@ using System.Linq;
 //                     the bodies with the roster, DA W5 F4) presses to ZERO
 //                     ghost bubbles + exit 0; zero gameplay delta across every
 //                     press (BARK_NO_GAMEPLAY_DELTA, physics-frozen bit-still,
-//                     Motion/KillPulse idiom); census-15 re-grep IN-LEG (stage
+//                     Motion/KillPulse idiom); census-15 re-grep IN-LEG; S24
+//                     follow-up (MC 10238): press + LoadGame INSIDE the window
+//                     leaves the REUSED bodies window-free — zero walked
+//                     bubbles post-load (BARK_LOAD_CLEAR, load-seam bark
+//                     clear, mirror of the calm clear) — and the EMPTY-roster
+//                     zero-walk is floored above the settle so every frame of
+//                     window + margin is walked (F1; stage
 //                     102, RuntimeIntegrationProof.Bark.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs

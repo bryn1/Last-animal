@@ -487,13 +487,18 @@ done
 # rebuild that frees bodies with the roster) presses to ZERO ghost bubbles.
 # Every press: zero gameplay delta (hp/Manna/DNA/position/roster/loyalty,
 # physics-frozen bit-still). Census re-grepped IN-LEG: the bus source read at
-# runtime still holds EXACTLY 15 signals. Stage 102, proof partial
+# runtime still holds EXACTLY 15 signals. S24 follow-up (MC 10238, S8 DA wall
+# F1+F2): the EMPTY-roster zero-walk is floored ABOVE the settle so EVERY
+# frame of window+margin is actually walked (the walk count is asserted), and
+# a fresh press followed by LoadGame INSIDE the window must leave the REUSED
+# bodies window-free — zero walked bubbles post-load (BARK_LOAD_CLEAR, the
+# load-seam bark clear mirroring the calm clear). Stage 102, proof partial
 # RuntimeIntegrationProof.Bark.cs.
 run_mode BARK pass "BARK_CENSUS_15"
 LOGBK="$(LA_GATE_MODE=BARK timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
-for m in BARK_ROSTER_ONE BARK_OPEN_1 BARK_STEP BARK_GONE_1 BARK_NO_GAMEPLAY_DELTA BARK_ROSTER_THREE BARK_OPEN_3 BARK_GONE_3 BARK_ROSTER_EMPTY BARK_EMPTY_ZERO BARK_SAVE_OWNED; do
+for m in BARK_ROSTER_ONE BARK_OPEN_1 BARK_STEP BARK_GONE_1 BARK_NO_GAMEPLAY_DELTA BARK_ROSTER_THREE BARK_OPEN_3 BARK_GONE_3 BARK_LOAD_CLEAR BARK_ROSTER_EMPTY BARK_EMPTY_ZERO BARK_SAVE_OWNED; do
   [[ "$LOGBK" == *"$m"* ]] || fail "BARK: expected $m (S8 command-bark leg)"
 done
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts, zero gameplay delta, census 15 re-grepped in-leg; mode vocabulary drift gate green; non-blank render)"
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; mode vocabulary drift gate green; non-blank render)"
 exit 0
