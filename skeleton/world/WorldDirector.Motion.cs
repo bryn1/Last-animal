@@ -48,6 +48,7 @@ public static class MotionTuning
         EnemyAI.Type.Goblin   => (12, 0.09f, 0.06f, 0.10f),
         EnemyAI.Type.Orc      => (20, 0.12f, 0.08f, 0.05f),
         EnemyAI.Type.Skeleton => (16, 0.10f, 0.07f, 0.08f),
+        EnemyAI.Type.Wraith   => (14, 0.07f, 0.05f, 0.12f),   // MC 10216 S18 ENEMY FOUR: light drift + wide sway (leg amp rides nothing — no leg parts)
         _                     => (18, 0.11f, 0.07f, 0.07f),   // Demon
     };
 

@@ -14,7 +14,8 @@ using LastAnimal.Dna;
 // Design (pure logic, no Godot types, no window — I3):
 //   - OnZoneEnter is the C15 entry point; it builds an immutable SpawnSet from
 //     the canonical zone's denizen table and the player's CounterProfile.
-//   - A zone ALWAYS fields its denizen count (meadow 3 / canyon 4 / ruins 5).
+//   - A zone ALWAYS fields its table's denizen count (meadow 3 / canyon 4 /
+//     ruins 5 / hollow 6 — MC 10216 S18).
 //     ADAPTATION (the module's whole point) does not change how many enemies a
 //     zone holds — it changes how MEAN they are: their HP/damage scale with
 //     the profile, the deepest slots escalate the enemy type up the ladder,
@@ -96,22 +97,32 @@ public class EcosystemSpawner
     public const int BossThreshold = 4;
 
     // Zone denizen tables: base enemy type, a fixed denizen count, and a boss
-    // tier (0 = none). meadow is the shallowest, ruins the deepest. (Zone ids
-    // match the M07 zone scenes: zones/{meadow,canyon,ruins}/{zone}.tscn.)
+    // tier (0 = none). meadow is the shallowest, hollow the deepest. (Zone ids
+    // match the M07 zone scenes: zones/{meadow,canyon,ruins}/{zone}.tscn;
+    // MC 10216 S18 APPENDS "hollow" as the deepest zone — table-only, no new
+    // scene: the zone is the travel cycle + denizen table + day-night keyframes
+    // over the shipped nodes, the S15 values-only precedent. Depth tracks the
+    // denizen count (3,4,5,6 — the MC 10183 R2 depth ramp stays monotone) and
+    // hollow's tier 3 rides the EXISTING MakeBoss path (tier != 1 → Skeleton
+    // base, Demon apex, deepBonus 1+6*0.25 — the strongest boss). BossThreshold
+    // 4 untouched.)
     private static readonly IReadOnlyDictionary<string, ZoneTable> Tables =
         new Dictionary<string, ZoneTable>
         {
             ["meadow"] = new ZoneTable(EnemyAI.Type.Goblin, 3, 0),
             ["canyon"] = new ZoneTable(EnemyAI.Type.Orc,    4, 1),
             ["ruins"]  = new ZoneTable(EnemyAI.Type.Skeleton, 5, 2),
+            ["hollow"] = new ZoneTable(EnemyAI.Type.Wraith, 6, 3),
         };
 
     /// <summary>The canonical zone id an unknown zone falls back to.</summary>
     public static readonly string DefaultZone = "meadow";
 
     /// <summary>Ordered zone ids (shallowest -> deepest) — the travel path the
-    /// WorldDirector cycles through so canyon and ruins are reachable in play.</summary>
-    public static readonly string[] ZoneIds = { "meadow", "canyon", "ruins" };
+    /// WorldDirector cycles through so canyon and ruins are reachable in play
+    /// (MC 10216 S18: 4 zones — the modulo wrap in TravelToNextZone is the
+    /// loop pattern unchanged, hollow -> meadow wraps like ruins -> meadow did).</summary>
+    public static readonly string[] ZoneIds = { "meadow", "canyon", "ruins", "hollow" };
 
     private readonly System.Random _rng;
     private int _nextEntityId = 1000;
@@ -175,7 +186,9 @@ public class EcosystemSpawner
 
     private SpawnedEnemy MakeBoss(int tier, float adaptation, int depth)
     {
-        // Boss base = the tier's table (1=Orc, 2=Skeleton); steep HP/damage
+        // Boss base = the tier's table (1=Orc, else Skeleton — hollow's tier 3
+        // (MC 10216 S18) rides the same path; no new branch, BossThreshold
+        // untouched). Steep HP/damage
         // multipliers make it a genuine fight. Deep zone + high adaptation
         // compounds the multiplier.
         var baseStats = StatsOf(tier == 1 ? EnemyAI.Type.Orc : EnemyAI.Type.Skeleton);
@@ -206,6 +219,10 @@ public class EcosystemSpawner
 
     private static EnemyAI.Type StepUp(EnemyAI.Type t, int steps)
     {
+        // The escalation ladder is the adaptation ladder, NOT the zone order:
+        // MC 10216 S18 keeps Wraith off it deliberately (Demon stays the apex)
+        // — an off-ladder base type steps not at all (idx < 0 below), so hollow
+        // deep slots stay wraiths under adaptation.
         var ladder = new[] { EnemyAI.Type.Goblin, EnemyAI.Type.Orc, EnemyAI.Type.Skeleton, EnemyAI.Type.Demon };
         int idx = Array.IndexOf(ladder, t);
         if (idx < 0) return t;
@@ -217,6 +234,7 @@ public class EcosystemSpawner
         EnemyAI.Type.Goblin => (30, 5, 3.0f),
         EnemyAI.Type.Orc => (60, 15, 1.5f),
         EnemyAI.Type.Skeleton => (65, 18, 2.0f),   // MC 10183 R2: mirrors EnemyAI (depth-ramp monotonicity — see EnemyAI.cs)
+        EnemyAI.Type.Wraith => (80, 20, 2.4f),     // MC 10216 S18: mirrors EnemyAI (hollow denizen; ladder 65 < 80 < 100)
         _ => (100, 25, 1.0f), // Demon
     };
 

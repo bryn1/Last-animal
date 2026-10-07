@@ -5,7 +5,8 @@ using System.Collections.Generic;
 // Last Animal — MC 3895: composed enemy silhouettes (one per EnemyAI.Type).
 // Replaces the single red BoxMesh placeholder every enemy wore in
 // EnemyActor.Configure — wolf/bear/spider notwithstanding the old brief
-// wording, the live enum is Goblin/Orc/Skeleton/Demon. Mirrors the proven
+// wording, the live enum is Goblin/Orc/Skeleton/Demon — MC 10216 S18 appended
+// Wraith (zone-4 hollow denizen, ENEMY FOUR) and its silhouette. Mirrors the proven
 // CompanionVisual pattern (0b5ada2): this class ONLY builds the static visual
 // tree; the follow mechanism stays in the sim-facing body (EnemyActor moves
 // its own body toward the AI, so a visual parented to the body rides it —
@@ -67,6 +68,7 @@ public static class ActorVisual
         EnemyAI.Type.Goblin => new Color(0.25f, 0.75f, 0.30f),    // bright green
         EnemyAI.Type.Orc => new Color(0.55f, 0.40f, 0.15f),       // muddy brown
         EnemyAI.Type.Skeleton => new Color(0.62f, 0.45f, 0.90f),  // arcane violet (sky-safe)
+        EnemyAI.Type.Wraith => new Color(0.45f, 0.85f, 0.78f),    // spectral teal (MC 10216 S18; sky-safe, no match to blue/gold/greens)
         _ => new Color(0.65f, 0.08f, 0.45f),                      // Demon: deep magenta
     };
 
@@ -105,6 +107,7 @@ public static class ActorVisual
             EnemyAI.Type.Goblin => BuildGoblin(mat),
             EnemyAI.Type.Orc => BuildOrc(mat),
             EnemyAI.Type.Skeleton => BuildSkeleton(mat),
+            EnemyAI.Type.Wraith => BuildWraith(mat),
             _ => BuildDemon(mat),
         };
         root.Name = "Visual";
@@ -227,6 +230,37 @@ public static class ActorVisual
             new Vector3(0f, -0.98f, -0.15f), "LegR"));
         root.AddChild(Part(new BoxMesh { Size = new Vector3(0.40f, 0.10f, 0.10f) }, mat,
             new Vector3(-0.40f, -0.70f, 0f), new Vector3(0f, 0f, -0.5f), "Tail"));
+        return root;
+    }
+
+    /// <summary>MC 10216 S18 ENEMY FOUR (the hollow denizen): a legless floating
+    /// spectre — pointed shroud-body, hood with tip, drifting arms, twin wisps
+    /// and a split hem trailing behind. A ~1.3 m hoverer: the ONLY silhouette
+    /// without legs (the motion rig drives arms + the Torso breath and no-ops
+    /// the absent limbs), and the ONLY part count in the family (9 — goblin 8,
+    /// orc/skeleton 10, demon 11), which the ZONE4 leg pins by EXACT subtree
+    /// mesh count through the Lean node (BridgeMvpProof manual-walk idiom).</summary>
+    private static Node3D BuildWraith(Material mat)
+    {
+        var root = new VisualJuice(mat);
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.42f, 0.55f, 0.34f) }, mat,
+            new Vector3(0f, -0.30f, 0f), "Torso"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.34f, 0.28f, 0.30f) }, mat,
+            new Vector3(0.02f, 0.10f, 0f), "Hood"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.12f, 0.14f, 0.12f) }, mat,
+            new Vector3(0.10f, 0.26f, 0f), "HoodTip"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.07f, 0.42f, 0.07f) }, mat,
+            new Vector3(0.03f, -0.32f, 0.24f), "ArmL"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.07f, 0.42f, 0.07f) }, mat,
+            new Vector3(0.03f, -0.32f, -0.24f), "ArmR"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.06f, 0.28f, 0.06f) }, mat,
+            new Vector3(-0.22f, -0.62f, 0.10f), new Vector3(0f, 0f, 0.6f), "WispL"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.06f, 0.28f, 0.06f) }, mat,
+            new Vector3(-0.22f, -0.62f, -0.10f), new Vector3(0f, 0f, 0.6f), "WispR"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.14f, 0.18f, 0.10f) }, mat,
+            new Vector3(-0.06f, -0.72f, 0.12f), "HemL"));
+        root.AddChild(Part(new BoxMesh { Size = new Vector3(0.14f, 0.18f, 0.10f) }, mat,
+            new Vector3(-0.06f, -0.72f, -0.12f), "HemR"));
         return root;
     }
 }
