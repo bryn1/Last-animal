@@ -237,12 +237,7 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
 split duty: the entry harness had approached the 600-l proof ceiling at the W4
-tip da0bdaf (555 l there; crossed later — DA-c1 P3d wording fix; MC 10165 S11 touched zero ci_proofs files then). **FINDING —
-re-derived 2026-10-07 at b8e8776: the entry file has since grown PAST that
-ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
-carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
-(Motion/DayNight/Passives + the roster Traits half) landed beneath it; the
-split still owed is those stage bodies.** [SPLIT PAID at 4134d67 — MC 10218
+tip da0bdaf (555 l there; crossed later — DA-c1 P3d wording fix; MC 10165 S11 touched zero ci_proofs files then). **HISTORICAL FINDING (verbatim-at-the-time, judged at b8e8776 where 683 l was the then-current wc; ARCH wall 49162d57 P1 re-frame — this clause is NOT current truth): at that re-derivation the entry had grown PAST the ceiling (683 l vs 555 at da0bdaf) with a `SIZE:` header lagging it, and S14–S17 growth landed beneath it. The SIZE header was since re-stamped at every merge (814==wc at 6ad4007); the S14–S17 bodies were ALREADY in partials — the remaining owed split was the compose routes + harness helpers still living in the entry.** [SPLIT PAID at 4134d67 — MC 10218
 moved the compose routes + harness helpers VERBATIM to
 `RuntimeIntegrationProof.Compose.cs` (270 l) + `.Harness.cs` (70 l) and shipped
 the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
@@ -257,8 +252,10 @@ header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-P1FixProof.cs 368 l — **every proof file now sits under the 600-l ceiling
-(max Bus.cs 566), entry included since the MC 10218 split.** No
+P1FixProof.cs 368 l, Quests.cs 559 l (ARCH 49162d57: added — the second-largest
+file and the next ceiling watch), Compose.cs 270 l, Harness.cs 70 l —
+**every proof file now sits under the 600-l ceiling
+(max Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
 mode router moved: the entry file's stage switch stays the only mode router,
 and the pairing gate makes a dropped or orphaned stage arm a RED gate);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
