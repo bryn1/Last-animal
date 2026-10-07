@@ -342,5 +342,27 @@ LOGPA="$(LA_GATE_MODE=passives timeout 300 "$GODOT" --headless --path "$PROJ" --
 [[ "$LOGPA" == *'PASSIVES_KILL_CREDIT'* ]] || fail "PASSIVES: expected PASSIVES_KILL_CREDIT (second real extract credited the same band-on amount)"
 [[ "$LOGPA" == *'PASSIVES_MEND_BONUS'* ]] || fail "PASSIVES: expected PASSIVES_MEND_BONUS (Mend healed base + Deep Mend on the live scene)"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; resonance passives green (band reached by REAL extracts, both seams show the number change); non-blank render)"
+
+# (P) MC 10201 Inc-4 S17 TRAIT_EFFECTS: ONE live pay press on the real scene
+# settles known traits and the marker prints the OBSERVED delta AGAINST BASE
+# with the S9 trait tag — [Bonded] Manna +1 vs base +0 (world rider consumed
+# at the shipped SkillState.GainManna add site), [Forager] loyalty +3 vs +5
+# (wage -2); [Steadfast] idle as the rule-specificity control (its -25% is
+# the wage-MISS arm — headless table owns it). Sentinel CUT (no kill-assist
+# seam) and the wage-free upkeep BAND CUT (S16/S8 census not filed at build
+# time) ride the EVIDENCE CUT-decisions row. Known-id reachability rides the
+# ratified restore seam (cap 3 + wild pool 21+ cannot recruit a Bonded fresh).
+# The cap/trim/F6 legs (roster_follow/roster_neg above) are UNCHANGED.
+run_mode trait_effects pass "TRAIT_EFFECTS" "$PROOF_ROSTER"
+LOGTR="$(LA_GATE_MODE=trait_effects timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF_ROSTER" 2>&1)" || true
+[[ "$LOGTR" == *'TRAIT_EFFECTS: [Bonded] settle delta Manna +1 vs base +0'* ]] || fail "trait_effects: expected the [Bonded] expected-vs-base delta line (world Manna rider broken)"
+[[ "$LOGTR" == *'[Forager] settle delta +3 vs base +5'* ]] || fail "trait_effects: expected the [Forager] wage -2 delta line (roster settle rule broken)"
+# WAGEFREE_UPKEEP (the DA-F1 band hunk; S16/S8 census filed at build time,
+# threshold 4 census-confirmed): the live skip-arm A/B — the SAME wage-miss
+# drive decays -2 at DNA width 0 (Steadfast control) and is WAIVED (delta 0,
+# interval consumed) at the census live width 6. Threshold drift/census-less
+# code -> this marker goes missing -> RED.
+[[ "$LOGTR" == *'WAGEFREE_UPKEEP: width 6'* ]] || fail "trait_effects: expected the WAGEFREE_UPKEEP waived-tick marker (band hunk broken)"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; trait_effects live settle green (Bonded Manna +1, Forager +3 vs +5) + wage-free upkeep band live green; dissolve suppress green; story act-two arc green; non-blank render)"
 exit 0

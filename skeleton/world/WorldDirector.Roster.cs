@@ -1,4 +1,4 @@
-// SIZE: 350 l — roster-core half of the stage 2g roster wiring (MC 10080 split:
+// SIZE: 382 l — roster-core half of the stage 2g roster wiring (MC 10080 split:
 // the WILD-side members moved VERBATIM to WorldDirector.Roster.Wild.cs — pure
 // move, no logic edits). What lives HERE: the roster/bodies/wild state and its
 // read-only surfaces, Init/Tick, the cycle/break polls, the visible-body spawns
@@ -6,9 +6,13 @@
 // file by 45 lines and was never true; that lie dies here — MC 3895 idiom.)
 // MC 10145 S9: +19 truthfully counted — the NF5/NF6 restore seam, the NF7
 // skip-arm harden and the trait-tagged loyalty-delta print.
+// MC 10201 S17: +29 truthfully counted — the skip arm routed through
+// CompanionRoster.WageMissTick, the Bonded Manna rider on the settle return
+// and the wage-free upkeep band read (the DA-F1 settle hunk).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core.Framework;
+using LastAnimal.Dna;
 using LastAnimal.Empathy;
 using LastAnimal.Npc;
 using LastAnimal.Save;
@@ -104,6 +108,15 @@ public partial class WorldDirector
             recruitAteThePress = TryRecruitOfferedWild(ppos);
         }
 
+        // S17 WAGE-FREE UPKEEP BAND (MC 10201, the settle hunk per DA-F1): the
+        // LIVE learned-position count, read through the shipped profile the
+        // SkillState side already consults (ModelPlayerDna -> Counters.Length;
+        // NO PlayerMutations edit, no S16 build dependency; runtime-only, the
+        // band is never persisted — F2). One read per frame, feeds every
+        // follower's WageMissTick below (the rule itself is engine-free).
+        bool wageFreeUpkeep = CompanionRoster.WageFreeUpkeep(
+            EcosystemAdaptation.ModelPlayerDna(_spokenDna).Counters.Length);
+
         for (int i = 0; i < _roster.Count; i++)
         {
             var f = _roster[i];
@@ -125,8 +138,11 @@ public partial class WorldDirector
                 // already used by PayDueFollowers — closes that arm.
                 bool payArm = f.Needs.SalaryDue && payPressed
                               && !recruitAteThePress && !bookOpen;
+                // S17 (MC 10201): the miss goes THROUGH the roster's own tick so
+                // the Steadfast -25% rule lives in the engine-free settle; the
+                // NF7/A3 guards above decide WHEN the tick runs, unchanged.
                 if (!payArm && f.Needs.ConsumeUnpaidInterval())
-                    f.Machine.SkipPayment();
+                    _roster.WageMissTick(f, wageFreeUpkeep);
             }
 
             // C7 precondition path per follower (MC 1348 A3): the machine
@@ -152,7 +168,21 @@ public partial class WorldDirector
         // and EACH landed settle emits its own WagePaid.
         if (payPressed && !recruitAteThePress && !bookOpen)
             foreach (var settled in _roster.PayDueFollowers())
+            {
+                // S17 BONDED (MC 10201 rule table): +1 Manna to the player on
+                // ITS successful pay — rides the EXISTING settle return and is
+                // consumed at the shipped Manna add site (SkillState.GainManna,
+                // the one clamped writer, MC 3912), HUD repaint on the
+                // OnSkillKill-rider idiom. Zero new Bus signals; zero save
+                // delta (Manna is an existing v3 field MOVED, never a new one).
+                if (settled.Trait == CompanionTrait.Bonded)
+                {
+                    _skills.GainManna(CompanionRoster.BondedMannaOnPay);
+                    if (_hud != null) _hud.UpdateManna(_player.Manna);
+                    GD.Print($"ROSTER: Bonded settle -> +{CompanionRoster.BondedMannaOnPay} Manna on {settled.BusKey} [{settled.Trait}] (Manna={_player.Manna})");
+                }
                 NotifyWageSettled();
+            }
 
         // The visible bodies tick the SAME machines they are wired to (the
         // integration fix, per follower).

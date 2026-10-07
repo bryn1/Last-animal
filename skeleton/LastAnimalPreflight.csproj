@@ -103,6 +103,9 @@
          VERBATIM out of the proof above into its partial-class half (moves
          only — class name, modes and dispatch unchanged). -->
     <Compile Include="ci_proofs/RosterIntegrationProof.Follow.cs" />
+    <!-- Compile MC 10201 S17 trait_effects leg: the known-trait live-settle
+         stage in its own partial-class half (entry keeps the mode router). -->
+    <Compile Include="ci_proofs/RosterIntegrationProof.Traits.cs" />
     <!-- Compile M08 combat-3d source files (C10 + C11, pure logic). -->
     <Compile Include="src/combat/CombatVec3.cs" />
     <Compile Include="src/combat/EnemyAI.cs" />

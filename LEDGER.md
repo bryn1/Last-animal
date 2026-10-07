@@ -1179,3 +1179,31 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   row), combat_test 21, smoke RESULT=PASS (3405 colors), passives + skill_use + skill_neg
   legs. Census: .audits/202610070005-s16/census.md.
   Evidence: .audits/202610070005-s16/ (EVIDENCE.md last line VERIFY_EXIT=0).
+
+## Inc-4 S17 — trait effects (MC 10201, branch vm350/s17-traits, 2026-10-07)
+
+  SHIPPED inside the engine-free CompanionRoster settle, per-SLOT
+  deterministic (RULING-4), zero save delta (F2 greps 0), zero new Bus
+  signals (EventBus diff 0 lines): Steadfast wage-miss decay -25%
+  (effective max(1,floor(D*75/100)) over the RAW M03 drain — floor keeps
+  betrayal reachable: 50->48, edges 4->2, 3->1, 2->1, 1->0); Forager landed
+  pay +5->+3 (wage -2, min(3, granted) so a pay can never penalize);
+  Bonded +1 Manna on landed pay riding the EXISTING settle return, consumed
+  at the shipped SkillState.GainManna add site. Sentinel CUT — kill-assist
+  seam absent at pristine 0968010 (grep -i assist = 0 hits; no seam
+  invented). Wage-free upkeep band SHIPPED at 4: the SHARED S16/S8 census
+  landed at build time (.audits/202610070005-s16/census.md in the shared
+  checkout, filed 00:05Z; live Counters.Length {0,6}, positions 1..6
+  census-confirmed, k>=7 cut) — upkeep waived while the shipped
+  ModelPlayerDna(_spokenDna).Counters.Length >= 4 (no PlayerMutations edit,
+  no S16 build dependency; census threshold-collapse — band lights at the
+  first extraction — recorded). roster_test 35 rows (11 S17, pinned rule
+  table incl. both CUT/SHIP rows) + battery section (P) trait_effects:
+  live settles observed expected-vs-base (Bonded Manna 0->1 vs +0, Forager
+  50->53 vs 55) + live band A/B (width 0 -2 control vs width 6 waived with
+  interval consumed); planted-bad REDs per rule incl. two engine-side
+  (Bonded rider muted, band waiver muted -> grep-legs RED). Legacy restamp:
+  OnePayPress id 22 55->53 (Forager rule landing, honest restamp).
+  Cap/trim/F6 legs UNCHANGED (tail append only). Gates solo all 0
+  (build/companion 15/roster 35 two-pass/save 23/runtime 2118-line log).
+  Evidence: .audits/20261007-0127-s17/ (EVIDENCE.md last line VERIFY_EXIT=0).

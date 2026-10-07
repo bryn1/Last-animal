@@ -42,6 +42,9 @@
          script can drop it with /p:IncludeHarness=false — the ci/skill_test.sh
          pattern (works with the explicit list above). -->
     <Compile Include="RosterTests.cs" />
+    <!-- MC 10201 S17: trait-effect rule table, in its own file (RosterTests.cs
+         is at the 600 test-file cap). -->
+    <Compile Include="TraitEffectTests.cs" />
     <Compile Include="RosterHarnessSelfTest.cs" Condition="'$(IncludeHarness)' != 'false'" />
   </ItemGroup>
 
