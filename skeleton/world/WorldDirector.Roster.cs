@@ -200,6 +200,10 @@ public partial class WorldDirector
             CycleSelectedFollower();
         if (Input.IsActionJustPressed("break_bond") && _empathy != null && _empathy.Visible)
             BreakSelectedBond();
+
+        // MC 10131 S8: the bark arm (presentation-only; sweep-before-press, the
+        // calm-window §2 contract — reads the bodies, writes only bubble windows).
+        TickBark();
     }
 
     /// <summary>cycle_follower: page the selection; repaint the book on the

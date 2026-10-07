@@ -1,4 +1,4 @@
-// SIZE: 775 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
+// SIZE: 814 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
 // per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
 // the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
 // CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
@@ -12,6 +12,8 @@
 // ceiling hygiene). MC 10098 idiom: stage bodies live in the per-concern partials, only
 // the dispatch stays here; the W1 rule keeps the >600 drift closed with comment-only (merge 781ea66 lesson: dispatch arms can be silently fused away — stage switch now carries the mode-gated camera+zone4 arms restored at 4677b7c)
 // restamps — the entry crossing 600 is a KNOWN finding with split card MC 10218.
+// MC 10131 S8 BARK +39 l at this arm: mode-doc row, KnownModes entry, quiet-boot arm,
+// compose route, stage-102 case, bark release; stage body lives in the 278-l Bark partial.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -156,6 +158,22 @@ using System.Linq;
 //                     ZONE4_FOGPIN_0 / ZONE4_KEY4_DISTINCT). Runtime-only, zero
 //                     save delta, zero new signal (stage 100,
 //                     RuntimeIntegrationProof.Zone4.cs).
+//   BARK            — MC 10131 Inc-4 S8: the command bark, PURELY presentation
+//                     on the live scene — ONE real ActionPress("bark") (the one
+//                     input-map change, key G) opens a 16f INTEGER bubble window
+//                     on every ACTIVE roster body (counter steps EXACTLY -1 per
+//                     frame — the delta-time feed lands RED, F4 — gone on the
+//                     EXACT end frame open+V); the walked count of VISIBLE
+//                     "BarkBubble" nodes is EXACTLY the roster size at open and
+//                     while held (1 = boot seed, 3 = planted Followers restored
+//                     through the REAL LoadGame rebuild, save OWNED per MC 3910)
+//                     and back to 0 at the end; the EMPTY roster (an EMPTY
+//                     planted Followers list — the product rebuild that FREES
+//                     the bodies with the roster, DA W5 F4) presses to ZERO
+//                     ghost bubbles + exit 0; zero gameplay delta across every
+//                     press (BARK_NO_GAMEPLAY_DELTA, physics-frozen bit-still,
+//                     Motion/KillPulse idiom); census-15 re-grep IN-LEG (stage
+//                     102, RuntimeIntegrationProof.Bark.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -233,7 +251,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
-        "ZONE4",
+        "ZONE4", "BARK",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -312,6 +330,11 @@ public partial class RuntimeIntegrationProof : SceneTree
             ddn.SetSpawningEnabled(false);
             ddn.SetDayNightPaused(true);
         }
+        // BARK (MC 10131 S8): the bark leg is scripted quiet (bus_emit idiom) —
+        // zero enemies means nothing can move the gameplay snapshot mid-assert;
+        // the roster shapes are built IN the leg through the product rebuild
+        // (planted saves, MC 3910 OWNED).
+        if (_mode == "BARK" && main is WorldDirector dbg) dbg.SetSpawningEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -393,6 +416,18 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (_mode == "DAYNIGHT_STATE")
         {
             DayNightCompose(main);
+            return;
+        }
+
+        // BARK (MC 10131 S8): routes BEFORE the live-enemy guard — quiet boot
+        // (bus_emit idiom). Stage body lives in RuntimeIntegrationProof.Bark.cs
+        // (600-ceiling hygiene: the mode arms stay one-liners in the multi-mode
+        // harness).
+        if (_mode == "BARK")
+        {
+            _stage = 102;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (bark mode) — roster={_director.RosterView.Count} (spawning off at boot)");
             return;
         }
 
@@ -700,6 +735,9 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (_mode == "ZONE4") RunZone4Stage(); else RunPulseStage();
                 break;
             case 101: RunBossFrameStage(); break;
+            // ---- BARK (MC 10131 S8): stage body lives in
+            // RuntimeIntegrationProof.Bark.cs (partial).
+            case 102: RunBarkStage(); break;
         }
         return false;
     }
@@ -735,6 +773,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         Input.ActionRelease("skill_2");
         Input.ActionRelease("skill_3");      // MC 10031: the calming-speak arm
         Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
+        Input.ActionRelease("bark");         // MC 10131 S8: the bark press arm
         if (!_asserted && !_failed && _mode is "positive" or "save")
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }

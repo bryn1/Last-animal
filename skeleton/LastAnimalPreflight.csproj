@@ -98,6 +98,7 @@
          into their own file (offer pair, recruit join, wild spawn, interact
          scan, calm-window load seam) so both halves sit under the 400 ceiling. -->
     <Compile Include="world/WorldDirector.Roster.Wild.cs" />
+    <Compile Include="world/WorldDirector.Roster.Bark.cs" />
     <Compile Include="ci_proofs/RosterIntegrationProof.cs" />
     <!-- Compile MC 10036 roster_follow leg: the full-arc stage machine moved
          VERBATIM out of the proof above into its partial-class half (moves
@@ -223,6 +224,7 @@
          zero new seams, zero save fields, census unchanged. Appended at
          the ItemGroup END (S2 Shake.cs precedent) so parallel W3 csproj hunks
          merge cleanly. -->
-    <Compile Include="ci_proofs/RuntimeIntegrationProof.Zone4.cs" />  </ItemGroup>
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Zone4.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Bark.cs" />  </ItemGroup>
 
 </Project>
