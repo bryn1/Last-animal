@@ -1,4 +1,8 @@
-// SIZE: >400 (555 l, MC 10139 W2 wave-close restamp) — multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4 verbatim into Chain.cs, stage 80 into Bus.cs; W1 disclosed the 466-l drift as owed debt: stage 95/96/97/55 mode arms grew the entry dispatch past it, comment-only restamp here closes it).
+// SIZE: >400 (596 l, MC 10199 S15 day-night mode arm + compose moved VERBATIM into the
+// DayNight partial for 600-ceiling hygiene; 555 at the MC 10139 W2 wave-close restamp) —
+// multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4
+// verbatim into Chain.cs, stage 80 into Bus.cs; W1 disclosed the 466-l drift as owed
+// debt: stage 95/96/97/55/98 mode arms grew the entry dispatch — comment-only restamps close it).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -92,6 +96,13 @@ using System.Linq;
 //                     dissolves 20f (integer counter, F4) and frees itself at
 //                     f+21; enemy-count/existence prints show the corpse
 //                     absent (stage 97, RuntimeIntegrationProof.Dissolve.cs).
+//   DAYNIGHT_STATE    — MC 10199 Inc-4 S15: the day-night clock is an EXACT
+//                     integer frame counter on the world physics tick; the
+//                     shipped Environment + DirectionalLight3D carry the
+//                     per-zone table rows EXACTLY at the dawn/noon/dusk/night
+//                     frame windows, fog_sky_affect reads 0.0, and a wall-clock
+//                     feed goes RED at the clock-nonlinear assert (stage 98,
+//                     RuntimeIntegrationProof.DayNight.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -194,6 +205,18 @@ public partial class RuntimeIntegrationProof : SceneTree
         // bus_emit idiom) — a standing player would be whittled by the spawn
         // set and stray PlayerHurt edges would re-arm the window mid-assert.
         if (_mode == "JUICE_SHAKE" && main is WorldDirector dsh) dsh.SetSpawningEnabled(false);
+        // DAYNIGHT_STATE (MC 10199 S15): the clock leg drives no combat and
+        // reads no gameplay state — quiet boot (bus_emit idiom) keeps the
+        // ~23 s cycle run deterministic and cheap. The driver is PAUSED at
+        // construction and resumed in _ComposeDeferred: composition ticks
+        // (frame 0/1 writes) never slip past the leg's first observation, so
+        // the DAWN anchor window is unskippable (ordering-agnostic). No save
+        // is touched.
+        if (_mode == "DAYNIGHT_STATE" && main is WorldDirector ddn)
+        {
+            ddn.SetSpawningEnabled(false);
+            ddn.SetDayNightPaused(true);
+        }
         Root.AddChild(main);
 
         _main = main;
@@ -253,6 +276,16 @@ public partial class RuntimeIntegrationProof : SceneTree
             _stage = 96;
             _stageFrames = 0;
             GD.Print($"LA_GATE: composed (shake mode) — enemies={_enemies.Count} (spawning off at boot)");
+            return;
+        }
+
+        // DAYNIGHT_STATE (MC 10199 S15): routes BEFORE the live-enemy guard —
+        // quiet boot (bus_emit idiom); compose + stage live in the partial
+        // RuntimeIntegrationProof.DayNight.cs (600-ceiling hygiene: the mode
+        // arms stay one-liners in the multi-mode harness).
+        if (_mode == "DAYNIGHT_STATE")
+        {
+            DayNightCompose(main);
             return;
         }
 
@@ -378,6 +411,10 @@ public partial class RuntimeIntegrationProof : SceneTree
     public override bool _PhysicsProcess(double delta)
     {
         _physFrames++;   // MC 1344.1: physics-tick counter (return false = keep running)
+        // MC 10199 S15: the day-night clock leg runs in THIS exact tick domain
+        // (shared with the driver's own _PhysicsProcess), after the counter.
+        if (_mode == "DAYNIGHT_STATE" && _composed && _stage == 98 && !_failed)
+            DayNightTick();
         return false;
     }
 
@@ -497,6 +534,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- DISSOLVE_SUPPRESS (MC 10129 S3): stage body lives in
             // RuntimeIntegrationProof.Dissolve.cs (partial).
             case 97: RunDissolveStage(); break;
+            // ---- DAYNIGHT_STATE (MC 10199 S15): the leg works entirely in
+            // _PhysicsProcess (DayNightTick, RuntimeIntegrationProof.DayNight.cs);
+            // the frame-budget guard above is its watchdog.
+            case 98: break;
         }
         return false;
     }

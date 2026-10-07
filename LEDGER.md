@@ -1207,3 +1207,32 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   Cap/trim/F6 legs UNCHANGED (tail append only). Gates solo all 0
   (build/companion 15/roster 35 two-pass/save 23/runtime 2118-line log).
   Evidence: .audits/20261007-0127-s17/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10199 / 10026.26 S15 day-night driver (code VM350, 2026-10-07, Inc-4 W2, branch
+  vm350/s15-daynight off 0968010): runtime-only day-night on the world tick — the clock is
+  an INTEGER FRAME COUNTER on the deterministic 60 Hz physics tick (F4 idiom, NEVER
+  wall-clock: the planted-bad DateTime feed goes RED at the leg's exact linear-clock assert
+  3/3, and the pre-proof caught+fixed a real leg race — the never-ticked budget now rides
+  the leg's own arming, not an absolute tick count, because the blocking navmesh bake eats
+  a variable number of catch-up physics ticks); NEW world/WorldDirector.DayNight.cs holds
+  the ONE tuning block (DayNightTuning.DayLengthFrames=1800=30 s) + the PURE per-zone
+  const keyframe tables (meadow/canyon/ruins x dawn/noon/dusk/night; noon rows sit ON the
+  shipped S13 values — the grade is modulated, never replaced; fog color/density are NOT
+  keyframe channels) + the evaluator the driver WRITES FROM and the leg ASSERTS AGAINST
+  (anchor frames t=0 -> bit-exact; rotation within 1e-4 quaternion read-back tol only);
+  writes hit ONLY the shipped Environment + DirectionalLight3D nodes (zero .tscn edits),
+  fog_sky_affect re-pinned 0.0 EVERY frame, never raised (PINNED S13 carry — leg proves by
+  READ at all four anchors); presentation-only: gameplay reads nothing (zero DayNight refs
+  src/+autoload), NO bus signal (census 15 holds), ZERO save delta (RULING-7 "Rec on all"
+  = persistence NO — the counter never reaches GameState); battery +1 leg = 30 (20 pos +
+  10 neg): DAYNIGHT_STATE stage 98 (RuntimeIntegrationProof.DayNight.cs) — driver paused at
+  construction, resumed at compose so the DAWN window is unskippable, EXACT node reads at
+  the named 0/450/900/1350 windows, three distinct zone noon tables, continuous night->dawn
+  wrap; tests/DayNightCaptureTest.cs parks via the presentation seam with IMMEDIATE write
+  (headful idle callbacks sample slower than 60 Hz physics — measured, a next-tick-only
+  value is skippable) + pauses: dawn/night anchors non-blank AND non-equal (RESULT=PASS
+  x2, AE 251 660 px / RMSE 0.278) — evidence rows, not a pixel gate; csproj Compile +
+  engine-minted .uid in the same commit (ItemGroup END, Shake.cs precedent). Solo gates
+  green at this HEAD: build (engine), boot, smoke (colors 3915), battery 30/30,
+  determinism_cmp A/A DAYNIGHT_STATE IDENTICAL (16 byte-stable lines, savegate held),
+  planted DateTime RED 3/3. Evidence: .audits/202610070040-s15/
+  (EVIDENCE.md last line VERIFY_EXIT=0).

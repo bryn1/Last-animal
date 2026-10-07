@@ -16,11 +16,11 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 29 run_mode legs = 19 positive modes + 10 negative
+# Battery at this HEAD: 30 run_mode legs = 20 positive modes + 10 negative
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
-# skill/calm/juice/dissolve legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
+# skill/calm/juice/dissolve/day-night legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
 # and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
@@ -364,5 +364,20 @@ LOGTR="$(LA_GATE_MODE=trait_effects timeout 300 "$GODOT" --headless --path "$PRO
 # code -> this marker goes missing -> RED.
 [[ "$LOGTR" == *'WAGEFREE_UPKEEP: width 6'* ]] || fail "trait_effects: expected the WAGEFREE_UPKEEP waived-tick marker (band hunk broken)"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; trait_effects live settle green (Bonded Manna +1, Forager +3 vs +5) + wage-free upkeep band live green; dissolve suppress green; story act-two arc green; non-blank render)"
+# (P) MC 10199 / 10026.26 Inc-4 S15 DAY-NIGHT DRIVER: the world-tick INTEGER
+# FRAME clock is exact every physics tick (a wall-clock/DateTime feed diverges
+# at the clock-nonlinear assert — the planted-bad RED pre-proof, evidence
+# .audits/*-s15/), the SHIPPED zone Environment + DirectionalLight3D carry the
+# per-zone const keyframe tables EXACTLY at the named dawn/noon/dusk/night
+# frame windows, fog_sky_affect READS 0.0 (PINNED S13 carry, re-pinned never
+# raised), and the three zone noon tables are distinct with a continuous
+# night->dawn wrap. Runtime-only (RULING-7: zero save delta), no bus signal,
+# presentation-only. Stage 98, proof partial RuntimeIntegrationProof.DayNight.cs.
+run_mode DAYNIGHT_STATE pass "DAYNIGHT_NIGHT"
+LOGDN="$(LA_GATE_MODE=DAYNIGHT_STATE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in DAYNIGHT_DAWN DAYNIGHT_NOON DAYNIGHT_DUSK DAYNIGHT_FOGPIN_0 DAYNIGHT_TABLE_CANYON DAYNIGHT_WRAP_CONTINUOUS DAYNIGHT_LINEAR; do
+  [[ "$LOGDN" == *"$m"* ]] || fail "DAYNIGHT_STATE: expected $m (S15 clock/window/table/fog-pin leg)"
+done
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; day-night frame clock + exact anchor windows + fog pin green; non-blank render)"
 exit 0
