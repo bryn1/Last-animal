@@ -94,6 +94,12 @@ public partial class EnemyActor : CharacterBody3D
     public float PlayerTargetX { get; set; }
     public float PlayerTargetZ { get; set; }
 
+    /// <summary>MC 10198 Inc-4 S14: the READ-ONLY velocity feed the motion
+    /// driver reads to advance the walk phase (world/WorldDirector.Motion.cs).
+    /// Logic state flows out, never in: the driver only writes the visual rig,
+    /// never this body.</summary>
+    public Vector3 SimVelocity => Velocity;
+
     /// <summary>Damage this enemy dealt to the player on the last AI tick.</summary>
     public int DamageDealt { get; private set; }
 

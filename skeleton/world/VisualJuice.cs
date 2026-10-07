@@ -18,7 +18,8 @@ public static class JuiceTuning
     public const int PunchReturnFrames = 6;
     /// <summary>MC 10183 R1 (owner-discretion rec, "Rec on all" 2026-10-06):
     /// 0.35 m = 39% of the 0.9 m collision box read as teleport-off-footprint
-    /// at the 6f return; 0.30 keeps the beat strictly under a third of it.</summary>
+    /// at the 6f return; 0.30 m is EXACTLY a third of it (0.30/0.9 = 1/3 —
+    /// W1 restamp: the old "strictly under" wording was false arithmetic).</summary>
     public const float PunchDistance = 0.30f;
     public const float PunchDirMinLenSq = 1e-6f;   // flatter dirs read as head-on
     /// <summary>MC 10129 S3: death-dissolve length; the visual node despawns
@@ -40,8 +41,13 @@ public static class JuiceTuning
 [GlobalClass]
 public partial class VisualJuice : Node3D
 {
-    private readonly StandardMaterial3D? _tint;
-    private readonly Color _baseAlbedo, _baseEmission;
+    // MC 10198 S14: no longer ctor-readonly — a scene-class-swapped root (the
+    // player's Visual in main.tscn) has no built material to capture until
+    // its children are in the tree, so the adopt pass below fills the tint
+    // fields in _Ready (enemy roots built via ActorVisual keep the ctor path
+    // and are NEVER re-adopted — the ?? guards keep that path identical).
+    private StandardMaterial3D? _tint;
+    private Color _baseAlbedo, _baseEmission;
     private int _flashFrames, _punchFrames;
     private int _dissolveFrames;               // MC 10129 S3: death-dissolve counter
     private Vector3 _punchDir;
@@ -74,6 +80,32 @@ public partial class VisualJuice : Node3D
     {
         _basePos = Position;
         _baseScale = Scale;   // MC 10129 S3: Build() already applied the boss scale
+        // MC 10198 Inc-4 S14: the player's Visual root adopts this class through
+        // a main.tscn class swap — constructed by the scene, not by ActorVisual,
+        // so there is no built material from the ctor. Adopt the first composed
+        // mesh's StandardMaterial3D override as the flash tint (the same
+        // Modulate-analogue mechanism, one tint, built roots never re-adopt).
+        _tint ??= FirstComposedTint(this);
+        if (_tint != null)
+        {
+            _baseAlbedo = _tint.AlbedoColor;
+            _baseEmission = _tint.Emission;
+        }
+    }
+
+    private static StandardMaterial3D? FirstComposedTint(Node node)
+    {
+        foreach (Node child in node.GetChildren())
+        {
+            // Both wiring styles: the composed parts' MaterialOverride
+            // (enemies) and main.tscn's player parts' per-surface
+            // surface_material_override/0 — GetActiveMaterial(0) resolves both.
+            if (child is MeshInstance3D mesh && mesh.GetActiveMaterial(0) is StandardMaterial3D mat)
+                return mat;
+            if (FirstComposedTint(child) is { } deeper)
+                return deeper;
+        }
+        return null;
     }
 
     /// <summary>Arm one hit (white tint + full offset). Presentation-only.</summary>

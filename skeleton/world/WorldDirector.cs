@@ -235,6 +235,7 @@ public partial class WorldDirector : Node3D
         {
             _player.TakeDamage(incoming);
             _hud.UpdateLife(_player.Health);
+            PlayerHurtMotion();   // MC 10198 S14: flash+punch on the player VISUAL root at the real damage site (presentation-only)
         }
 
         // MC 3943 stage 2g: the companion loop (M03 -> M05) MOVED to
@@ -387,6 +388,7 @@ public partial class WorldDirector : Node3D
         // flash + punch ride the VISUAL node (transform + tint) only; the body
         // gets no impulse (RULING-1; F4: decay is integer frames in VisualJuice).
         ActorVisual.PlayHitFx(best.Visual, best.GlobalPosition - ppos);
+        TriggerAttackLean(best.GlobalPosition - ppos);   // MC 10198 S14: attack lean on the player VISUAL root (one-line extension riding this S1 hit hunk)
         if (best.IsDead)
         {
             best.KillHide();

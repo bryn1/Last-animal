@@ -1,5 +1,6 @@
 using Godot;
 using LastAnimal.Combat;
+using System.Collections.Generic;
 
 // Last Animal — MC 3895: composed enemy silhouettes (one per EnemyAI.Type).
 // Replaces the single red BoxMesh placeholder every enemy wore in
@@ -87,9 +88,14 @@ public static class ActorVisual
 
     /// <summary>
     /// Builds the visual root (named "Visual", as the placeholder was) for one
-    /// enemy kind. Silhouettes face +X: EnemyActor LookAt-rotates the body and
+    /// enemy kind. Silhouettes face +X: EnemyActor._PhysicsProcess LookAt-rotates
+    /// the composed VISUAL CHILD only (never the physics body — RULING-1), and
     /// the +X axis convention is the one the companion visual already uses.
     /// A boss is the same composition scaled by <see cref="BossScale"/>.
+    /// MC 10198 S14: every mesh part is re-parented under one "Lean" node —
+    /// the motion driver's single rotation home (LookAt keeps the root's Yaw,
+    /// VisualJuice keeps Position/tint/Scale; the rig keeps Lean + the named
+    /// limb parts).
     /// </summary>
     public static Node3D Build(EnemyAI.Type type, bool isBoss)
     {
@@ -102,6 +108,13 @@ public static class ActorVisual
             _ => BuildDemon(mat),
         };
         root.Name = "Visual";
+        var lean = new Node3D { Name = "Lean" };
+        foreach (Node part in new List<Node>(root.GetChildren()))
+        {
+            root.RemoveChild(part);
+            lean.AddChild(part);
+        }
+        root.AddChild(lean);
         if (isBoss)
             root.Scale = new Vector3(BossScale, BossScale, BossScale);
         return root;
