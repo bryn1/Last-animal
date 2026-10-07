@@ -1,5 +1,6 @@
 using Godot;
 using LastAnimal.Companion;
+using LastAnimal.Ui;
 
 // Last Animal — T3b ownership refactor (MC 1256.9, artemis, 2026-09-21).
 //
@@ -63,6 +64,16 @@ public partial class CompanionFollowBody : Node3D
     /// recruit; null only for bodies composed outside the roster path).</summary>
     public LastAnimal.Companion.CompanionRoster.Follower? BoundFollower { get; set; }
 
+    /// <summary>MC 10131 S8 Command Bark: frames left on this follower's bark
+    /// BUBBLE (the CalmedWindowFrames idiom, MC 10031): an INTEGER window set
+    /// by the roster tick's bark poll and swept down by 1 per frame — zero
+    /// delta timing (F4), runtime-only (R7: no save field). Presentation
+    /// authority: this field writes NOTHING but the bubble's visibility; the
+    /// bark READS the roster and never touches gameplay state.</summary>
+    public int BarkWindowFrames { get; set; }
+
+    private MeshInstance3D? _barkBubble;
+
     public CompanionFollowBody(CompanionStateMachine machine, CompanionAnimationHook hook)
     {
         Entity = new CompanionEntity(machine, hook) { Name = "Entity" };
@@ -81,10 +92,40 @@ public partial class CompanionFollowBody : Node3D
         // (Bonded = the pack gold itself).
         AddChild(CompanionVisual.Build(
             BoundFollower?.Trait ?? LastAnimal.Companion.CompanionTrait.Bonded));
+
+        // MC 10131 S8 Command Bark: ONE small primitive above the head, a child
+        // of the body like the composed visual (the one visual-follows-sim
+        // mechanism — no new widget system). Hidden until the integer bark
+        // window opens; the UiTheme white token is an EXISTING palette constant
+        // (the S9 no-new-colours rule).
+        _barkBubble = new MeshInstance3D
+        {
+            Name = "BarkBubble",
+            Mesh = new BoxMesh { Size = new Vector3(0.16f, 0.16f, 0.16f) },
+            MaterialOverride = BarkBubbleMaterial(),
+            Position = new Vector3(0.62f, 0.72f, 0f),   // above the Head part
+            Visible = false,
+        };
+        AddChild(_barkBubble);
+    }
+
+    /// <summary>Bubble material on the shipped emission idiom (software-GL
+    /// readable), carrying ONLY the existing UiTheme token colour.</summary>
+    private static StandardMaterial3D BarkBubbleMaterial()
+    {
+        var mat = new StandardMaterial3D { AlbedoColor = UiTheme.GaugeColor, Roughness = 0.6f };
+        mat.EmissionEnabled = true;
+        mat.Emission = UiTheme.GaugeColor;
+        mat.EmissionEnergyMultiplier = 0.6f;
+        return mat;
     }
 
     public override void _Process(double delta)
     {
+        // MC 10131: presentation follows the integer window counter — this line
+        // writes NOTHING but the bubble's own visibility (F4 doctrine).
+        if (_barkBubble != null) _barkBubble.Visible = BarkWindowFrames > 0;
+
         if (Target == null) return;
 
         Vector3 want = Target.GlobalPosition;
