@@ -243,9 +243,11 @@ moved the compose routes + harness helpers VERBATIM to
 the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close): Proof.cs 510 l
-(entry = header doc + KnownModes + the single mode router only; the 814-l
+(entry = mode-doc header + KnownModes allow-list + shared fields/consts + the
+single mode router + the lifecycle trio _Initialize/_PhysicsProcess-tick-hooks/
+_Finalize — DA c1 F1: matching the entry's own SIZE stamp wording; the 814-l
 figure is history: S14-S20 growth + S8 bark arm + the mode-gated dispatch
-restored at 4677b7c),
+restored at 4677b7c, split bodies now in Compose/Harness partials),
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
