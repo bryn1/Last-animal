@@ -225,6 +225,14 @@
          the ItemGroup END (S2 Shake.cs precedent) so parallel W3 csproj hunks
          merge cleanly. -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Zone4.cs" />
-    <Compile Include="ci_proofs/RuntimeIntegrationProof.Bark.cs" />  </ItemGroup>
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Bark.cs" />
+    <!-- Compile MC 10218 Inc-4 W4 proof-entry split: _ComposeDeferred (the per-
+         mode compose routing) and the shared harness helpers (Fail/Check/…)
+         moved VERBATIM out of the proof entry into two partial-class halves —
+         moves only, zero behaviour change, entry back under the 600-l proof
+         ceiling. Appended at the ItemGroup END (S2 Shake.cs precedent) so
+         parallel W4 csproj hunks merge cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Compose.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Harness.cs" />  </ItemGroup>
 
 </Project>

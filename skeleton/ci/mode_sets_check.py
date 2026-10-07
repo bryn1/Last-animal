@@ -20,6 +20,15 @@ dispatch arm with no doc row (P1FixProof + ZoneBossProof) and one extra
 KnownModes entry (RuntimeIntegrationProof); every plant must go RED, naming
 its planted mode. stdlib-only; no engine; runs from any cwd.
 
+STAGE PAIRING (MC 10218, ADDED SCOPE — the 781ea66 P0 lesson): the mode
+vocabulary above cannot see the stage switch, so the 3-way merge that
+dropped the S18 dispatch was INVISIBLE to this gate. Second leg: every
+Run*Stage() definition in ci_proofs/RuntimeIntegrationProof*.cs must have a
+call-site arm in the entry's switch (_stage), and every entry arm must have
+a definition — unpaired stage body or dead arm is a named VIOLATION. --selftest
+plants BOTH (an unpaired stage body in Chain.cs, a dead arm in the entry) on
+temp copies; the tree is never touched.
+
 Usage:  mode_sets_check.py [--project <skeleton_dir>] [--selftest]
 """
 import os
@@ -177,6 +186,47 @@ def allow_list(text):
     return re.findall(r'"([^"]+)"', m.group(1))
 
 
+# ---- stage pairing (MC 10218): Run*Stage bodies <-> entry switch (_stage) ----
+
+RIP_PREFIX, RIP_ENTRY = "RuntimeIntegrationProof", "RuntimeIntegrationProof.cs"
+STAGE_DEF_RE = re.compile(r"\b(?:void|bool)\s+(Run[A-Za-z0-9_]*Stage)\s*\(")
+STAGE_CALL_RE = re.compile(r"\b(Run[A-Za-z0-9_]*Stage)\s*\(")
+
+
+def stage_pairing(skel):
+    """(VIOLATION list, "n defs == m arms") for the RuntimeIntegrationProof
+    family: every Run*Stage body (bool-returners included — the Chain stages
+    return bool and their arms can be fused away just the same) must have a
+    call-site arm inside the entry's switch (_stage), and every arm call must
+    have a body. 781ea66 lesson: a merge dropped the S20/S18 stage arms while
+    the mode vocabulary stayed intact — this leg sees what doc/allow-list/
+    arms equality cannot."""
+    pdir = os.path.join(skel, "ci_proofs")
+    epath = os.path.join(pdir, RIP_ENTRY)
+    if not os.path.isdir(pdir) or not os.path.isfile(epath):
+        return [], "family missing"    # entry-absent is named by check_project
+    defs = {}    # stage name -> file it is defined in (first occurrence)
+    for fname in sorted(os.listdir(pdir)):
+        if not (fname.startswith(RIP_PREFIX) and fname.endswith(".cs")):
+            continue
+        with open(os.path.join(pdir, fname), encoding="utf-8") as f:
+            masked = mask_code(f.read())
+        for m in STAGE_DEF_RE.finditer(masked):
+            defs.setdefault(m.group(1), fname)
+    with open(epath, encoding="utf-8") as f:
+        emasked = mask_code(f.read())
+    arms = set()
+    for a, b in _switch_regions(emasked, r"switch\s*\(\s*_stage\s*\)\s*\{"):
+        arms.update(STAGE_CALL_RE.findall(emasked[a:b]))
+    vios = [f"{RIP_PREFIX}: UNPAIRED stage body {name} (defined in {defs[name]}) — "
+            "no call-site arm in the entry switch (_stage) dispatch"
+            for name in sorted(set(defs) - arms)]
+    vios += [f"{RIP_PREFIX}: DEAD dispatch arm {name}() in the entry switch (_stage) — "
+             "no Run*Stage body is defined in ci_proofs"
+             for name in sorted(arms - set(defs))]
+    return vios, f"{len(defs)} stage bodies == {len(arms)} entry arms"
+
+
 def check_project(skel):
     """Return the list of VIOLATION strings for the skeleton dir skel."""
     pdir = os.path.join(skel, "ci_proofs")
@@ -225,6 +275,8 @@ def check_project(skel):
                 f"{name}: unknown-mode fail-safe guard missing (must halt an "
                 "unrecognized LA_GATE_MODE by name with exit 1 — roster idiom)"
             )
+    pvios, _ = stage_pairing(skel)
+    vios += pvios
     return vios
 
 
@@ -246,6 +298,16 @@ PLANTS = [
      '"positive", "no_bus",',
      '"positive", "planted_allow_only", "no_bus",',
      "planted_allow_only", "RuntimeIntegrationProof"),
+    # MC 10218 pairing leg: an unpaired Run*Stage BODY (no entry arm) and a
+    # DEAD entry arm (call with no body) — both on temp copies, tree untouched.
+    ("RuntimeIntegrationProof.Chain.cs",
+     "private bool RunMoveStage()",
+     "private bool RunPlantedUnpairedStage() => false;\n\n    private bool RunMoveStage()",
+     "RunPlantedUnpairedStage", "RuntimeIntegrationProof"),
+    ("RuntimeIntegrationProof.cs",
+     "case 95: RunJuiceStage(); break;",
+     "case 94: RunPlantedDeadArmStage(); break;\n            case 95: RunJuiceStage(); break;",
+     "RunPlantedDeadArmStage", "RuntimeIntegrationProof"),
 ]
 
 
@@ -302,6 +364,8 @@ def main(argv):
         return 1
     print(f"MODE_SETS_CHECK: GREEN — {len(PROOFS)} dispatching proofs, "
           f"header-doc == allow-list == dispatch arms ({counts})")
+    _, pc = stage_pairing(skel)
+    print(f"MODE_SETS_CHECK: PAIRING OK — {RIP_PREFIX}: {pc}")
     if do_selftest:
         return 0 if selftest(skel) else 1
     return 0

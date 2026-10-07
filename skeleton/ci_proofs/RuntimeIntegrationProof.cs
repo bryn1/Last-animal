@@ -1,19 +1,15 @@
-// SIZE: 814 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
-// per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
-// the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
-// CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
-// MC 10204 dispatch guard + KnownModes allow-list + the passives mode-doc row the S16
-// merge dropped + the W2 restamp = 736 l at MC 10217 (tip e20b691); +51 l MC 10217 S20
-// CAMERA_KILL_PULSE+BOSS_FRAME (two mode-doc rows, KnownModes pair, quiet-boot flag,
-// two compose routes, budget arm, two stage cases); +31 l MC 10216 S18 ZONE4 integrated (merge-integration delta: +2 l restored BOSS_FRAME return/close,
-// at this merge (mode-doc row, KnownModes entry, stage-100 dispatch arm, compose route,
-// physics-tick hook, budget arm — child measured +36 l on its own branch, 4 l absorbed
-// by the conflict integration; the stage body lives in the 253-l Zone4 partial, 600-
-// ceiling hygiene). MC 10098 idiom: stage bodies live in the per-concern partials, only
-// the dispatch stays here; the W1 rule keeps the >600 drift closed with comment-only (merge 781ea66 lesson: dispatch arms can be silently fused away — stage switch now carries the mode-gated camera+zone4 arms restored at 4677b7c)
-// restamps — the entry crossing 600 is a KNOWN finding with split card MC 10218.
-// MC 10131 S8 BARK +39 l at this arm: mode-doc row, KnownModes entry, quiet-boot arm,
-// compose route, stage-102 case, bark release; stage body lives in the 278-l Bark partial.
+// SIZE: 510 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 142-l
+// mode doc mode_sets_check parses and the 28-mode dispatch ride together here. W4 SPLIT,
+// carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
+// _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
+// (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
+// ReleaseHeldRefsBeforeQuit to the 70-l RuntimeIntegrationProof.Harness.cs — zero
+// behaviour change, marker-log-diff across 8 modes in evidence .audits/*-proofsplit.
+// MC 10098 idiom kept: stage bodies live in the per-concern partials, only the dispatch
+// stays here. Merge 781ea66 lesson kept: dispatch arms can be silently fused away — the
+// mode-gated camera+zone4 stage arms (restored at 4677b7c) are now PINNED by the
+// mode_sets_check stage-pairing leg shipped with this same card (MC 10218).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -177,14 +173,17 @@ using System.Linq;
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
-// File size: >400 total lines — a multi-mode proof harness (9+ modes). The
+// File size: >400 total lines — the mode doc + dispatch of a multi-mode proof
+// harness (9+ modes). The
 // mode-specific stage bodies live in the partial-class halves
 // RuntimeIntegrationProof.Save.cs (stages 20/21/22/30),
 // RuntimeIntegrationProof.Interact.cs (stages 40/90),
 // RuntimeIntegrationProof.Chain.cs (stages 1-4, moved VERBATIM MC 10098
 // split duty) and RuntimeIntegrationProof.Bus.cs (stage 80, bus_emit);
-// this file keeps the shared harness (fields, composition, dispatch,
-// helpers).
+// the compose routing lives in RuntimeIntegrationProof.Compose.cs and the
+// shared helpers (Fail/Check/…) in RuntimeIntegrationProof.Harness.cs (the
+// MC 10218 W4 split); this file keeps the header doc, fields, KnownModes
+// allow-list and dispatch.
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private const int MoveFrames = 12;
@@ -340,255 +339,6 @@ public partial class RuntimeIntegrationProof : SceneTree
         _main = main;
     }
 
-    private void _ComposeDeferred()
-    {
-        var main = _main!;
-        _bus = Root.GetNodeOrNull<EventBus>("/root/EventBus");
-        if (_bus == null) { Fail("EventBus autoload not present even after scene _Ready"); return; }
-        _bus.DnaExtracted += _ => _dnaCount++;
-        _bus.DnaSpoken += _ => _dnaSpokenCount++;
-
-        _director = main as WorldDirector;
-        if (_director == null) { Fail("main.tscn root is not WorldDirector"); return; }
-
-        _playerBody = main.GetNodeOrNull<CharacterBody3D>("Player");
-        _hud = main.GetNodeOrNull<Hud>("UI/HudLayer/Hud");
-        _dialogue = main.GetNodeOrNull<DialogueSystem>("UI/Dialogue");
-        _companion = main.GetNodeOrNull<CompanionEntity>("Companion/Entity");
-        // MC 1348 A5: the boot Enemy{i} ring is stood down — the director's
-        // live Enemies set (the zone pipeline's SpawnSet actors) is the enemy
-        // population every mode drives.
-        _enemies.AddRange(_director!.Enemies);
-
-        if (_playerBody == null) { Fail("Player node not found in main.tscn"); return; }
-        if (_hud == null) { Fail("Hud not found at UI/HudLayer/Hud (WorldDirector UI not built)"); return; }
-        if (_companion == null) { Fail("CompanionEntity not found at Main/Companion/Entity (director must spawn the machine-wired entity)"); return; }
-        if (_mode is "dna_speak" or "no_interact" && _dialogue == null)
-        { Fail("DialogueSystem not found at UI/Dialogue (WorldDirector UI not built)"); return; }
-
-        if (_mode == "no_spawn")
-        {
-            // The director must have spawned nothing; the chain cannot start.
-            // Give the scene one frame to populate, then assert emptiness.
-            _stage = 90;
-            return;
-        }
-
-        // bus_emit (MC 10098 S0): routes BEFORE the live-enemy guard — this
-        // mode boots with spawning off (quiet scripted legs) and re-arms it
-        // in its farm phase; the stage body lives in Bus.cs.
-        if (_mode == "bus_emit")
-        {
-            _stage = 80;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (bus mode) — enemies={_enemies.Count} (spawning off at boot)");
-            return;
-        }
-
-        // JUICE_SHAKE (MC 10121 S2): the shake stage drives its own scripted
-        // edges (TakeDamage + a consumer-test BossFallen emit); routes BEFORE
-        // the live-enemy guard — this mode boots with spawning off (quiet
-        // legs, bus_emit idiom). Stage body lives in Shake.cs.
-        if (_mode == "JUICE_SHAKE")
-        {
-            _stage = 96;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (shake mode) — enemies={_enemies.Count} (spawning off at boot)");
-            return;
-        }
-
-        // CAMERA_KILL_PULSE (MC 10217 S20): the pulse stage drives its own
-        // scripted edge (a direct DnaExtracted emit, the consumer-test idiom);
-        // routes BEFORE the live-enemy guard — quiet boot (bus_emit idiom).
-        // Stage body lives in RuntimeIntegrationProof.KillPulse.cs.
-        if (_mode == "CAMERA_KILL_PULSE")
-        {
-            _stage = 100;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (kill-pulse mode) — enemies={_enemies.Count} (spawning off at boot)");
-            return;
-        }
-
-        // DAYNIGHT_STATE (MC 10199 S15): routes BEFORE the live-enemy guard —
-        // quiet boot (bus_emit idiom); compose + stage live in the partial
-        // RuntimeIntegrationProof.DayNight.cs (600-ceiling hygiene: the mode
-        // arms stay one-liners in the multi-mode harness).
-        if (_mode == "DAYNIGHT_STATE")
-        {
-            DayNightCompose(main);
-            return;
-        }
-
-        // BARK (MC 10131 S8): routes BEFORE the live-enemy guard — quiet boot
-        // (bus_emit idiom). Stage body lives in RuntimeIntegrationProof.Bark.cs
-        // (600-ceiling hygiene: the mode arms stay one-liners in the multi-mode
-        // harness).
-        if (_mode == "BARK")
-        {
-            _stage = 102;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (bark mode) — roster={_director.RosterView.Count} (spawning off at boot)");
-            return;
-        }
-
-        if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
-
-        _dnaBefore = _hud.DnaMeter;
-
-        // no_bus: disconnect the HUD from the bus before the kill so the
-        // DnaExtracted emit cannot move the meter.
-        if (_mode == "no_bus") _hud.DisconnectBus(_bus);
-
-        // no_controller: swap the director's authoritative PlayerController
-        // binding for a decoy; the AI target must stop matching the body.
-        if (_mode == "no_controller")
-        {
-            var bootstrap = Root.GetNodeOrNull<GameBootstrap>("/root/GameBootstrap");
-            if (bootstrap == null) { Fail("GameBootstrap autoload absent"); return; }
-            bootstrap.Bind(new PlayerController(new CombatVec3(999f, 0f, 999f)));
-        }
-
-        // no_dna: block the director's DnaExtracted forwarding so the kill
-        // happens but the bus never hears it.
-        if (_mode == "no_dna") _director.SetDnaForwarding(false);
-
-        // no_interact: disable the director's interact/speak seam so interact
-        // is pressed but neither DnaSpoken nor the dialogue may fire.
-        if (_mode == "no_interact") _director.SetInteractEnabled(false);
-
-        // quest_arc / quest_persist / quest_neg (MC 3904 2c): the quest chain
-        // drives its own input (teleport + interact/pay/attack/travel); skip
-        // the movement press and route to stage 50 — stage bodies live in
-        // RuntimeIntegrationProof.Quests.cs.
-        if (_mode is "quest_arc" or "quest_persist" or "quest_neg")
-        {
-            _stage = 50;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (quest mode) — enemies={_enemies.Count} intro={_director.Quests.Status("q_intro")}");
-            return;
-        }
-
-        // quest_arc2 (MC 10132 S10): the ACT-TWO chain drives its own input
-        // (speak, owned save/load, travel, pay, farm); route to stage 55 —
-        // NOT a 9x number: the S3 sibling takes a 9x stage on its branch,
-        // the quest-family slot 55 (between 50 and 60) merges collision-free.
-        if (_mode == "quest_arc2")
-        {
-            _stage = 55;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (act-two mode) — enemies={_enemies.Count} intro={_director.Quests.Status("q_intro")}");
-            return;
-        }
-
-        // skill_use / skill_neg (MC 3912 2e): the skill chain drives its own
-        // input (farm + measured hits + skill presses); skip the movement
-        // press and route to stage 60 — stage bodies live in
-        // RuntimeIntegrationProof.Skills.cs.
-        if (_mode is "skill_use" or "skill_neg")
-        {
-            _stage = 60;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (skill mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
-            return;
-        }
-
-        // passives (MC 10200 S16): the resonance-passive chain drives its own
-        // input (REAL extracts + one mend press); route to stage 65 — NOT a
-        // 9x number: the skill-family slot between 60 and 70 (quest_arc2's
-        // 55 precedent), merging collision-free with the sibling W2 legs.
-        // Stage body lives in RuntimeIntegrationProof.Passives.cs.
-        if (_mode == "passives")
-        {
-            _stage = 65;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (passives mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
-            return;
-        }
-
-        // calm_use / calm_neg (MC 10031): the calming-speak chain drives its
-        // own input (farm + calm casts + pay/interact/save/load presses);
-        // skip the movement press and route to stage 70 — stage bodies live
-        // in RuntimeIntegrationProof.CalmingSpeak.cs.
-        if (_mode is "calm_use" or "calm_neg")
-        {
-            _stage = 70;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (calm mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
-            return;
-        }
-
-        // JUICE_HITFLASH (MC 10120 S1): the juice stage drives its own single
-        // hit (frozen target, one attack press on the real wire); route to
-        // stage 95 — stage body lives in RuntimeIntegrationProof.Juice.cs.
-        if (_mode == "JUICE_HITFLASH")
-        {
-            _stage = 95;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (juice mode) — enemies={_enemies.Count}");
-            return;
-        }
-
-        // DISSOLVE_SUPPRESS (MC 10129 S3): the leg kills a live enemy through
-        // the REAL wire and asserts the death-tick suppression + 20f dissolve.
-        // It NEEDS the live spawn set (quiet-boot modes have no corpse to
-        // make), so it routes after the enemy guard — stage body lives in
-        // RuntimeIntegrationProof.Dissolve.cs.
-        if (_mode == "DISSOLVE_SUPPRESS")
-        {
-            _stage = 97;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (dissolve mode) — enemies={_enemies.Count}");
-            return;
-        }
-
-        // CHAR_MOTION (MC 10198 S14): the motion leg NEEDS the live meadow
-        // spawn set (chase walk witness + the real damage site) — routes after
-        // the enemy guard; the leg culls it to one goblin mid-way. Stage body
-        // lives in RuntimeIntegrationProof.Motion.cs.
-        if (_mode == "CHAR_MOTION")
-        {
-            _stage = 99;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (motion mode) — enemies={_enemies.Count}");
-            return;
-        }
-
-        // BOSS_FRAME (MC 10217 S20): the boss-framing leg NEEDS the live spawn
-        // set (KillLoop farm to the BossThreshold + a REAL-wire boss kill), so
-        // it routes after the enemy guard like DISSOLVE/CHAR_MOTION; long leg
-        // — rides the QuestFrameBudget list below. Stage body lives in
-        // RuntimeIntegrationProof.BossFrame.cs.
-        if (_mode == "BOSS_FRAME")
-        {
-            _stage = 101;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (boss-frame mode) — enemies={_enemies.Count}");
-            return;
-        }
-
-        // ZONE4 (MC 10216 S18): the zone-four leg boots the LIVE meadow set and
-        // TRAVELS (the seam is the product under test — quiet-boot modes cannot
-        // prove a travel cycle); routes after the enemy guard like DISSOLVE/
-        // CHAR_MOTION. The zone-entry baseline rides _z4SpawnOrigin captured at
-        // compose. Stage body lives in RuntimeIntegrationProof.Zone4.cs.
-        if (_mode == "ZONE4")
-        {
-            _z4SpawnOrigin = _playerBody!.GlobalPosition;
-            _stage = 100;
-            _stageFrames = 0;
-            GD.Print($"LA_GATE: composed (zone4 mode) — enemies={_enemies.Count} zone={_director.CurrentZone}");
-            return;
-        }
-
-        // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
-        // stage 0 ran after the press, by which time the player had already moved.
-        _playerStart = _playerBody.GlobalPosition;
-        _pressPhysFrame = _physFrames;
-
-        Input.ActionPress("move_right");
-        GD.Print($"LA_GATE: composed — Player + {_enemies.Count} enemies + Hud + CompanionEntity (dnaBefore={_dnaBefore})");
-    }
-
     public override bool _PhysicsProcess(double delta)
     {
         _physFrames++;   // MC 1344.1: physics-tick counter (return false = keep running)
@@ -742,27 +492,6 @@ public partial class RuntimeIntegrationProof : SceneTree
         return false;
     }
 
-    /// <summary>
-    /// MC 10117 (10026.13.5): same latent class as MC 10112's BridgeMvpProof fix —
-    /// the proof is the C# MainLoop, the LAST managed object standing at shutdown.
-    /// Its live-scene fields root the scene's C# wrappers (and every Resource they
-    /// hold) until after the native ObjectDB is gone, so their GC finalizers hit
-    /// freed objects — "Leaked unsafe reference ... csharp_script.cpp:179", exit
-    /// 134/139. Detection is probabilistic (~1/4, TEST T-1 MC 10112; at this HEAD
-    /// the plant measured 0 RED / 20 — see evidence). Release the wrappers and
-    /// flush finalizers BEFORE Quit, while the ObjectDB is alive. Idiom REUSED
-    /// from BridgeMvpProof.ReleaseHeldRefsBeforeQuit (MC 10112).
-    /// </summary>
-    private void ReleaseHeldRefsBeforeQuit()
-    {
-        _enemies.Clear();
-        _bus = null; _director = null; _main = null; _playerBody = null;
-        _hud = null; _dialogue = null; _companion = null;
-        System.GC.Collect();
-        System.GC.WaitForPendingFinalizers();
-        System.GC.Collect();
-    }
-
     public override void _Finalize()
     {
         Input.ActionRelease("move_right");   // unconditional: never leak a pressed action
@@ -778,37 +507,4 @@ public partial class RuntimeIntegrationProof : SceneTree
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }
 
-    private EnemyActor? FirstLiveEnemy()
-    {
-        foreach (var e in _enemies)
-            if (!e.IsDead) return e;
-        return null;
-    }
-
-    private void TeleportIntoRange()
-    {
-        EnemyActor? target = FirstLiveEnemy();
-        if (target == null) { Fail("no live enemy to teleport next to"); return; }
-        // Put the player just inside melee range (AttackRange 1.5) of the enemy,
-        // at the enemy's height so the 3D distance check is dominated by XZ.
-        Vector3 e = target.GlobalPosition;
-        _playerBody!.GlobalPosition = new Vector3(e.X - 0.8f, e.Y, e.Z);
-        GD.Print($"LA_GATE: player teleported into attack range of {target.Name} at ({e.X:0.##},{e.Y:0.##},{e.Z:0.##})");
-    }
-
-    private void Check(string what, bool ok, string detail)
-    {
-        GD.Print($"LA_GATE: check: {what}: {(ok ? "ok" : "FAIL")} {detail}");
-        if (!ok) Fail(what);
-    }
-
-    private void Fail(string why)
-    {
-        Input.ActionRelease("move_right");
-        Input.ActionRelease("attack");
-        Input.ActionRelease("interact");
-        _failed = true;
-        GD.PrintErr($"LA_GATE: FAIL — {why}");
-        Quit(1);
-    }
 }

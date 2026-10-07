@@ -11,6 +11,12 @@
 # KnownModes entry with no dispatch arm) and every plant MUST go RED — the
 # tree is never touched.
 #
+# MC 10218 second leg (same script, no new mechanism): STAGE PAIRING over
+# RuntimeIntegrationProof* — every Run*Stage body needs a call-site arm in
+# the entry switch (_stage) and every arm needs its body (the 781ea66 merge
+# dropped stage arms invisibly to the mode vocabulary); --selftest gained an
+# unpaired-body and a dead-arm plant, both RED, tree untouched.
+#
 # Usage:
 #   ./ci/mode_sets_check.sh [--project <skeleton_dir>] [--selftest]
 set -uo pipefail
