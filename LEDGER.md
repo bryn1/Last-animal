@@ -396,8 +396,8 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   account is DELETED — owner action; the deletion itself IS the literal owner artifact (rule 2
   satisfied), so no separate ratification of the archive+pointer option is owed. The OPEN OWNER
   DECISION above is SUPERSEDED by that owner action, NOT by this seat (nothing here executed).
-  Cites: MC 10093 (the account deletion) + commit `fad172d` ("remove svarkor-ai provenance note
-  (account deleted, MC 10093)"). `bryn1/Last-animal` is now the only home.
+  Cites: MC 10093 (the account deletion) + commit `fad172d` ("remove <retired-account> provenance note
+  (account deleted, MC 10093)" — subject quoted with the retired account name dropped per MC 10082; fad172d itself is history, untouched). `bryn1/Last-animal` is now the only home.
 - MC 10059 fix-cycle 2 (tech-writer VM350, 2026-10-04 19:00 UTC): re-applied the cycle-1 corrections
   to the fad172d LEDGER rewrite — corrected the stale "50 commits behind" on the OPEN OWNER DECISION
   line to the re-run instrument (62 to `5922b25` / 65 to `7a3c755`, pinned to shas, never `..HEAD` —
