@@ -320,9 +320,12 @@ window close leaves the camera BIT-EXACTLY on its event-free follow base
 NOTE (MC 10216 S18 P0 lesson): stage numbers are MODE-SCOPED — `ZONE4` also
 opens stage 100, so the entry dispatch is MODE-GATED at stage 100
 (`if (_mode == "ZONE4") RunZone4Stage(); else RunPulseStage();`, restored at
-4677b7c after merge 781ea66 fused the block away). `mode_sets_check` cannot
-see the stage switch — a GREEN there is not a battery GREEN (pairing check
-owed: card 10218).
+4677b7c after merge 781ea66 fused the block away). `mode_sets_check` still
+cannot see the stage switch from its MODE parsing alone — a GREEN there is not
+a battery GREEN — BUT the class is now gated: the PAIRING check shipped WITHIN
+mode_sets_check at 4134d67 (MC 10218): every Run*Stage def needs a call-site
+arm in the entry switch; unpaired body OR dead arm = named VIOLATION + exit 1;
+plants go RED in --selftest.
 `RuntimeIntegrationProof.Zone4.cs` — stage 100 (mode-gated), mode `ZONE4`:
 MC 10216 S18 zone four — the 4th zone `hollow` is TABLES-ONLY (ZoneIds +
 Tables + DayNight Hollow const; no new .tscn): travel cycle + wrap on the
