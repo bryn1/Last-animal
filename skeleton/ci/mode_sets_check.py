@@ -29,6 +29,12 @@ a definition — unpaired stage body or dead arm is a named VIOLATION. --selftes
 plants BOTH (an unpaired stage body in Chain.cs, a dead arm in the entry) on
 temp copies; the tree is never touched.
 
+MC 10258 (DA F2 / ARCH P3-B): --selftest gained the off-type both-ways pair —
+an int-returning stage body PAIRED with its entry arm must stay GREEN, the
+same body WITHOUT its arm must go RED UNPAIRED — the two directions the
+void|bool-only def regex inverted (paired = false-RED dead arm, unpaired =
+silent-GREEN against the pairing law's promise).
+
 Usage:  mode_sets_check.py [--project <skeleton_dir>] [--selftest]
 """
 import os
@@ -283,57 +289,88 @@ def check_project(skel):
 # ---- --selftest: planted-bad RED demos on TEMP copies (tree never touched) --
 
 PLANTS = [
-    # (file, find, replace, mode it plants, proof it must be named under)
-    ("P1FixProof.cs",
-     'default: Fail($"unknown mode {_mode}"); return true;',
-     'case "planted_no_doc": _stage = 10; break;\n'
-     '                    default: Fail($"unknown mode {_mode}"); return true;',
-     "planted_no_doc", "P1FixProof"),
-    ("ZoneBossProof.cs",
-     'default: Fail($"unknown mode {_mode}"); return true;',
-     'case "planted_no_doc": _stage = 10; break;\n'
-     '                    default: Fail($"unknown mode {_mode}"); return true;',
-     "planted_no_doc", "ZoneBossProof"),
-    ("RuntimeIntegrationProof.cs",
-     '"positive", "no_bus",',
-     '"positive", "planted_allow_only", "no_bus",',
-     "planted_allow_only", "RuntimeIntegrationProof"),
+    # (edits [(file, find, replace)...], planted symbol, proof it names under,
+    #  expectation). "RED": the plant must produce a VIOLATION naming its
+    #  symbol under its proof. "GREEN" (MC 10258): the planted def+arm PAIR
+    #  must introduce NO violation at all.
+    ([("P1FixProof.cs",
+       'default: Fail($"unknown mode {_mode}"); return true;',
+       'case "planted_no_doc": _stage = 10; break;\n'
+       '                    default: Fail($"unknown mode {_mode}"); return true;')],
+     "planted_no_doc", "P1FixProof", "RED"),
+    ([("ZoneBossProof.cs",
+       'default: Fail($"unknown mode {_mode}"); return true;',
+       'case "planted_no_doc": _stage = 10; break;\n'
+       '                    default: Fail($"unknown mode {_mode}"); return true;')],
+     "planted_no_doc", "ZoneBossProof", "RED"),
+    ([("RuntimeIntegrationProof.cs",
+       '"positive", "no_bus",',
+       '"positive", "planted_allow_only", "no_bus",')],
+     "planted_allow_only", "RuntimeIntegrationProof", "RED"),
     # MC 10218 pairing leg: an unpaired Run*Stage BODY (no entry arm) and a
     # DEAD entry arm (call with no body) — both on temp copies, tree untouched.
-    ("RuntimeIntegrationProof.Chain.cs",
-     "private bool RunMoveStage()",
-     "private bool RunPlantedUnpairedStage() => false;\n\n    private bool RunMoveStage()",
-     "RunPlantedUnpairedStage", "RuntimeIntegrationProof"),
-    ("RuntimeIntegrationProof.cs",
-     "case 95: RunJuiceStage(); break;",
-     "case 94: RunPlantedDeadArmStage(); break;\n            case 95: RunJuiceStage(); break;",
-     "RunPlantedDeadArmStage", "RuntimeIntegrationProof"),
+    ([("RuntimeIntegrationProof.Chain.cs",
+       "private bool RunMoveStage()",
+       "private bool RunPlantedUnpairedStage() => false;\n\n    private bool RunMoveStage()")],
+     "RunPlantedUnpairedStage", "RuntimeIntegrationProof", "RED"),
+    ([("RuntimeIntegrationProof.cs",
+       "case 95: RunJuiceStage(); break;",
+       "case 94: RunPlantedDeadArmStage(); break;\n            case 95: RunJuiceStage(); break;")],
+     "RunPlantedDeadArmStage", "RuntimeIntegrationProof", "RED"),
+    # MC 10258 off-type both-ways (DA plant D class, both directions): a PAIRED
+    # int-returning stage body must stay GREEN; the same off-type body WITHOUT
+    # its arm must go RED UNPAIRED. Temp copies, tree untouched.
+    ([("RuntimeIntegrationProof.Chain.cs",
+       "private bool RunMoveStage()",
+       "private int RunPlantedIntReturnStage() => 0;\n\n    private bool RunMoveStage()"),
+      ("RuntimeIntegrationProof.cs",
+       "case 95: RunJuiceStage(); break;",
+       "case 93: RunPlantedIntReturnStage(); break;\n            case 95: RunJuiceStage(); break;")],
+     "RunPlantedIntReturnStage", "RuntimeIntegrationProof", "GREEN"),
+    ([("RuntimeIntegrationProof.Chain.cs",
+       "private bool RunMoveStage()",
+       "private int RunPlantedIntUnpairedStage() => 0;\n\n    private bool RunMoveStage()")],
+     "RunPlantedIntUnpairedStage", "RuntimeIntegrationProof", "RED"),
 ]
 
 
 def selftest(skel):
     ok = True
     base = os.path.join(skel, "ci_proofs")
-    for i, (fname, needle, repl, mode, proof) in enumerate(PLANTS):
+    for i, (edits, mode, proof, expect) in enumerate(PLANTS):
         tmp = tempfile.mkdtemp(prefix=f"la-modesets-{i}-")
         try:
             shutil.copytree(base, os.path.join(tmp, "ci_proofs"))
-            path = os.path.join(tmp, "ci_proofs", fname)
-            with open(path, encoding="utf-8") as f:
-                text = f.read()
-            if text.count(needle) != 1:
-                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: plant site not unique in {fname}")
+            bad_site = None
+            for fname, needle, repl in edits:
+                path = os.path.join(tmp, "ci_proofs", fname)
+                with open(path, encoding="utf-8") as f:
+                    text = f.read()
+                if text.count(needle) != 1:
+                    bad_site = fname
+                    break
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(text.replace(needle, repl))
+            if bad_site:
+                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: plant site not unique in {bad_site}")
                 ok = False
                 continue
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(text.replace(needle, repl))
             control = check_project(tmp)
             hit = [v for v in control if mode in v and proof in v]
-            if control and hit:
-                print(f"MODE_SETS_CHECK: SELFTEST: planted {mode} in {fname}: "
+            at = " + ".join(f[0] for f in edits)
+            if expect == "GREEN":
+                if control:
+                    print(f"MODE_SETS_CHECK: SELFTEST: FAIL: planted paired {mode} in {at} "
+                          f"expected GREEN, got {len(control)} violation(s): {control[0]}")
+                    ok = False
+                else:
+                    print(f"MODE_SETS_CHECK: SELFTEST: planted paired {mode} in {at}: "
+                          "GREEN as expected — off-type body and its entry arm pair")
+            elif control and hit:
+                print(f"MODE_SETS_CHECK: SELFTEST: planted {mode} in {at}: "
                       f"RED as expected -> {hit[0]}")
             else:
-                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: planted {mode} in {fname} "
+                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: planted {mode} in {at} "
                       f"did NOT produce its named VIOLATION (got {len(control)} violations)")
                 ok = False
         finally:
