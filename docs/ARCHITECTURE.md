@@ -267,6 +267,23 @@ at f+21, body `Visual` ref cleared); targeting exclusion REUSES the
 director's existing `IsDead` predicate (no second list; a boss rides the
 same KillHide choke — EnemyActor in `_enemies`); markers `DISSOLVE_GONE`
 and `DISSOLVE_ABSENT`; rides the battery as leg (N).
+`RuntimeIntegrationProof.KillPulse.cs` — stage 100, mode `CAMERA_KILL_PULSE`:
+MC 10217 S20 kill pulse — the FollowCamera is a DnaExtracted CONSUMER (plan
+pin N-3: NO new signal, census 15; quiet boot + a direct emit, the shipped
+consumer-test idiom): the 8f INTEGER punch window opens on the emit, HELD
++4f (camera strictly closer to the player), and with the player's physics
+frozen the camera returns BIT-EQUAL to its pre-trigger transform (markers
+`CAMERA_PULSE_ACTIVE` / `CAMERA_PULSE_HELD` / `CAMERA_PULSE_AT_BASE`; the
+camera prints NOTHING, F4-CMP); rides the battery as leg (Q).
+`RuntimeIntegrationProof.BossFrame.cs` — stage 101, mode `BOSS_FRAME`:
+MC 10217 S20 boss framing — the camera READS the shipped boss-threshold state
+(`WorldDirector.HasLiveBoss`; presentation authority: zero Bus/GameState
+writes, zero new signals/save fields) and eases a pull-back/height PRESET on
+an INTEGER progress clock (F4); farm + travel ride the ZoneBossProof
+boss_phase idioms, a REAL-wire boss kill eases the preset out and every
+window close leaves the camera BIT-EXACTLY on its event-free follow base
+(markers `BOSS_FRAME_ENTER` / `BOSS_FRAME_HELD` / `BOSS_FRAME_KILLED` /
+`BOSS_FRAME_AT_BASE`); rides the battery as leg (R).
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL

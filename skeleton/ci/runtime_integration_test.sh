@@ -408,5 +408,40 @@ done
 bash "$HERE/mode_sets_check.sh" \
   || fail "mode_sets_check exited nonzero — mode vocabulary drift (VIOLATION lines above)"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; mode vocabulary drift gate green; non-blank render)"
+
+# (Q) MC 10217 / 10026.35 Inc-4 S20 KILL PULSE: the FollowCamera's DnaExtracted
+# CONSUMER (plan pin N-3: NO new signal, census stays 15) on the live scene —
+# the 8f INTEGER punch window opens on the emit, HOLDS +4f with the camera
+# strictly CLOSER to the player (the punch-in actually moves it), and with the
+# player's physics frozen (Motion.cs idiom, bit-still base) the camera returns
+# BIT-EQUAL to its pre-trigger transform — not a tolerance, a bit comparison
+# (a delta-time decay or a base-writing pulse lands RED here; planted-bad RED
+# pre-proof in evidence .audits/*-s20/). Quiet boot + DIRECT bus emit (the
+# shipped consumer-test idiom, JUICE_SHAKE BossFallen precedent). Stage 100,
+# proof partial RuntimeIntegrationProof.KillPulse.cs; the camera prints NOTHING.
+run_mode CAMERA_KILL_PULSE pass "CAMERA_PULSE_AT_BASE"
+LOGKP="$(LA_GATE_MODE=CAMERA_KILL_PULSE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in CAMERA_PULSE_ACTIVE CAMERA_PULSE_HELD; do
+  [[ "$LOGKP" == *"$m"* ]] || fail "CAMERA_KILL_PULSE: expected $m"
+done
+
+# (R) MC 10217 / 10026.35 Inc-4 S20 BOSS FRAMING: the camera READS the shipped
+# boss-threshold state (WorldDirector.HasLiveBoss — presentation authority:
+# zero Bus/GameState writes, zero new signals/save fields) and eases its
+# pull-back/height PRESET in on an INTEGER progress clock (BOSS_FRAME_ENTER,
+# then BOSS_FRAME_HELD at full progress with the camera verifiably PULLED BACK
+# from the framed player). A REAL-wire boss kill (the only kill past the
+# threshold — OnDnaExtracted's dead-boss early-return keeps the SpawnSet
+# steady) flips the state back and the clock eases out; every presentation
+# window (framing/shake/pulse) closing leaves the camera BIT-EXACTLY on its
+# event-free follow base (BOSS_FRAME_AT_BASE). Farm+travel ride the shipped
+# ZoneBossProof boss_phase idioms. Stage 101, proof partial
+# RuntimeIntegrationProof.BossFrame.cs; rides the QuestFrameBudget.
+run_mode BOSS_FRAME pass "BOSS_FRAME_AT_BASE"
+LOGBF="$(LA_GATE_MODE=BOSS_FRAME timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in BOSS_FRAME_ENTER BOSS_FRAME_HELD BOSS_FRAME_KILLED; do
+  [[ "$LOGBF" == *"$m"* ]] || fail "BOSS_FRAME: expected $m"
+done
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; mode vocabulary drift gate green; non-blank render)"
 exit 0

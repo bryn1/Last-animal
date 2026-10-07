@@ -205,6 +205,14 @@
          at the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
          merge cleanly. -->
     <Compile Include="world/WorldDirector.Motion.cs" />
-    <Compile Include="ci_proofs/RuntimeIntegrationProof.Motion.cs" />  </ItemGroup>
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Motion.cs" />
+    <!-- Compile MC 10217 Inc-4 S20: the camera-language proof partials — the
+         kill-pulse leg (mode CAMERA_KILL_PULSE, stage 100, a DnaExtracted bus
+         CONSUMER per plan pin N-3) + the boss-framing leg (mode BOSS_FRAME,
+         stage 101, READ-only off WorldDirector.HasLiveBoss); the camera work
+         itself lives in world/FollowCamera.cs above. Appended at the ItemGroup
+         END (S2 Shake.cs precedent) so parallel W3 csproj hunks merge cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.KillPulse.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.BossFrame.cs" />  </ItemGroup>
 
 </Project>

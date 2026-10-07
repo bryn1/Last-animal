@@ -1,12 +1,14 @@
-// SIZE: 683 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
+// SIZE: 736 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
 // per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
 // the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
 // CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
 // MC 10204: the unknown-mode dispatch guard + KnownModes allow-list 37 l (S17 TEST F1),
-// the passives mode-doc row 5 l the S16 merge dropped, this restamp 4 l. MC 10098 idiom:
-// stage bodies live in the 14 per-concern partials, only the dispatch stays here; the
-// W1 rule keeps the >600 drift closed with comment-only restamps —
-// 572+24+17+24+46 = 683 = wc -l on the tree this line ships on.
+// the passives mode-doc row 5 l the S16 merge dropped, the W2 restamp 4 l, +51 l
+// MC 10217 S20 CAMERA_KILL_PULSE+BOSS_FRAME (two mode-doc rows, KnownModes pair,
+// quiet-boot flag, two compose routes, budget arm, two stage cases, this restamp).
+// MC 10098 idiom: stage bodies live in the 16 per-concern partials, only the dispatch
+// stays here; the W1 rule keeps the >600 drift closed with comment-only restamps —
+// 572+24+17+24+46+53 = 736 = wc -l on the tree this line ships on.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -121,6 +123,22 @@ using System.Linq;
 //                     (CHAR_PLAYER_FLASH), body GlobalPosition bit-untouched
 //                     across the juice window (CHAR_BODY_STILL; stage 99,
 //                     RuntimeIntegrationProof.Motion.cs).
+//   CAMERA_KILL_PULSE — MC 10217 Inc-4 S20: the FollowCamera's DnaExtracted
+//                     CONSUMER (plan pin N-3: no new signal, census stays 15) —
+//                     the 8f integer punch-in window opens on the emit, HOLDS
+//                     +4f (camera strictly closer to the player), and with the
+//                     player's physics FROZEN the camera returns BIT-EQUAL to
+//                     its pre-trigger transform (CAMERA_PULSE_ACTIVE / _HELD /
+//                     _AT_BASE; stage 100, RuntimeIntegrationProof.KillPulse.cs).
+//   BOSS_FRAME        — MC 10217 Inc-4 S20: boss framing off the READ-only
+//                     WorldDirector.HasLiveBoss — farm to BossThreshold +
+//                     travel (ZoneBossProof idioms), the integer clock eases
+//                     the pull-back/height preset IN (BOSS_FRAME_ENTER /
+//                     _HELD), a REAL-wire boss kill eases it OUT and the
+//                     camera sits BIT-EXACTLY on its event-free follow base
+//                     (BOSS_FRAME_AT_BASE; stage 101,
+//                     RuntimeIntegrationProof.BossFrame.cs; presentation
+//                     authority: zero Bus/GameState writes).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -197,7 +215,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "quest_arc", "quest_persist", "quest_neg", "quest_arc2",
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
-        "DAYNIGHT_STATE", "CHAR_MOTION",
+        "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -260,6 +278,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // bus_emit idiom) — a standing player would be whittled by the spawn
         // set and stray PlayerHurt edges would re-arm the window mid-assert.
         if (_mode == "JUICE_SHAKE" && main is WorldDirector dsh) dsh.SetSpawningEnabled(false);
+        // CAMERA_KILL_PULSE (MC 10217 S20): the pulse leg is scripted quiet
+        // (the bus_emit/JUICE_SHAKE idiom) — its wire is a DIRECT bus emit and
+        // nothing else must move the follow target mid-assert.
+        if (_mode == "CAMERA_KILL_PULSE" && main is WorldDirector dkp) dkp.SetSpawningEnabled(false);
         // DAYNIGHT_STATE (MC 10199 S15): the clock leg drives no combat and
         // reads no gameplay state — quiet boot (bus_emit idiom) keeps the
         // ~23 s cycle run deterministic and cheap. The driver is PAUSED at
@@ -331,6 +353,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             _stage = 96;
             _stageFrames = 0;
             GD.Print($"LA_GATE: composed (shake mode) — enemies={_enemies.Count} (spawning off at boot)");
+            return;
+        }
+
+        // CAMERA_KILL_PULSE (MC 10217 S20): the pulse stage drives its own
+        // scripted edge (a direct DnaExtracted emit, the consumer-test idiom);
+        // routes BEFORE the live-enemy guard — quiet boot (bus_emit idiom).
+        // Stage body lives in RuntimeIntegrationProof.KillPulse.cs.
+        if (_mode == "CAMERA_KILL_PULSE")
+        {
+            _stage = 100;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (kill-pulse mode) — enemies={_enemies.Count} (spawning off at boot)");
             return;
         }
 
@@ -466,6 +500,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // BOSS_FRAME (MC 10217 S20): the boss-framing leg NEEDS the live spawn
+        // set (KillLoop farm to the BossThreshold + a REAL-wire boss kill), so
+        // it routes after the enemy guard like DISSOLVE/CHAR_MOTION; long leg
+        // — rides the QuestFrameBudget list below. Stage body lives in
+        // RuntimeIntegrationProof.BossFrame.cs.
+        if (_mode == "BOSS_FRAME")
+        {
+            _stage = 101;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (boss-frame mode) — enemies={_enemies.Count}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -504,7 +551,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -608,6 +655,12 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- CHAR_MOTION (MC 10198 S14): stage body lives in
             // RuntimeIntegrationProof.Motion.cs (partial).
             case 99: RunMotionStage(); break;
+            // ---- CAMERA_KILL_PULSE (MC 10217 S20): stage body lives in
+            // RuntimeIntegrationProof.KillPulse.cs (partial).
+            case 100: RunPulseStage(); break;
+            // ---- BOSS_FRAME (MC 10217 S20): stage body lives in
+            // RuntimeIntegrationProof.BossFrame.cs (partial).
+            case 101: RunBossFrameStage(); break;
         }
         return false;
     }
