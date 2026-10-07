@@ -23,6 +23,19 @@ using LastAnimal.World;
 //   3. EXACT REST: after the exit the camera sits BIT-EXACTLY on its
 //      event-free follow base (IsAtRestBase — the shipped JUICE_SHAKE_AT_BASE
 //      strength pin). F4: all timing is INTEGER frames, zero delta math.
+//   4. S23 CONSTANTS PIN (MC 10229 / DA S20 residual P2): the closer/farther
+//      HELD check passes for ANY pull-back > 1m, so the preset MAGNITUDE was
+//      unproven (a gutted 1.05m preset stays GREEN). With the player lifted
+//      clear of the fight and its physics FROZEN, the smoothed follow base
+//      converges to its exact lerp fixed point player+Offset (the same
+//      bit-stillness mechanism the pulse leg's bit-exact rest uses); at
+//      progress==18 the camera therefore sits ON
+//      base + offsetDir*PullBack + (0,Height,0), and the MEASURED delta
+//      decomposed onto {offsetDir, vertical-perp} must read PullBack=3.0 and
+//      Height=1.5 within float tolerance against the shipped LITERALS — a
+//      gutted class would redefine its own contract, so the pin compares to
+//      the constants the S20 contract named, not to the class (marker
+//      BOSS_FRAME_CONSTANTS).
 // This mode NEEDS the live spawn set (farm + boss) — it routes after the
 // enemy guard, like DISSOLVE_SUPPRESS/CHAR_MOTION. The camera prints NOTHING
 // (F4-CMP) — every marker here is proof output.
@@ -37,6 +50,10 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _bfTravelToggle;
     private string _bfThresholdZone = "";
     private float _bfDistAtLive;
+    private int _bfStillRun;            // S23: consecutive bit-still frames of the camera transform
+    private int _bfStillStartPhys;      // S23: physics tick the current still-run started on
+    private int _bfPinPhysStart;        // S23: physics tick the settle budget runs on (paced, MC 1344.1)
+    private Vector3 _bfPrevPos;         // S23: previous frame's camera position (stillness witness)
     private FollowCamera? _bfCam;
 
     private const int BfFarmBudgetFrames = 1200;    // ZoneBossProof stage-21 parity
@@ -44,6 +61,23 @@ public partial class RuntimeIntegrationProof : SceneTree
     private const int BfKillBudgetFrames = 1800;    // boss HP is scaled — generous
     private const int BfRestBudgetFrames = 120;     // 18f ease-out + 12f shake + 8f pulse + readout
     private const int BfPressFrames = 6;            // ZoneBossProof travel press idiom
+    private const int BfStillWitnessFrames = 2;     // S23: consecutive bit-stable camera frames
+    private const int BfStillWitnessTicks = 3;      // S23: AND spanning >= this many PHYSICS ticks
+    //   (headless process frames are UNCAPPROXIMATED — MC 1344.1: two near-zero-delta
+    //   frames fake bit-stillness mid-convergence; a still-run spanning 50ms of paced
+    //   physics time cannot: any unconverged base moves >> ulp inside 50ms)
+    private const int BfBaseSettleBudgetTicks = 900; // S23: 15s paced settle allowance (20m re-lerp at lerpSpeed 5)
+    // S23 pinned PRESET CONSTANTS (MC 10229) — literal values, deliberately
+    // NOT read back from BossFramingTuning: a gutted class must not be able to
+    // redefine its own contract. These are the S20-ratified framing preset.
+    private const int BfPinnedEaseFrames = 18;
+    private const float BfPinnedPullBack = 3.0f;
+    private const float BfPinnedHeight = 1.5f;
+    // Float tolerance: the stall-point residual (lerp stops once a step rounds
+    // away — O(ulp/step), bounded <1e-2 by the tick-spanned witness) plus
+    // float accumulation. A gutted preset moves a component by O(1) — orders
+    // outside this tolerance (the plant evidence pins the red side).
+    private const float BfConstTol = 5e-2f;
 
     private void BfFail(string why) => Fail("BOSS_FRAME: " + why);
 
@@ -166,6 +200,78 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (!(d > _bfDistAtLive + 1.0f))
                 { BfFail($"framing preset did not pull the camera back (dist={d:0.####} atLive={_bfDistAtLive:0.####})"); break; }
                 GD.Print("LA_GATE: BOSS_FRAME_HELD — full preset progress, camera verifiably pulled back");
+                // S23 constants pin (MC 10229): lift the player CLEAR of the
+                // fight (the later kill stage re-positions it anyway) and
+                // freeze its physics, so the follow base converges to its
+                // exact lerp fixed point player+Offset with nothing moving
+                // the target mid-measure (Motion/KillPulse freeze idiom).
+                Vector3 upback = _bfCam!.GlobalPosition - _playerBody!.GlobalPosition;
+                _playerBody.GlobalPosition += upback.Normalized() * 20f;
+                _playerBody.SetPhysicsProcess(false);
+                _bfPrevPos = _bfCam.GlobalPosition;
+                _bfStillRun = 0;
+                _bfPinPhysStart = _physFrames;
+                _bfPhase = 7;
+                _bfPhaseStart = _frames;
+                break;
+            }
+
+            case 7:   // S23 BOSS_FRAME_CONSTANTS: at progress==18 with a
+                      // FROZEN target and a SETTLED camera, the follow base
+                      // sits on its lerp fixed point player+Offset, so the
+                      // camera is on base + offsetDir*PullBack + (0,Height,0).
+                      // Settlement is witnessed, not assumed: bit-stable
+                      // position across >=2 consecutive frames AND spanning
+                      // >=BfStillWitnessTicks PHYSICS ticks (50ms of paced
+                      // time — headless process frames run uncapped, MC
+                      // 1344.1, so frame-only stillness can be two zero-delta
+                      // frames mid-convergence; the still-run only opens its
+                      // tick span at the run's start, so a stalled witness
+                      // times out RED instead of measuring a stale frame).
+                      // The delta is then decomposed EXACTLY: {offDir, upPerp}
+                      // is an orthogonal basis of the kick plane and up ==
+                      // upPerp + offDir*(offDir.Y), so height reads off the
+                      // upPerp dot and the pull-back is the offDir dot minus
+                      // the height's known share (the first draft measured
+                      // pre-settlement and read the 0.682 base residual —
+                      // this phase's red-then-red-then-green history is the
+                      // EVIDENCE that the witness is load-bearing).
+            {
+                if (_bfCam!.BossFramingProgress != BfPinnedEaseFrames)
+                {
+                    if (_physFrames - _bfPinPhysStart > BfBaseSettleBudgetTicks)
+                        BfFail($"BOSS_FRAME_CONSTANTS: framing clock never sat at progress={BfPinnedEaseFrames} (progress={_bfCam.BossFramingProgress})");
+                    break;
+                }
+                var cp = _bfCam.GlobalPosition;
+                if (cp == _bfPrevPos) _bfStillRun++;
+                else { _bfStillRun = 0; _bfStillStartPhys = _physFrames; }
+                _bfPrevPos = cp;
+                if (_bfStillRun < BfStillWitnessFrames || _physFrames - _bfStillStartPhys < BfStillWitnessTicks)
+                {
+                    if (_physFrames - _bfPinPhysStart > BfBaseSettleBudgetTicks)
+                        BfFail("BOSS_FRAME_CONSTANTS: camera never settled at full framing with the target frozen (witness never spanned its tick budget)");
+                    break;
+                }
+                Vector3 offDir = _bfCam.Offset.Normalized();
+                Vector3 upPerp = new Vector3(0f, 1f, 0f) - offDir * offDir.Y;   // vertical MINUS its offDir share — perpendicular to offDir, |upPerp|² = 1-offDir.Y²
+                Vector3 delta = cp - (_playerBody!.GlobalPosition + _bfCam.Offset);
+                float height = delta.Dot(upPerp) / upPerp.LengthSquared();       // delta·upPerp = Height(1-offDir.Y²) exactly (offDir ⟂ upPerp)
+                float pull = delta.Dot(offDir) - height * offDir.Y;              // delta·offDir = PullBack + Height*offDir.Y
+                // Reconstruction from the shipped PRESET SHAPE: kick = offDir*pull + up*height.
+                // (The first draft reconstructed offDir*pull + upPerp*height — wrong by
+                // height*offDir.Y*offDir = 0.6822 on this scene's off=(9,6.5,9): upPerp is the
+                // perpendicular PROJECTION, not the vertical. Measured: resid read exactly
+                // 1.5*0.45481 — that debug run is in the EVIDENCE file.)
+                Vector3 resid = delta - (offDir * pull + new Vector3(0f, height, 0f));
+                _playerBody.SetPhysicsProcess(true);   // the REAL-wire kill stage needs the player's physics back
+                if (!(Mathf.Abs(pull - BfPinnedPullBack) <= BfConstTol))
+                { BfFail($"BOSS_FRAME_CONSTANTS: pull-back reads {pull:0.######}, contract {BfPinnedPullBack}±{BfConstTol} (dist resid={resid.Length():0.######})"); break; }
+                if (!(Mathf.Abs(height - BfPinnedHeight) <= BfConstTol))
+                { BfFail($"BOSS_FRAME_CONSTANTS: height reads {height:0.######}, contract {BfPinnedHeight}±{BfConstTol} (dist resid={resid.Length():0.######})"); break; }
+                if (!(resid.Length() <= BfConstTol))
+                { BfFail($"BOSS_FRAME_CONSTANTS: preset delta off the pull-back/height plane, dist resid={resid.Length():0.######}"); break; }
+                GD.Print($"LA_GATE: BOSS_FRAME_CONSTANTS — preset delta at progress={BfPinnedEaseFrames}: pull-back={pull:0.######} height={height:0.######} resid dist={resid.Length():0.######} (contracts 3.0/1.5 ±{BfConstTol})");
                 _bfPhase = 5;
                 _bfPhaseStart = _frames;
                 break;

@@ -421,7 +421,14 @@ bash "$HERE/mode_sets_check.sh" \
 # proof partial RuntimeIntegrationProof.KillPulse.cs; the camera prints NOTHING.
 run_mode CAMERA_KILL_PULSE pass "CAMERA_PULSE_AT_BASE"
 LOGKP="$(LA_GATE_MODE=CAMERA_KILL_PULSE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
-for m in CAMERA_PULSE_ACTIVE CAMERA_PULSE_HELD; do
+# S23 strength asserts (MC 10229, DA S20 residual P2) ride this SAME leg (no
+# new run_mode): CAMERA_PULSE_DIR asserts the punch kick vector lies ON the
+# player->camera sight-line and opposes it (a wrong-direction or off-axis
+# punch REDs even while strictly closer); CAMERA_PULSE_WINDOW_8 pins the
+# measured kick-envelope length to the PulseFrames=8 LITERAL; CAMERA_PULSE_
+# PUNCH_075 pins the measured peak displacement to PunchMetres=0.75 within
+# float tolerance (a gutted preset REDs — planted-bad evidence, card 10229).
+for m in CAMERA_PULSE_ACTIVE CAMERA_PULSE_HELD CAMERA_PULSE_DIR CAMERA_PULSE_WINDOW_8 CAMERA_PULSE_PUNCH_075; do
   [[ "$LOGKP" == *"$m"* ]] || fail "CAMERA_KILL_PULSE: expected $m"
 done
 
@@ -439,7 +446,12 @@ done
 # RuntimeIntegrationProof.BossFrame.cs; rides the QuestFrameBudget.
 run_mode BOSS_FRAME pass "BOSS_FRAME_AT_BASE"
 LOGBF="$(LA_GATE_MODE=BOSS_FRAME timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
-for m in BOSS_FRAME_ENTER BOSS_FRAME_HELD BOSS_FRAME_KILLED; do
+# S23 (MC 10229): BOSS_FRAME_CONSTANTS additionally MEASURES the framing
+# preset delta at progress==18 (player lifted clear + physics frozen, so the
+# follow base sits on its exact lerp fixed point) and pins it to the shipped
+# PullBack=3.0 / Height=1.5 literals within float tolerance — the older
+# "dist > atLive + 1.0" check alone stayed GREEN for a gutted preset.
+for m in BOSS_FRAME_ENTER BOSS_FRAME_HELD BOSS_FRAME_CONSTANTS BOSS_FRAME_KILLED; do
   [[ "$LOGBF" == *"$m"* ]] || fail "BOSS_FRAME: expected $m"
 done
 

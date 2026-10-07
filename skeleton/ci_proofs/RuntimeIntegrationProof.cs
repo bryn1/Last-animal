@@ -131,6 +131,13 @@ using System.Linq;
 //                     player's physics FROZEN the camera returns BIT-EQUAL to
 //                     its pre-trigger transform (CAMERA_PULSE_ACTIVE / _HELD /
 //                     _AT_BASE; stage 100, RuntimeIntegrationProof.KillPulse.cs).
+//                     S23 STRENGTH (MC 10229): the +4f kick vector is pinned
+//                     COLLINEAR with and OPPOSING the player->camera sight-line
+//                     (CAMERA_PULSE_DIR), the measured kick envelope is pinned
+//                     to PulseFrames=8 (CAMERA_PULSE_WINDOW_8) and the measured
+//                     peak displacement to PunchMetres=0.75
+//                     (CAMERA_PULSE_PUNCH_075) — against the literals, not the
+//                     tunable class.
 //   BOSS_FRAME        — MC 10217 Inc-4 S20: boss framing off the READ-only
 //                     WorldDirector.HasLiveBoss — farm to BossThreshold +
 //                     travel (ZoneBossProof idioms), the integer clock eases
@@ -139,7 +146,13 @@ using System.Linq;
 //                     camera sits BIT-EXACTLY on its event-free follow base
 //                     (BOSS_FRAME_AT_BASE; stage 101,
 //                     RuntimeIntegrationProof.BossFrame.cs; presentation
-//                     authority: zero Bus/GameState writes).
+//                     authority: zero Bus/GameState writes). S23 STRENGTH
+//                     (MC 10229): at progress==18 with the player lifted
+//                     clear + physics FROZEN the follow base sits on its
+//                     exact lerp fixed point, and the MEASURED preset delta
+//                     is pinned to PullBack=3.0 / Height=1.5 within float
+//                     tolerance (BOSS_FRAME_CONSTANTS — a gutted preset
+//                     stays GREEN under the old dist>+1.0 check alone).
 //   ZONE4             — MC 10216 Inc-4 S18: zone four + enemy four on the live
 //                     scene — the travel seam reaches the 4th zone "hollow" and
 //                     WRAPS to meadow on the shipped modulo (ZONE4_TRAVEL /
