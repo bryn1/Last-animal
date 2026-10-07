@@ -80,7 +80,8 @@ the composition root (see §3).
   wiring of the skills panel + HUD readout providers (live closures, no cached
   copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
   (partial: the follower-roster root seam — hearts loop moved out of the root verbatim, `InitRoster` + the read-only proof surfaces,
-  the `cycle_follower`/`break_bond` polls,
+  the `cycle_follower`/`break_bond` polls + the S8 bark poll `TickBark` (partial
+  `WorldDirector.Roster.Bark.cs`, 47 l; MC 10131),
   Forgive/PermanentBreak glue, the visible-body spawns and the save restore with
   cap; emits per-follower loyalty deltas under `<name>-<EntityId>` then the roster
   mean LAST under the reserved key `roster`; wiring plus bond-guard glue only —
@@ -116,7 +117,8 @@ the composition root (see §3).
 - **Input map**: WASD + arrows + attack, skill_1..3 (Q/R/F — F is the live
   Calming Speak press since MC 10031, riding the 2e-reserved binding, map
   zero-diff), ui_toggle
-  (TAB), cycle_follower (C), break_bond (J), defined in `project.godot`.
+  (TAB), cycle_follower (C), break_bond (J), bark (G — MC 10131 S8, the ONLY
+  input-map change of the bark stage, presentation-only press), defined in `project.godot`.
 
 ## 4. Entrypoints
 
@@ -241,16 +243,16 @@ ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
 carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
 (Motion/DayNight/Passives + the roster Traits half) landed beneath it; the
 split still owed is those stage bodies.** Current per-file sizes (restamped at
-570996e+; ARCH wall S20 P2-1): Proof.cs 775 l (S14-S20 merge growth; the
-mode-gated camera+zone4 dispatch block restored at 4677b7c; split still owed =
-card 10218),
+6ad4007, W3 close; was 570996e+; ARCH wall S20 P2-1 + ARCH S8 F1/Q6): Proof.cs 814 l
+(S14-S20 merge growth plus the S8 bark arm; the mode-gated camera+zone4 dispatch
+block restored at 4677b7c; split still owed = card 10218),
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-P1FixProof.cs 356 l — **every PARTIAL and standalone proof stays under 600
+P1FixProof.cs 368 l — **every PARTIAL and standalone proof stays under 600
 (max Bus.cs 566); only the entry file has crossed the 600-l ceiling.** No
 mode router moved: the entry file's stage switch stays the only mode router);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
@@ -325,6 +327,18 @@ shipped seam, 6 live Wraiths, 4 EXACT anchors + fog pin re-read, pairwise
 distinct noon rows, gait +1 mod 14 integer tick; markers `ZONE4_TRAVEL` /
 `ZONE4_TABLE` / `ZONE4_ENEMY4` / `ZONE4_GAIT_INT` / `ZONE4_ANCHOR_*` /
 `ZONE4_FOGPIN_0` / `ZONE4_KEY4_DISTINCT` / `ZONE4_WRAP`; rides the battery.
+`RuntimeIntegrationProof.Bark.cs` — stage 102 (mode-scoped to `BARK`,
+single-owner — no dispatch gate needed, unlike the two-owner stage 100), mode
+`BARK`: MC 10131 S8 command bark — ONE `bark` press opens a 16f INTEGER bubble
+window on every ACTIVE roster follower body; PRESENTATION NOTE: the bubble is
+one small primitive on the EXISTING `CompanionFollowBody` visual (runtime-only
+`BarkWindowFrames` int, R7 zero save fields, sweep-BEFORE-press stepping
+EXACTLY -1/frame, UiTheme token — no new widget system; zero gameplay writes,
+census stays 15); the walked count of VISIBLE `BarkBubble` nodes (BridgeMvpProof
+MANUAL tree-walk) is EXACTLY the roster size at open+held, bubbles are gone on
+the EXACT end frame, and the EMPTY roster presses to ZERO ghosts; markers
+`BARK_ROSTER_*` / `BARK_OPEN_*` / `BARK_STEP` / `BARK_GONE_*` / `BARK_EMPTY_ZERO`
+/ `BARK_NO_GAMEPLAY_DELTA_*` / in-leg `BARK_CENSUS_15`; rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL
@@ -358,7 +372,7 @@ skill, roster; ui tests compile into the main csproj and run via `--script`).
 
 **Dispatch-guard contract (fail-safe default).** An unrecognized `LA_GATE_MODE`
 MUST make a proof exit RED, never default to a PASS leg. At tip (re-derived
-2026-10-07 at b8e8776): `RuntimeIntegrationProof.cs` guards it explicitly —
+2026-10-07 at 6ad4007, W3 close): `RuntimeIntegrationProof.cs` guards it explicitly —
 `IsKnownMode(_mode)` rejects an unknown mode with `LA_GATE: FAIL: unknown mode …`
 + a non-zero exit (MC 10204 hardening, S17 TEST finding F1; the guard is itself
 proven by `LA_GATE_MODE=bogus_mode -> exit 1`); `RosterIntegrationProof.cs` fails
@@ -369,9 +383,9 @@ mode…)`, proven red on `LA_GATE_MODE=bogus` and empty. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**36 `run_mode` legs = 26 positive + 10 negative** (W2 close added `passives`
+**37 `run_mode` legs = 27 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
-`CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; count = `grep -cE '^run_mode '`
+`CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate.

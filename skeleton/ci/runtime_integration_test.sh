@@ -24,7 +24,7 @@
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
 # and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
-# proof invocations exceed the 36-leg count; the (E) framebuffer render bar
+# proof invocations exceed the 37-leg count; the (E) framebuffer render bar
 # runs once more through graphical-test-helper.
 #
 # Usage:
