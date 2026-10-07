@@ -178,6 +178,17 @@
          world/ActorVisual.cs (at-cap hygiene; unblocks S14's growth). The
          move is code-identical — no behaviour change rides on it. -->
     <Compile Include="world/VisualJuice.cs" />
+    <!-- Compile MC 10199 Inc-4 S15 day-night driver (world/WorldDirector.DayNight.cs):
+         a runtime-only integer FRAME clock on the world tick + per-zone const
+         keyframe tables (sun angle on the shipped DirectionalLight3D, sky/ambient
+         color+energy on the shipped Environment) — NOTHING new in scenes, values
+         only, zero save delta (RULING-7). + its DAYNIGHT_STATE proof partial + the
+         two-anchor capture script (evidence rows, not a pixel gate). Appended at
+         the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
+         merge cleanly. -->
+    <Compile Include="world/WorldDirector.DayNight.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.DayNight.cs" />
+    <Compile Include="tests/DayNightCaptureTest.cs" />
   </ItemGroup>
 
 </Project>
