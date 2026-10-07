@@ -205,6 +205,14 @@
          at the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
          merge cleanly. -->
     <Compile Include="world/WorldDirector.Motion.cs" />
-    <Compile Include="ci_proofs/RuntimeIntegrationProof.Motion.cs" />  </ItemGroup>
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Motion.cs" />
+    <!-- Compile MC 10216 Inc-4 S18: the zone-four + enemy-four proof partial
+         (mode ZONE4, stage 100). The zone/enemy/keyframe TABLES it proves shipped
+         in inc-1 (EcosystemSpawner hollow row + 4-zone ZoneIds, EnemyAI.Wraith,
+         ActorVisual.BuildWraith, MotionTuning gait row, DayNightClock.Hollow) —
+         zero new seams, zero save fields, census unchanged. Appended at
+         the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
+         merge cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Zone4.cs" />  </ItemGroup>
 
 </Project>
