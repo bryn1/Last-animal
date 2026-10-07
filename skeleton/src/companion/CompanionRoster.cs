@@ -1,3 +1,6 @@
+// SIZE: 399 l (target 250 exceeded, ceiling 400 held — reason): the roster
+// grew with S9 (trait derivation + restore seam) and S17 (trait-rule constants,
+// WageMissTick, Forager pay row; split would sever the settle from its rules).
 using System;
 using System.Collections.Generic;
 using LastAnimal.Npc;
@@ -30,6 +33,9 @@ using LastAnimal.Npc;
 //     EntityId (TraitFor, S5 PitchFor idiom) — never persisted (F2) — and the
 //     restore REUSE seam re-latches key + trait + value bounds in one place
 //     (RestoreIdentity, NF5/NF6 harden).
+//   * TRAIT EFFECTS (MC 10201 S17): one pure rule per trait INSIDE the
+//     settle (PayDueFollowers / WageMissTick, rule table at ForagerWageGain) —
+//     deterministic per-SLOT, no new state, never persisted (F2).
 namespace LastAnimal.Companion;
 
 /// <summary>
@@ -61,6 +67,59 @@ public sealed class CompanionRoster
 
     /// <summary>Loyalty bonus applied by Forgive (same size as M03 PayBonus).</summary>
     public const int ForgiveBonus = 5;
+
+    /// <summary>
+    /// S17 TRAIT RULE TABLE (MC 10201, one pure rule per trait INSIDE the
+    /// engine-free settle; no new state, never persisted — F2):
+    ///   Steadfast  wage-miss tick   decay -25%   effective = max(1, floor(D*75/100))
+    ///                                        over the RAW drain D (M03 SkipSalary):
+    ///                                        base D=3 -> 2 (50->48); clamp edges
+    ///                                        4->2, 3->1, 2->1, 1->0 (terminal)
+    ///   Forager    landed pay       wage -2      +5 -> +3 (ForagerWageGain); gain
+    ///                                        = min(3, what the base settle granted)
+    ///   Bonded     landed pay       +1 Manna     consumed at the shipped
+    ///            Manna add site via the settle RETURN (SkillState.GainManna)
+    ///   Sentinel   CUT — no kill-assist seam exists (S16-census discipline:
+    ///              never invent a seam; grep -ri assist == 0 hits at 0968010)
+    ///   band row   SHIPPED — trait-INDEPENDENT wage-free upkeep: while the
+    ///              LIVE learned-position count (the shipped Counters.Length
+    ///              read at the settle glue — no PlayerMutations edit, no
+    ///              S16 build dependency) reaches WageFreeUpkeepPositions,
+    ///              WageMissTick waives that tick's upkeep. Threshold from
+    ///              the S16/S8 census LANDED at build time
+    ///              (.audits/202610070005-s16/census.md — positions 1..6
+    ///              census-confirmed reachable; 4 = the S8 census number).
+    /// Deterministic per-SLOT (RULING-4: the latched derived Trait), pure
+    /// integer arithmetic, zero save delta. tests/roster pins this table.
+    /// </summary>
+    public const int ForagerWageGain = 3;
+
+    /// <summary>S17 Steadfast: the loyalty-percentage the wage-miss decay KEEPS
+    /// (the ratified -25% decay => keep 75%). effective decay = the raw M03
+    /// drain D floored through this percentage, held at SteadfastDecayFloor so
+    /// neglect never pins a follower above 0 (betrayal stays reachable).</summary>
+    public const int SteadfastKeepPct = 75;
+
+    /// <summary>S17 Steadfast: the minimum EFFECTIVE wage-miss decay (a tick
+    /// always lands at least this; 1 -> loyalty strictly decreases, terminal 0).</summary>
+    public const int SteadfastDecayFloor = 1;
+
+    /// <summary>S17 Bonded rule size: Manna the player gains when a BONDED
+    /// follower's settle LANDS (rides the settle return; the shipped
+    /// SkillState.GainManna add site clamps at the cap — MC 3912).</summary>
+    public const int BondedMannaOnPay = 1;
+
+    /// <summary>S17 WAGE-FREE UPKEEP BAND (census S16/S8, threshold 4 = the
+    /// S8 census number, census-confirmed reachable; the census also records
+    /// THRESHOLD COLLAPSE — live content holds widths {0,6}, so the band
+    /// lights at the first extraction). Runtime-only, never persisted (F2).</summary>
+    public const int WageFreeUpkeepPositions = 4;
+
+    /// <summary>The band predicate over the LIVE learned-position count
+    /// (Counters.Length of the shipped profile the SkillState side consults).
+    /// Pure, deterministic, census-legal only for k &lt;= 6 (cutoff row).</summary>
+    public static bool WageFreeUpkeep(int learnedPositions) =>
+        learnedPositions >= WageFreeUpkeepPositions;
 
     /// <summary>
     /// S9 TRAIT derivation (RULING-4) — pure-int fold, the S5 PitchFor idiom
@@ -240,10 +299,51 @@ public sealed class CompanionRoster
             // defensive net. A betrayer takes no money on a dead bond.
             if (!f.Component.HasCompanion) continue;
             if (f.Machine.State == CompanionState.Betrayed) continue;
+            int before = f.Component.Loyalty;
             f.Machine.Pay();
-            if (!f.Needs.SalaryDue) settled.Add(f);   // landed (M03 PaySalary true)
+            if (!f.Needs.SalaryDue)
+            {
+                // S17 FORAGER (MC 10201 rule table): the settle lands wage -2
+                // — gain min(3, what the base settle granted), so the M03 clamp
+                // at the cap can never turn a pay into a Forager penalty.
+                // ModifyLoyalty stays M03's clamp path (Forgive precedent).
+                if (f.Trait == CompanionTrait.Forager)
+                {
+                    int granted = f.Component.Loyalty - before;
+                    if (granted > ForagerWageGain)
+                        f.Component.ModifyLoyalty(ForagerWageGain - granted);
+                }
+                settled.Add(f);   // landed (M03 PaySalary true)
+            }
         }
         return settled;
+    }
+
+    /// <summary>
+    /// The roster-owned WAGE-MISS tick (S17, MC 10201): the world skip arm
+    /// calls THIS, so the rules live inside the engine-free settle.
+    /// BAND (trait-INDEPENDENT): wageFreeUpkeep (the WageFreeUpkeep predicate
+    /// over the LIVE Counters.Length read at the glue) WAIVES the whole upkeep
+    /// this tick — no M03 decay, no cycle bookkeeping: a deeply resonant
+    /// follower is simply not hungry this tick. Otherwise M03 owns the raw
+    /// decay (SkipPayment -> SkipSalary -3, Phase-9 gate) and a STEADFAST
+    /// follower's EFFECTIVE decay is max(SteadfastDecayFloor, floor(D *
+    /// SteadfastKeepPct/100)) — the ratified -25% — refunded through M03's own
+    /// ModifyLoyalty clamp path. The floor keeps every tick strictly
+    /// decreasing so betrayal stays REACHABLE (table pinned in tests/roster:
+    /// base 50->47 vs Steadfast 50->48, edges 4->2, 3->1, 2->1, 1->0; band-on:
+    /// 50->50). Deterministic per-SLOT (the latched derived Trait).
+    /// </summary>
+    public void WageMissTick(Follower f, bool wageFreeUpkeep = false)
+    {
+        if (wageFreeUpkeep) return;                           // band: upkeep waived this tick
+        int before = f.Component.Loyalty;
+        f.Machine.SkipPayment();                              // M03 owns the raw decay
+        if (f.Trait != CompanionTrait.Steadfast) return;
+        int drained = before - f.Component.Loyalty;           // clamp-honest raw decay
+        int effective = Math.Max(SteadfastDecayFloor, drained * SteadfastKeepPct / 100);
+        int refund = drained - effective;                     // <= drained-1: net decay < raw
+        if (refund > 0) f.Component.ModifyLoyalty(refund);    // back through M03's clamp path
     }
 
     /// <summary>Forgive (Empathy Book glue, applied only in the director partial):

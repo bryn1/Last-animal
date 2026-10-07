@@ -46,6 +46,12 @@ using System.Collections.Generic;
 //     ROSTER_OVERSIZED_TRIMMED (DA W5 F4) hand-edited 5-entry save loads to N=3, no orphan body
 //   roster_neg — NEG_ROSTER: at the cap of 3 the 4th recruit is REFUSED (the
 //     roster and the wild flag stay unchanged); detected -> named red, exit 1.
+//   trait_effects (MC 10201 S17, Traits partial) — TRAIT_EFFECTS + the band
+//     row: ONE live pay press on a known-trait roster prints each settle's
+//     delta AGAINST BASE ([Bonded] Manna +1 vs +0, [Forager] +3 vs +5;
+//     [Steadfast] idle), then the live skip-arm A/B prints WAGEFREE_UPKEEP
+//     (upkeep -2 at DNA width 0 control vs WAIVED at the census width 6) —
+//     the trait rules + band felt on the real scene (saves OWNED per MC 3910).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RosterIntegrationProof.cs
 public partial class RosterIntegrationProof : SceneTree
@@ -142,6 +148,7 @@ public partial class RosterIntegrationProof : SceneTree
         {
             case "roster_follow": FollowStage(); break;
             case "roster_neg": NegStage(); break;
+            case "trait_effects": TraitStage(); break;   // MC 10201 S17 (Traits partial)
             default: Fail($"unknown mode {_mode}"); return true;
         }
         return false;

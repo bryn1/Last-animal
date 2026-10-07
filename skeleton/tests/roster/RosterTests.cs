@@ -117,8 +117,11 @@ public class CompanionRosterTests
 
         var settled = roster.PayDueFollowers();                   // one press, both due
         Assert.Equal(2, settled.Count);                           // EACH settles its own wage
-        Assert.Equal(55, a.Component.Loyalty);
-        Assert.Equal(55, b.Component.Loyalty);
+        Assert.Equal(55, a.Component.Loyalty);                    // 21 Steadfast: base +5
+        // S17 (MC 10201) restamp: id 22 is the FORAGER — its landed pay is
+        // wage -2 (+3). The row's INDEPENDENCE claim is untouched; the
+        // trait-effect table lives in TraitEffectTests.cs.
+        Assert.Equal(53, b.Component.Loyalty);
     }
 
     // --- per-follower betrayal ---------------------------------------------------
