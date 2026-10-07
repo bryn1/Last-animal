@@ -34,7 +34,7 @@ the composition root (see §3).
 | `src/empathy/` | `EmpathyBook.cs` | Empathy-signal book. |
 | `src/npc/` | `BetrayalSystem.cs`, `CompanionComponent.cs`, `EmotionalDepth.cs`, `SalarySystem.cs` | NPC social systems (betrayal, wages, emotion). |
 | `src/save/` | `GameState.cs`, `SaveSystem.cs`, `GodotSaveStore.cs`, `ZoneProgression.cs` | Save state, store abstraction, zone progression. |
-| `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs`, `ActTwoSync.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data table and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1) + the act-two restore-sync arms (MC 10132 F-DA2: `Run` decides None/Adopt/Rollback/FreshOpen/SilentReStart — quest-state logic stays pure, `WorldDirector.Story.cs` `SyncActTwoFromRestore` only executes the returned action's engine-side halves). Engine-free (MC 3900 2a, MC 3904 2c). |
+| `src/story/` | `DialogueTable.cs`, `QuestTable.cs`, `QuestLog.cs`, `ActChainSync.cs` | Authored dialogue nodes (id → text + optional condition hook) + the quest-arc data tables (`Default()` act one, `RuinsArc()` act two, `ActThreeArc()` act three — the zone-4 "hollow" close chain, MC 10273 S19) and pure state machine (NotStarted→Active→ObjectiveMet→Completed, illegal transitions throw; a save-row restore is a full-snapshot rewind that clears evidence counters — MC 3904 P1) + the ACT-CHAIN restore-sync arms (MC 10132 F-DA2 as `ActTwoSync`, renamed `ActChainSync` at MC 10273 S19 — the arms are (prevAct, thisAct)-parameterized so act three rides the SAME machine over (act2, act3): `Run` decides None/Adopt/Rollback/FreshOpen/SilentReStart — quest-state logic stays pure, the `SyncActTwoFromRestore`/`SyncActThreeFromRestore` seams only execute the returned action's engine-side halves). Engine-free (MC 3900 2a, MC 3904 2c). |
 | `src/ui/` | `DialogueSystem.cs`, `EmpathyPanel.cs`, `Hud.cs`, `SkillsPanel.cs` | HUD (gauges + live Manna/learned-skills/active-quest readouts, no cached copies; the low-health vignette writes the tint layer on CHANGE only — Godot's `ColorRect.set_color` queue_redraws unconditionally, so the OFF-state constant colour must not re-queue the full-screen layer every TickUi frame; `Hud.VignetteColorWrites` is the read-only capture-test counter of writes actually issued, MC 10146), dialogue (`Show(nodeId, fromReward=false)` — the MC 3915 reward-beat flag `ActiveNodeIsReward`, one-arg callers unchanged), empathy panel, TAB skills panel (MC 3933 2f). |
 
 ## 3. Godot layer (`skeleton/` outside `src/`)
@@ -69,7 +69,12 @@ the composition root (see §3).
   `DialogueSystem.ClearPresentation()` — the queue is never persisted) with
   the observation provider
   riding the guarded `QuestDialogueNodeNow` seam; wiring only, quest rules live in the pure
-  `QuestLog`), `WorldDirector.Skills.cs` (partial: the skill root seam —
+  `QuestLog`), `WorldDirector.Story.Act3.cs` (partial: the S19/MC 10273 ACT-THREE
+  lifecycle — third `QuestLog` over `QuestTable.ActThreeArc()`, open/adopt/close
+  mirrors of the S10 act-two seams, restore decision executed from the pure
+  `ActChainSync` run over (act2, act3), the named `ACT_THREE_COMPLETE`
+  act-completion marker on the final zone-4 chain; wiring only),
+  `WorldDirector.Skills.cs` (partial: the skill root seam —
   `InitSkills` wiring, Q/R/F input poll — skill_3 Calming Speak spends 12 Manna
   AFTER its target scan (refusal spends zero) and opens the SAME recruit offer
   behind a 600-frame window (9.0 reach; frame-arith decay sweep BEFORE the press
@@ -212,6 +217,7 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 `RuntimeIntegrationProof.Quests.cs` / `RuntimeIntegrationProof.Chain.cs` /
 `RuntimeIntegrationProof.Bus.cs` / `RuntimeIntegrationProof.Juice.cs` /
 `RuntimeIntegrationProof.Shake.cs` / `RuntimeIntegrationProof.Story2.cs` /
+`RuntimeIntegrationProof.Story3.cs` /
 `RuntimeIntegrationProof.Dissolve.cs` / `RuntimeIntegrationProof.DayNight.cs` /
 `RuntimeIntegrationProof.Motion.cs` / `RuntimeIntegrationProof.Passives.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
@@ -243,8 +249,11 @@ moved the compose routes + harness helpers VERBATIM to
 `RuntimeIntegrationProof.Compose.cs` (270 l) + `.Harness.cs` (70 l) and shipped
 the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
-at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below): Proof.cs 516 l
-(+6 l: the S24 BARK mode-doc lines — bark-seam clear + F1 walk floor)
+at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
+10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
+ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): Proof.cs 554 l
+(+38 l since the S24 516-l carry: the S19 ACT_THREE mode-doc row, KnownModes
+entry, case 103 arm and the SIZE restamp)
 (entry = mode-doc header + KnownModes allow-list + shared fields/consts + the
 single mode router + the lifecycle trio _Initialize/_PhysicsProcess-tick-hooks/
 _Finalize — DA c1 F1: matching the entry's own SIZE stamp wording; the 814-l
@@ -254,7 +263,8 @@ Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
-W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
+W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
+281 l (S19/MC 10273, act-three proof),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
 P1FixProof.cs 368 l, Quests.cs 559 l (ARCH 49162d57: added — the second-largest
 file and the next ceiling watch), Compose.cs 270 l, Harness.cs 70 l —
@@ -357,13 +367,30 @@ rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL
-save->load edge (restore arms in pure `src/story/ActTwoSync.cs`); markers
+save->load edge (restore arms in pure `src/story/ActChainSync.cs` — the machine
+S10 authored as `ActTwoSync`, renamed at MC 10273 when act three joined the
+chain); markers
 `ACT2_OPENED`, `ACT2_CARD_ON_SCREEN`, open/close `ACT_CARD act_two`, four
 DISTINCT `QUEST_COMPLETED q_r_*` drives (W6 pin: never one cascade),
 per-row `REWARD_SHOWN`, `WAGE_PAID for q_r_bread`, `ACT2_PERSIST` on the
 shipped v3 `QuestStates` wire (F2 zero save-file delta), `ACT2_CLOSED`
 (the DLQ path stays untouched, uniform auto-close); rides the battery as
-leg (O); the death leg in
+leg (O);
+`RuntimeIntegrationProof.Story3.cs` — stage 103 (UNIQUE number — the pairing
+gate), mode `ACT_THREE`: MC 10273 S19 story ACT THREE, the close (RULING-8
+"yes to zone4+act3") — the four zone-4 `QuestTable.ActThreeArc()` rows played
+by a THIRD pure `QuestLog` on the live scene; the act opens through the REAL
+save path (owned save: both prior logs diverged all-complete, the restore
+sync chain ADOPTS act two and FreshOpens act three), four completions each
+off its OWN distinct fact (three travels onto the S18-shipped "hollow",
+three speaks, the ONE wage path across three logs, eight extractions), the
+mid-quest save round-trip on the shipped v3 `QuestStates` wire with NO card
+replay, the named `ACT_THREE_COMPLETE` act-completion marker on the final
+zone-4 chain, then the close card drained in emission order; markers
+`ACT3_OPENED`, `ACT3_CARD_ON_SCREEN`, open/close `ACT_CARD act_three`, four
+DISTINCT `QUEST_COMPLETED q_h_*` drives (W6 pin), per-row `REWARD_SHOWN`,
+`WAGE_PAID for q_h_wage`, `ACT3_PERSIST`, `ACT_THREE_COMPLETE`, `ACT3_CLOSED`;
+rides the battery as leg (T); the death leg in
 `ZoneBossProof.cs` OWNS its save — deletes the shared `user://savegame.json` before
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
@@ -398,9 +425,10 @@ mode…)`, proven red on `LA_GATE_MODE=bogus` and empty. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**37 `run_mode` legs = 27 positive + 10 negative** (W2 close added `passives`
+**38 `run_mode` legs = 28 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
-`CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; count = `grep -cE '^run_mode '`
+`CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; S19/MC 10273
+added `ACT_THREE`; count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate.
