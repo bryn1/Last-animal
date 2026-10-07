@@ -13,7 +13,8 @@ using Godot;
 // and writes NOTHING but the bubble windows — zero gameplay writes (F4
 // doctrine), zero Bus signals (the poll is one IsActionJustPressed read, the
 // same kind as the shipped cycle_follower/break_bond polls; census stays 15),
-// zero save fields (R7: runtime-only, like the calm window).
+// zero save fields (R7: runtime-only, like the calm window) AND the calm
+// window's OTHER half — the load-seam clear (ClearBarkWindows, S24 F2).
 //
 // Frame contract (TickCalmWindows §2: sweep BEFORE the press chain): a press
 // landing on roster-tick frame D0 shows the bubble on D0..D0+15 and it is gone
@@ -43,5 +44,22 @@ public partial class WorldDirector
         for (int i = 0; i < _bodies.Count; i++)
             _bodies[i].BarkWindowFrames = BarkWindowFrames;
         GD.Print($"ROSTER: bark command -> {(_bodies.Count == 0 ? "no active companion" : $"{_bodies.Count} follower(s) bubble ({BarkWindowFrames}f)")}");
+    }
+
+    /// <summary>S24 F2 (MC 10238): the bark half of the load seam — the exact
+    /// companion-body mirror of ClearCalmWindows (R9 mirror, Roster.Wild.cs).
+    /// RestoreFollowers REUSES the visible follower bodies in place, so a
+    /// LoadGame inside an open window would otherwise carry a stale bubble
+    /// ~1 window deep into the loaded game (runtime-proven by the S8 DA wall:
+    /// window 7 carried across the seam, id re-latched). Bark state is
+    /// runtime-only (R7: zero save fields, zero signals) — it dies WITH the
+    /// load, like the calm window. Called ONLY at the end of
+    /// RestoreFollowers, so BOTH load entries (the player load_game key AND
+    /// proof-only LoadGame) clear through it. Writes ONLY the per-body runtime
+    /// counters — no gameplay write, no signal, the one _Process unchanged.</summary>
+    private void ClearBarkWindows()
+    {
+        for (int i = 0; i < _bodies.Count; i++)
+            _bodies[i].BarkWindowFrames = 0;
     }
 }

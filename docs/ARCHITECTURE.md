@@ -81,7 +81,8 @@ the composition root (see §3).
   copies), `ui_toggle`/TAB poll + refresh tick; MC 3933 2f), `WorldDirector.Roster.cs`
   (partial: the follower-roster root seam — hearts loop moved out of the root verbatim, `InitRoster` + the read-only proof surfaces,
   the `cycle_follower`/`break_bond` polls + the S8 bark poll `TickBark` (partial
-  `WorldDirector.Roster.Bark.cs`, 47 l; MC 10131),
+  `WorldDirector.Roster.Bark.cs`, 65 l; MC 10131, + the S24/MC 10238 load-seam
+  `ClearBarkWindows`),
   Forgive/PermanentBreak glue, the visible-body spawns and the save restore with
   cap; emits per-follower loyalty deltas under `<name>-<EntityId>` then the roster
   mean LAST under the reserved key `roster`; wiring plus bond-guard glue only —
@@ -242,7 +243,8 @@ moved the compose routes + harness helpers VERBATIM to
 `RuntimeIntegrationProof.Compose.cs` (270 l) + `.Harness.cs` (70 l) and shipped
 the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
-at 4134d67; was 6ad4007 W3 close): Proof.cs 510 l
+at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below): Proof.cs 516 l
+(+6 l: the S24 BARK mode-doc lines — bark-seam clear + F1 walk floor)
 (entry = mode-doc header + KnownModes allow-list + shared fields/consts + the
 single mode router + the lifecycle trio _Initialize/_PhysicsProcess-tick-hooks/
 _Finalize — DA c1 F1: matching the entry's own SIZE stamp wording; the 814-l
@@ -344,9 +346,14 @@ one small primitive on the EXISTING `CompanionFollowBody` visual (runtime-only
 EXACTLY -1/frame, UiTheme token — no new widget system; zero gameplay writes,
 census stays 15); the walked count of VISIBLE `BarkBubble` nodes (BridgeMvpProof
 MANUAL tree-walk) is EXACTLY the roster size at open+held, bubbles are gone on
-the EXACT end frame, and the EMPTY roster presses to ZERO ghosts; markers
+the EXACT end frame, the EMPTY roster presses to ZERO ghosts on EVERY walked
+frame of window+margin (the wait is floored above the settle, S24 F1), and a
+fresh press followed by `LoadGame` INSIDE the window leaves the REUSED bodies
+window-free — zero walked bubbles post-load (S24 F2: the load seam's
+`ClearBarkWindows`, mirror of `ClearCalmWindows`); markers
 `BARK_ROSTER_*` / `BARK_OPEN_*` / `BARK_STEP` / `BARK_GONE_*` / `BARK_EMPTY_ZERO`
-/ `BARK_NO_GAMEPLAY_DELTA_*` / in-leg `BARK_CENSUS_15`; rides the battery.
+/ `BARK_LOAD_CLEAR` / `BARK_NO_GAMEPLAY_DELTA_*` / in-leg `BARK_CENSUS_15`;
+rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL

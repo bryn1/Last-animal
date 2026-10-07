@@ -9,6 +9,8 @@
 // MC 10201 S17: +29 truthfully counted — the skip arm routed through
 // CompanionRoster.WageMissTick, the Bonded Manna rider on the settle return
 // and the wage-free upkeep band read (the DA-F1 settle hunk).
+// MC 10238 S24: +1 truthfully counted — the ClearBarkWindows call at the
+// RestoreFollowers load seam (bark half of the calm-clear mirror, S8 DA F2).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core.Framework;
@@ -369,6 +371,7 @@ public partial class WorldDirector
         ResetRosterDeltas();
         GD.Print($"ROSTER: load restored N={_roster.Count}");
         ClearCalmWindows();   // §3 load seam (ONE caller, R9 mirror): calm state is runtime-only
+        ClearBarkWindows();   // S24 F2 (MC 10238) load seam, the calm-clear mirror: bark state is runtime-only (R7)
     }
 
     /// <summary>Reset every per-follower loyalty/state diff (root LoadGame seam +
