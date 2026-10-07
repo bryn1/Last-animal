@@ -16,7 +16,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 30 run_mode legs = 20 positive modes + 10 negative
+# Battery at this HEAD: 33 run_mode legs = 23 positive modes + 10 negative (W2 close restamp: +passives S16, +trait_effects S17, +DAYNIGHT_STATE S15, +CHAR_MOTION S14; count = grep -cE '^run_mode ' at this commit)
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -349,7 +349,7 @@ LOGPA="$(LA_GATE_MODE=passives timeout 300 "$GODOT" --headless --path "$PROJ" --
 # at the shipped SkillState.GainManna add site), [Forager] loyalty +3 vs +5
 # (wage -2); [Steadfast] idle as the rule-specificity control (its -25% is
 # the wage-MISS arm — headless table owns it). Sentinel CUT (no kill-assist
-# seam) and the wage-free upkeep BAND CUT (S16/S8 census not filed at build
+# seam) and the wage-free upkeep BAND SHIPPED at counter-width 4 (S16/S8 census FILED pre-build: .audits/202610070005-s16/census.md — W2-close restamp of the stale CUT wording the merge flagged)
 # time) ride the EVIDENCE CUT-decisions row. Known-id reachability rides the
 # ratified restore seam (cap 3 + wild pool 21+ cannot recruit a Bonded fresh).
 # The cap/trim/F6 legs (roster_follow/roster_neg above) are UNCHANGED.
@@ -392,11 +392,12 @@ echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verifie
 # player VisualJuice root flashes WHITE at the real player-damage site while
 # the BODY position stays bit-unchanged across the juice window with physics
 # frozen — a motion-on-body plant lands here RED (CHAR_PLAYER_FLASH /
-# CHAR_BODY_STILL). Stage 98, proof partial RuntimeIntegrationProof.Motion.cs.
+# CHAR_BODY_STILL). Stage 99 (renumbered at merge off S15's 98), proof partial RuntimeIntegrationProof.Motion.cs.
 run_mode CHAR_MOTION pass "CHAR_BODY_STILL"
 LOGP="$(LA_GATE_MODE=CHAR_MOTION timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 for m in CHAR_ENEMY_WALK CHAR_WALK_ACTIVE CHAR_WALK_AT_REST CHAR_LEAN_ACTIVE CHAR_LEAN_AT_BASE CHAR_PLAYER_FLASH; do
   [[ "$LOGP" == *"$m"* ]] || fail "CHAR_MOTION: expected $m"
 done
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; non-blank render)"exit 0
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; non-blank render)"
+exit 0

@@ -4,7 +4,7 @@
 // CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
 // MC 10204: the unknown-mode dispatch guard + KnownModes allow-list 37 l (S17 TEST F1),
 // the passives mode-doc row 5 l the S16 merge dropped, this restamp 4 l. MC 10098 idiom:
-// stage bodies live in the 13 per-concern partials, only the dispatch stays here; the
+// stage bodies live in the 14 per-concern partials, only the dispatch stays here; the
 // W1 rule keeps the >600 drift closed with comment-only restamps —
 // 572+24+17+24+46 = 683 = wc -l on the tree this line ships on.
 using Godot;

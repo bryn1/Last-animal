@@ -201,7 +201,7 @@
     <!-- Compile MC 10198 Inc-4 S14: the character-life motion driver partial
          (integer-phase walk feed, idle breath/sway, attack lean — presentation
          roots only; the _PhysicsProcess motion tick lives in WorldDirector.Motion.cs)
-         + the CHAR_MOTION proof partial (mode CHAR_MOTION, stage 98). Appended
+         + the CHAR_MOTION proof partial (mode CHAR_MOTION, stage 99). Appended
          at the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
          merge cleanly. -->
     <Compile Include="world/WorldDirector.Motion.cs" />
