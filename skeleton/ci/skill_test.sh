@@ -91,11 +91,27 @@ for ACT in \
   F7_calm_cost_spend_once \
   F8_calm_refuse_no_spend \
   F9_calm_unlock_positions \
-  N2_unlock_from_consensus_after_roundtrip_equals_unlock_live
+  N2_unlock_from_consensus_after_roundtrip_equals_unlock_live \
+  F10_passive_derivation_table_pinned \
+  F11_resonant_draw_adds_bonus_at_kill_seam \
+  F12_deep_mend_adds_bonus_at_heal_seam \
+  F13_band_threshold_boundaries_exact \
+  F14_live_extraction_reaches_both_bands_census_confirmed \
+  N3_passives_load_shape_equals_live_at_same_width
 do
   printf '%s\n' "$LIST" | grep -q "$ACT" || fail "named F-act missing from the suite: $ACT"
 done
-echo "SKILL_TEST: named F-acts present (F1..F6 + F7..F9 calm rows (MC 10031) + N2 round-trip guard)"
+echo "SKILL_TEST: named F-acts present (F1..F6 + F7..F9 calm rows (MC 10031) + N2 round-trip guard + F10..F14/N3 resonance-passive rows (MC 10200 S16))"
+
+# (4) S16 save-absence row (MC 10200, S9 trait-absence idiom REUSED): the
+# passives are RUNTIME-ONLY derivations — no save field may ever carry them.
+# The whole-tree DoD row is `grep -c Passive src/save/` == 0; this leg is the
+# strictly stronger case-INSENSITIVE count over the directory (a save field
+# named for a passive would put the §G D2 round-trip claim on a NEW schema
+# member — that delta is what the row forbids).
+SAVE_HITS="$(grep -ric "passive" "$PROJ/src/save/" | awk -F: '{s+=$NF} END {print s+0}')"
+[ "$SAVE_HITS" = "0" ] || fail "S16 save-absence: $SAVE_HITS 'passive' match(es) under src/save/ — passives must stay runtime-only (zero save delta)"
+echo "SKILL_TEST: S16 save-absence row — zero 'passive' matches under src/save/ (runtime-only, S9 idiom)"
 
 echo "SKILL_TEST: GATE PASS — harness self-test went red (1 failure), real suite green ($PASSED2 passed, 0 failed), named F-acts present"
 exit 0

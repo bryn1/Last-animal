@@ -154,10 +154,15 @@ public partial class RuntimeIntegrationProof : SceneTree
                 }
                 Input.ActionRelease("attack");
                 Input.ActionRelease("travel");
-                Check($"kill->+Manna: 3 kills credited exactly 3 x {SkillState.KillMannaGain}",
-                      player.Manna == 3 * SkillState.KillMannaGain, $"manna={player.Manna}");
+                // MC 10200 S16 expectation sweep: the shipped add seam now
+                // carries the LIVE Resonant Draw bonus, and the consensus
+                // width 6 is created by the FIRST extraction the handler
+                // appends (WorldDirector.cs:450 runs before the bus forward)
+                // — so ALL THREE kills are band-on: 3 x (base + bonus).
+                Check($"kill->+Manna: 3 kills credited exactly 3 x ({SkillState.KillMannaGain} + {PlayerMutations.ResonantDrawKillManna} Resonant Draw)",
+                      player.Manna == 3 * (SkillState.KillMannaGain + PlayerMutations.ResonantDrawKillManna), $"manna={player.Manna}");
                 if (_failed) return;
-                GD.Print($"LA_GATE: KILL_MANNA_GAIN — {_sKills} kills on the existing DnaExtracted handler credited {_sKills * SkillState.KillMannaGain} Manna");
+                GD.Print($"LA_GATE: KILL_MANNA_GAIN — {_sKills} kills on the existing DnaExtracted handler credited {_sKills * (SkillState.KillMannaGain + PlayerMutations.ResonantDrawKillManna)} Manna (base {SkillState.KillMannaGain} + S16 Resonant Draw {PlayerMutations.ResonantDrawKillManna} each)");
                 SNext(1);
                 break;
 
@@ -308,14 +313,18 @@ public partial class RuntimeIntegrationProof : SceneTree
                         break;
                     }
                     Input.ActionRelease("skill_2");
-                    Check("Mend raised health by the mend amount and paid EXACTLY once",
-                          player.Health == System.Math.Min(player.MaxHealth, _hpBeforeHit + SkillState.MendHeal)
+                    // MC 10200 S16 expectation sweep: the farm left the
+                    // consensus at width 6, so Deep Mend (>= 4 positions) is
+                    // LIVE — the shipped Mend seam heals base + Deep Mend.
+                    Check("Mend raised health by base + Deep Mend and paid EXACTLY once",
+                          player.Health == System.Math.Min(player.MaxHealth,
+                              _hpBeforeHit + SkillState.MendHeal + PlayerMutations.DeepMendHeal)
                           && player.Health > _hpBeforeHit
                           && player.Manna == _mannaBeforeAction - SkillState.MendCost,
-                          $"hp={player.Health} (was {_hpBeforeHit}) manna={player.Manna}");
+                          $"hp={player.Health} (was {_hpBeforeHit}) heal={SkillState.MendHeal}+{PlayerMutations.DeepMendHeal} manna={player.Manna}");
                     if (_failed) return;
-                    GD.Print("LA_GATE: MEND_HEALTH_UP — Mend healed and paid exactly once");
-                    GD.Print("LA_GATE: PASS — skill economy verified end-to-end (kill gain, live unlock, armed multiplier at the ONE hit site, arm consumed, rejection, mend)");
+                    GD.Print($"LA_GATE: MEND_HEALTH_UP — Mend healed {SkillState.MendHeal}+Deep Mend {PlayerMutations.DeepMendHeal} and paid exactly once");
+                    GD.Print("LA_GATE: PASS — skill economy verified end-to-end (kill gain, live unlock, armed multiplier at the ONE hit site, arm consumed, rejection, mend + S16 Deep Mend)");
                     _asserted = true;
                     _stage = 6;
                     _stageFrames = 0;

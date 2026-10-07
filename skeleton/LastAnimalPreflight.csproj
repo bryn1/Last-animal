@@ -178,6 +178,11 @@
          world/ActorVisual.cs (at-cap hygiene; unblocks S14's growth). The
          move is code-identical — no behaviour change rides on it. -->
     <Compile Include="world/VisualJuice.cs" />
+    <!-- Compile MC 10200 Inc-4 S16: the resonance-passive runtime-proof
+         partial (mode passives, stage 65); the authority + seams live in the
+         2e skill files above. Appended at the ItemGroup END (S2 Shake.cs
+         precedent) so parallel W2 csproj hunks merge cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Passives.cs" />
   </ItemGroup>
 
 </Project>

@@ -26,7 +26,10 @@ using LastAnimal.Skills;
 // Gate seam (design §4.2 idiom, same honest no-op as SetQuestHooksEnabled):
 // SetSkillActionsEnabled — one bool; every hook re-checks it at DELIVERY,
 // so flipping it after _Ready stalls the whole 2e economy (the skill_neg
-// runtime mode proves it).
+// runtime mode proves it). MC 10200 S16 adds ONLY the two passive wiring
+// lines (kill-manna bonus at the kill rider, mend bonus at the skill_2
+// arm), both derived LIVE from PlayerMutations.Passives on the SAME
+// consensus — zero roster seam, zero new signals, zero save fields.
 namespace LastAnimal.World;
 
 public partial class WorldDirector
@@ -62,11 +65,17 @@ public partial class WorldDirector
     }
 
     /// <summary>Kill-manna rider: attached to the EXISTING OnDnaExtracted
-    /// handler site's bus forward — one payment per extraction, capped.</summary>
+    /// handler site's bus forward — one payment per extraction, capped.
+    /// MC 10200 S16: the Resonant Draw band bonus is read LIVE here (the
+    /// handler that reaches this point has ALREADY appended the extraction —
+    /// WorldDirector.cs:450 — so the band the extraction itself creates
+    /// applies to that same extraction; deterministic, no cache).</summary>
     private void OnSkillKill()
     {
         if (!_skillHooksEnabled) return;   // honest no-op even after a late flip
-        _skills.OnKill();
+        var passives = PlayerMutations.Passives(
+            EcosystemAdaptation.ModelPlayerDna(_spokenDna));
+        _skills.OnKill(passives.KillMannaBonus);
         if (_hud != null) _hud.UpdateManna(_player.Manna);
     }
 
@@ -93,9 +102,12 @@ public partial class WorldDirector
         }
         else if (Input.IsActionJustPressed("skill_2"))
         {
-            var unlocked = PlayerMutations.Unlocked(
-                EcosystemAdaptation.ModelPlayerDna(_spokenDna));
-            if (_skills.TryMend(unlocked.Mend))
+            var profile = EcosystemAdaptation.ModelPlayerDna(_spokenDna);
+            var unlocked = PlayerMutations.Unlocked(profile);
+            // MC 10200 S16: the Deep Mend band read LIVE from the SAME
+            // profile the unlock read uses — one modelling per press.
+            var passives = PlayerMutations.Passives(profile);
+            if (_skills.TryMend(unlocked.Mend, passives.MendHealBonus))
             {
                 _bus.EmitSkillUsed(new SkillId(PlayerMutations.MendId));
                 if (_hud != null) _hud.UpdateLife(_player.Health);
