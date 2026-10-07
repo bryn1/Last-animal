@@ -324,5 +324,24 @@ done
 [[ "$LOGA2" == *'ACT2_CLOSED'* ]] || fail "quest_arc2: expected ACT2_CLOSED (close card drained + uniform auto-close)"
 [[ "$LOGA2" == *'ACT_CARD act_two close'* ]] || fail "quest_arc2: expected the close ACT_CARD marker"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; non-blank render)"
+# (P) MC 10198 Inc-4 S14 CHARACTER LIFE: the integer-phase motion driver on
+# the LIVE scene — a chasing goblin's visual bobs off base off the read-only
+# SimVelocity feed (CHAR_ENEMY_WALK); the player's walk rides real WASD input
+# on a probed-clear direction, its phase pinned to a velocity-fed INTEGER
+# tick-counter by a two-point exact-delta check (a delta-time phase lands RED;
+# CHAR_WALK_ACTIVE); release returns the rig to its EXACT captured base with
+# phase 0 (CHAR_WALK_AT_REST — no float drift); the attack lean arms on the
+# hit frame at the ONE DealDamage hunk and decays to exact base on an integer
+# 6f counter (CHAR_LEAN_ACTIVE / CHAR_LEAN_AT_BASE); and the class-swapped
+# player VisualJuice root flashes WHITE at the real player-damage site while
+# the BODY position stays bit-unchanged across the juice window with physics
+# frozen — a motion-on-body plant lands here RED (CHAR_PLAYER_FLASH /
+# CHAR_BODY_STILL). Stage 98, proof partial RuntimeIntegrationProof.Motion.cs.
+run_mode CHAR_MOTION pass "CHAR_BODY_STILL"
+LOGP="$(LA_GATE_MODE=CHAR_MOTION timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in CHAR_ENEMY_WALK CHAR_WALK_ACTIVE CHAR_WALK_AT_REST CHAR_LEAN_ACTIVE CHAR_LEAN_AT_BASE CHAR_PLAYER_FLASH; do
+  [[ "$LOGP" == *"$m"* ]] || fail "CHAR_MOTION: expected $m"
+done
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; non-blank render)"
 exit 0

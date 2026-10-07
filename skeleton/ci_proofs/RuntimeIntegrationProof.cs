@@ -92,6 +92,15 @@ using System.Linq;
 //                     dissolves 20f (integer counter, F4) and frees itself at
 //                     f+21; enemy-count/existence prints show the corpse
 //                     absent (stage 97, RuntimeIntegrationProof.Dissolve.cs).
+//   CHAR_MOTION       — MC 10198 Inc-4 S14: procedural character life on the
+//                     live scene — integer-phase walk feed off the read-only
+//                     velocity (CHAR_WALK_ACTIVE / CHAR_ENEMY_WALK), EXACT base
+//                     return at rest (CHAR_WALK_AT_REST), attack lean at the
+//                     ONE DealDamage hunk (CHAR_LEAN_ACTIVE / CHAR_LEAN_AT_BASE),
+//                     player VisualJuice flash at the real damage site
+//                     (CHAR_PLAYER_FLASH), body GlobalPosition bit-untouched
+//                     across the juice window (CHAR_BODY_STILL; stage 98,
+//                     RuntimeIntegrationProof.Motion.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -353,6 +362,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // CHAR_MOTION (MC 10198 S14): the motion leg NEEDS the live meadow
+        // spawn set (chase walk witness + the real damage site) — routes after
+        // the enemy guard; the leg culls it to one goblin mid-way. Stage body
+        // lives in RuntimeIntegrationProof.Motion.cs.
+        if (_mode == "CHAR_MOTION")
+        {
+            _stage = 98;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (motion mode) — enemies={_enemies.Count}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -480,6 +501,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- DISSOLVE_SUPPRESS (MC 10129 S3): stage body lives in
             // RuntimeIntegrationProof.Dissolve.cs (partial).
             case 97: RunDissolveStage(); break;
+            // ---- CHAR_MOTION (MC 10198 S14): stage body lives in
+            // RuntimeIntegrationProof.Motion.cs (partial).
+            case 98: RunMotionStage(); break;
         }
         return false;
     }

@@ -178,6 +178,14 @@
          world/ActorVisual.cs (at-cap hygiene; unblocks S14's growth). The
          move is code-identical — no behaviour change rides on it. -->
     <Compile Include="world/VisualJuice.cs" />
+    <!-- Compile MC 10198 Inc-4 S14: the character-life motion driver partial
+         (integer-phase walk feed, idle breath/sway, attack lean — presentation
+         roots only; the _PhysicsProcess motion tick lives in WorldDirector.Motion.cs)
+         + the CHAR_MOTION proof partial (mode CHAR_MOTION, stage 98). Appended
+         at the ItemGroup END (S2 Shake.cs precedent) so parallel W2 csproj hunks
+         merge cleanly. -->
+    <Compile Include="world/WorldDirector.Motion.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Motion.cs" />
   </ItemGroup>
 
 </Project>
