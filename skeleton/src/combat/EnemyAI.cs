@@ -12,6 +12,9 @@ using System;
 //     CombatVec3; Y is unused for movement). MC 10183 R2 (owner discretion,
 //     "Rec on all" 2026-10-06) re-tuned Skeleton to 65/18 — the first and only
 //     deviation from the ported table, rationale at the switch arm.
+//     MC 10216 / 10026.34 S18 APPENDS Type.Wraith (the zone-4 hollow denizen)
+//     after Demon: new authored content, not a port deviation — the ported
+//     rows above keep their 1:1 claim. Demon stays the apex BOSS type.
 //   - The C11 state set is patrol|chase|attack|flee; the prior art's
 //     Idle/Wander pair merges into the single "patrol" state. After an
 //     attack/patrol lull the enemy returns to patrol instead of Idle.
@@ -32,7 +35,7 @@ namespace LastAnimal.Combat;
 /// </summary>
 public class EnemyAI
 {
-    public enum Type { Goblin, Orc, Skeleton, Demon }
+    public enum Type { Goblin, Orc, Skeleton, Demon, Wraith }
 
     public enum State { Patrol, Chase, Attack, Flee }
 
@@ -75,6 +78,12 @@ public class EnemyAI
                 // inverted. 65/18 restores the monotone ladder (demon 100/25 above).
                 Health = MaxHealth = 65; Damage = 18; Speed = 2.0f; AttackRange = 1.2f; ChaseRange = 4.5f; _fleeThreshold = 0.25f; break;
             case Type.Demon:
+                Health = MaxHealth = 100; Damage = 25; Speed = 1.0f; AttackRange = 2.0f; ChaseRange = 6.0f; _fleeThreshold = 0.1f; break;
+            case Type.Wraith:
+                // MC 10216 S18: the zone-4 hollow denizen. 80/20 keeps the MC 10183 R2
+                // monotone depth ladder (skeleton 65/18 < wraith 80/20 < demon 100/25);
+                // 2.4 speed sits between skeleton's march and goblin's rush — a drifter.
+                Health = MaxHealth = 80; Damage = 20; Speed = 2.4f; AttackRange = 1.4f; ChaseRange = 5.0f; _fleeThreshold = 0.2f; break;
             default:
                 Health = MaxHealth = 100; Damage = 25; Speed = 1.0f; AttackRange = 2.0f; ChaseRange = 6.0f; _fleeThreshold = 0.1f; break;
         }

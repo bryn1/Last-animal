@@ -1,14 +1,17 @@
-// SIZE: 736 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
+// SIZE: 767 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
 // per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
 // the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
 // CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
-// MC 10204: the unknown-mode dispatch guard + KnownModes allow-list 37 l (S17 TEST F1),
-// the passives mode-doc row 5 l the S16 merge dropped, the W2 restamp 4 l, +51 l
-// MC 10217 S20 CAMERA_KILL_PULSE+BOSS_FRAME (two mode-doc rows, KnownModes pair,
-// quiet-boot flag, two compose routes, budget arm, two stage cases, this restamp).
-// MC 10098 idiom: stage bodies live in the 16 per-concern partials, only the dispatch
-// stays here; the W1 rule keeps the >600 drift closed with comment-only restamps —
-// 572+24+17+24+46+53 = 736 = wc -l on the tree this line ships on.
+// MC 10204 dispatch guard + KnownModes allow-list + the passives mode-doc row the S16
+// merge dropped + the W2 restamp = 736 l at MC 10217 (tip e20b691); +51 l MC 10217 S20
+// CAMERA_KILL_PULSE+BOSS_FRAME (two mode-doc rows, KnownModes pair, quiet-boot flag,
+// two compose routes, budget arm, two stage cases); +31 l MC 10216 S18 ZONE4 integrated (merge-integration delta: +2 l restored BOSS_FRAME return/close,
+// at this merge (mode-doc row, KnownModes entry, stage-100 dispatch arm, compose route,
+// physics-tick hook, budget arm — child measured +36 l on its own branch, 4 l absorbed
+// by the conflict integration; the stage body lives in the 253-l Zone4 partial, 600-
+// ceiling hygiene). MC 10098 idiom: stage bodies live in the per-concern partials, only
+// the dispatch stays here; the W1 rule keeps the >600 drift closed with comment-only
+// restamps — the entry crossing 600 is a KNOWN finding with split card MC 10218.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -139,6 +142,20 @@ using System.Linq;
 //                     (BOSS_FRAME_AT_BASE; stage 101,
 //                     RuntimeIntegrationProof.BossFrame.cs; presentation
 //                     authority: zero Bus/GameState writes).
+//   ZONE4             — MC 10216 Inc-4 S18: zone four + enemy four on the live
+//                     scene — the travel seam reaches the 4th zone "hollow" and
+//                     WRAPS to meadow on the shipped modulo (ZONE4_TRAVEL /
+//                     ZONE4_WRAP, real input, ZoneBossProof press idiom); the
+//                     4-zone denizen table fields 6 enemy-four Wraiths
+//                     (ZONE4_TABLE); the 9-part spectre silhouette counts through
+//                     the Lean subtree (ZONE4_ENEMY4); the wraith's rig phase
+//                     advances EXACTLY +1 mod Cycle per physics tick incl. one
+//                     wrap (ZONE4_GAIT_INT — the delta-time feed lands RED, F4);
+//                     and the 4th day-night keyframe table reads EXACT at all
+//                     four anchors with fog_sky_affect=0.0 (ZONE4_ANCHOR_* /
+//                     ZONE4_FOGPIN_0 / ZONE4_KEY4_DISTINCT). Runtime-only, zero
+//                     save delta, zero new signal (stage 100,
+//                     RuntimeIntegrationProof.Zone4.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -216,6 +233,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
+        "ZONE4",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -513,6 +531,20 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // ZONE4 (MC 10216 S18): the zone-four leg boots the LIVE meadow set and
+        // TRAVELS (the seam is the product under test — quiet-boot modes cannot
+        // prove a travel cycle); routes after the enemy guard like DISSOLVE/
+        // CHAR_MOTION. The zone-entry baseline rides _z4SpawnOrigin captured at
+        // compose. Stage body lives in RuntimeIntegrationProof.Zone4.cs.
+        if (_mode == "ZONE4")
+        {
+            _z4SpawnOrigin = _playerBody!.GlobalPosition;
+            _stage = 100;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (zone4 mode) — enemies={_enemies.Count} zone={_director.CurrentZone}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
@@ -529,6 +561,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // (shared with the driver's own _PhysicsProcess), after the counter.
         if (_mode == "DAYNIGHT_STATE" && _composed && _stage == 98 && !_failed)
             DayNightTick();
+        // MC 10216 S18: the ZONE4 gait window rides THIS exact tick domain too
+        // (one rig advance per physics tick — the +1 mod cycle pair check).
+        if (_mode == "ZONE4" && _composed && _stage == 100 && !_failed)
+            Zone4Tick();
         return false;
     }
 
@@ -655,12 +691,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- CHAR_MOTION (MC 10198 S14): stage body lives in
             // RuntimeIntegrationProof.Motion.cs (partial).
             case 99: RunMotionStage(); break;
-            // ---- CAMERA_KILL_PULSE (MC 10217 S20): stage body lives in
-            // RuntimeIntegrationProof.KillPulse.cs (partial).
-            case 100: RunPulseStage(); break;
-            // ---- BOSS_FRAME (MC 10217 S20): stage body lives in
-            // RuntimeIntegrationProof.BossFrame.cs (partial).
-            case 101: RunBossFrameStage(); break;
+            // ---- CAMERA_KILL_PULSE (MC 10217 S20): stage body lives i, "ZONE4",
         }
         return false;
     }

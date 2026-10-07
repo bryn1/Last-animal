@@ -16,7 +16,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 33 run_mode legs = 23 positive modes + 10 negative (W2 close restamp: +passives S16, +trait_effects S17, +DAYNIGHT_STATE S15, +CHAR_MOTION S14; count = grep -cE '^run_mode ' at this commit; MC 10210 W2 tail added one NON-run_mode tree leg ci/mode_sets_check.sh before the final banner)
+# Battery at this HEAD: 36 run_mode legs = 26 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; count = grep -cE '^run_mode ' here).
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -443,5 +443,27 @@ for m in BOSS_FRAME_ENTER BOSS_FRAME_HELD BOSS_FRAME_KILLED; do
   [[ "$LOGBF" == *"$m"* ]] || fail "BOSS_FRAME: expected $m"
 done
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; mode vocabulary drift gate green; non-blank render)"
+
+# (Q) MC 10216 / 10026.34 Inc-4 S18 ZONE FOUR + ENEMY FOUR: the EXISTING travel
+# seam cycles 4 zones on real input — meadow -> canyon -> ruins -> hollow and the
+# shipped modulo WRAPS hollow -> meadow (ZONE4_TRAVEL / ZONE4_WRAP); the 4th
+# denizen table fields exactly 6 enemy-four Wraiths (ZONE4_TABLE); the composed
+# wraith silhouette counts EXACTLY 9 MeshInstance3D through the Lean subtree —
+# the BridgeMvpProof manual walk, never GetChildren(bool) (ZONE4_ENEMY4); the
+# wraith rig's phase advances EXACTLY +1 mod its per-type cycle 14 per physics
+# tick incl. one wrap — a delta-time phase lands RED (ZONE4_GAIT_INT, planted and
+# evidence .audits/*s18*); the Hollow keyframe table reads BIT-EXACT at the four
+# named anchors on the shipped Environment + DirectionalLight3D with
+# fog_sky_affect READ 0.0 at every one (ZONE4_ANCHOR_* / ZONE4_FOGPIN_0 — the
+# driver write-path plant lands RED there too) and the four noon rows are
+# pairwise distinct (ZONE4_KEY4_DISTINCT). Runtime-only, zero save delta, census
+# unchanged (15). Stage 100, proof partial RuntimeIntegrationProof.Zone4.cs.
+run_mode ZONE4 pass "ZONE4_WRAP"
+LOGZ4="$(LA_GATE_MODE=ZONE4 timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in ZONE4_TRANSIT_CANYON ZONE4_TRANSIT_RUINS ZONE4_TRAVEL ZONE4_TABLE ZONE4_ENEMY4 ZONE4_GAIT_INT ZONE4_ANCHOR_DAWN ZONE4_ANCHOR_NOON ZONE4_ANCHOR_DUSK ZONE4_ANCHOR_NIGHT ZONE4_FOGPIN_0 ZONE4_KEY4_DISTINCT; do
+  [[ "$LOGZ4" == *"$m"* ]] || fail "ZONE4: expected $m (S18 zone/enemy/keyframe/gait leg)"
+done
+
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; mode vocabulary drift gate green; non-blank render)"
 exit 0

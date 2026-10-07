@@ -430,6 +430,7 @@ public partial class ZoneBossProof : SceneTree
         EnemyAI.Type.Goblin => 30,
         EnemyAI.Type.Orc => 60,
         EnemyAI.Type.Skeleton => 65,   // MC 10183 R2: tracks the EnemyAI base table
+        EnemyAI.Type.Wraith => 80,     // MC 10216 S18: tracks the EnemyAI base table (hollow denizen)
         _ => 100, // Demon
     };
 

@@ -213,6 +213,16 @@
          itself lives in world/FollowCamera.cs above. Appended at the ItemGroup
          END (S2 Shake.cs precedent) so parallel W3 csproj hunks merge cleanly. -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.KillPulse.cs" />
-    <Compile Include="ci_proofs/RuntimeIntegrationProof.BossFrame.cs" />  </ItemGroup>
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.BossFrame.cs" />
+    <!-- Compile MC 10216 Inc-4 S18: the zone-four + enemy-four proof partial
+         (mode ZONE4, mode-scoped stage 100 — per-mode stage, does not collide
+         with the S20 camera stages since _stage is scoped per LA_GATE_MODE).
+         The zone/enemy/keyframe TABLES it proves shipped
+         in inc-1 (EcosystemSpawner hollow row + 4-zone ZoneIds, EnemyAI.Wraith,
+         ActorVisual.BuildWraith, MotionTuning gait row, DayNightClock.Hollow) —
+         zero new seams, zero save fields, census unchanged. Appended at
+         the ItemGroup END (S2 Shake.cs precedent) so parallel W3 csproj hunks
+         merge cleanly. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Zone4.cs" />  </ItemGroup>
 
 </Project>

@@ -118,12 +118,26 @@ public static class DayNightClock
         new(-45f, 160f, 0.28f, new Color(0.45f, 0.55f, 0.85f), new Color(0.02f, 0.03f, 0.08f), new Color(0.06f, 0.08f, 0.16f), new Color(0.22f, 0.28f, 0.45f), 0.25f),
     };
 
+    // Hollow — cold spectral teal-silver identity (MC 10216 S18 zone four).
+    // No tscn grade exists to anchor its noon to (the zone is table-only, the
+    // S15 values-only precedent), so the NOON row IS hollow's base look; the
+    // cycle modulates that, never the other zones' looks. Ambient is pairwise
+    // distinct from meadow/canyon/ruins at noon (the ZONE4 leg proves it).
+    private static readonly DayNightKey[] Hollow =
+    {
+        new(-15f,  18f, 0.90f, new Color(0.75f, 0.90f, 0.85f), new Color(0.12f, 0.22f, 0.28f), new Color(0.55f, 0.78f, 0.72f), new Color(0.55f, 0.72f, 0.68f), 0.40f),
+        new(-62f,   0f, 1.25f, new Color(0.92f, 0.98f, 0.95f), new Color(0.20f, 0.38f, 0.44f), new Color(0.62f, 0.80f, 0.78f), new Color(0.70f, 0.85f, 0.80f), 0.48f),
+        new(-12f, -28f, 0.85f, new Color(0.62f, 0.78f, 0.72f), new Color(0.10f, 0.16f, 0.24f), new Color(0.42f, 0.60f, 0.55f), new Color(0.48f, 0.62f, 0.58f), 0.36f),
+        new(-46f, 168f, 0.30f, new Color(0.50f, 0.70f, 0.78f), new Color(0.02f, 0.06f, 0.10f), new Color(0.08f, 0.16f, 0.20f), new Color(0.24f, 0.38f, 0.42f), 0.24f),
+    };
+
     /// <summary>Zone ids are EcosystemSpawner.ZoneIds; an unknown zone falls
     /// back to meadow exactly like the spawner's table lookup does.</summary>
     private static DayNightKey[] TableFor(string zoneId) => zoneId switch
     {
         "canyon" => Canyon,
         "ruins" => Ruins,
+        "hollow" => Hollow,   // MC 10216 S18 (zone four; fog pin carries via ApplyTo — one writer)
         _ => Meadow,
     };
 
