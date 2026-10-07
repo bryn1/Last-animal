@@ -48,6 +48,22 @@ using System.Collections.Generic;
 // shipped proofs read act-one ids through it after q_boss completes);
 // act two reads go through QuestsAct2. S0's DialogueShown BUS emit is
 // consumer-facing only (plan §S10): nothing here wires it into quest rules.
+//
+// MC 10273 Inc-4 S19 ACT THREE (RULING-8 "yes to zone4+act3"): the close. A
+// THIRD pure QuestLog plays QuestTable.ActThreeArc() (the +4 zone-4 "hollow"
+// rows on the S18-shipped ground) after the ACT-TWO arc completes — exact
+// S10 idiom, still NO new mechanism: same machine, same bus hooks subscribed
+// ONCE at act open, same guarded reward-beat path, same v3 QuestStates wire
+// (act-three rows join the SAME shipped list — data, zero save fields). The
+// restore-sync arms are the SAME pure machine (ActTwoSync renamed
+// ActChainSync — (prevAct, thisAct)-parameterized; act three rides it over
+// (act2, act3)); the mid-quest restore edge EXISTS (a save taken mid-act-
+// three comes back Adopt). The act-completion condition — the final zone-4
+// chain (ActThreeArc) completing — prints the named ACT_THREE_COMPLETE
+// marker (REWARD_SHOWN state-truth idiom) and plays the table-driven
+// QuestTable.ActThree close card. Act-three wiring lives in the
+// WorldDirector.Story.Act3.cs partial; this file keeps the shared seams and
+// the one OnQuestChanged chain.
 namespace LastAnimal.World;
 
 public partial class WorldDirector
@@ -104,8 +120,10 @@ public partial class WorldDirector
     {
         _quests = _questsAct1 = new QuestLog(QuestTable.Default());
         _questsAct2 = new QuestLog(QuestTable.RuinsArc());   // S10: lives from boot, inert until opened
+        _questsAct3 = new QuestLog(QuestTable.ActThreeArc()); // S19: same, opens off the ACT-TWO finale
         _questsAct1.Changed += OnQuestChanged;
         _questsAct2.Changed += OnQuestChanged;   // same pure mapping; reward defs resolve across both tables
+        _questsAct3.Changed += OnQuestChanged;   // S19: the SAME event, the SAME mapping
         _saveLoad.QuestStatesWrite = QuestSaveRows;
         _saveLoad.QuestStatesRestore = QuestRestoreRows;
 
@@ -134,7 +152,11 @@ public partial class WorldDirector
     /// no logic; restore paths emit nothing because the log stays silent).
     /// S10: the two act arms ride the SAME event (no per-log handler split) —
     /// act one's last row completing OPENS act two; act two's last row
-    /// completing plays the close card. Both guards are pure state reads.</summary>
+    /// completing plays the close card. S19: the act-two finale ALSO opens
+    /// act three (close-card first, open-card second — emission order IS the
+    /// DLQ drain order), and act three's finale plays the close card behind
+    /// the ACT_THREE_COMPLETE state-truth marker. All guards are pure state
+    /// reads.</summary>
     private void OnQuestChanged(string questId, QuestStatus from, QuestStatus to)
     {
         switch (to)
@@ -146,7 +168,13 @@ public partial class WorldDirector
                     _bus.EmitQuestCompleted(new QuestId(questId));
                     ShowRewardBeat(questId);
                     if (_questsAct1.IsArcComplete && !_act2Opened) OpenActTwo();
-                    else if (_act2Opened && _questsAct2.IsArcComplete && !_act2CloseShown) ShowActTwoClose();
+                    else if (_act2Opened && _questsAct2.IsArcComplete)
+                    {
+                        if (!_act2CloseShown) ShowActTwoClose();
+                        if (!_act3Opened) OpenActThree();   // S19: the act-three open edge
+                    }
+                    if (_act3Opened && _questsAct3.IsArcComplete && !_act3CloseShown)
+                        ShowActThreeClose();   // S19: ACT_THREE_COMPLETE + close card
                     break;
                 }
         }
@@ -165,8 +193,10 @@ public partial class WorldDirector
         if (!_storyHooksEnabled || _dialogue == null) return;   // gate-seam idiom (SetQuestHooksEnabled)
         // S10: reward defs resolve across BOTH act tables (act one first, the
         // shipped order; act two ids are unknown to the act-one table).
+        // S19: the act-three table joins the same resolution chain.
         if ((!_quests.Table.TryGetEntry(questId, out var def) || def == null) &&
-            (!_questsAct2.Table.TryGetEntry(questId, out def) || def == null)) return;
+            (!_questsAct2.Table.TryGetEntry(questId, out def) || def == null) &&
+            (!_questsAct3.Table.TryGetEntry(questId, out def) || def == null)) return;
         _dialogue.Show(def.Reward, fromReward: true);
         GD.Print($"REWARD_SHOWN {questId} -> {def.Reward}");
     }
@@ -192,10 +222,12 @@ public partial class WorldDirector
         if (_quests == null || !_storyHooksEnabled) return;
         // S10: the ONE wage path now resolves attribution across both act
         // logs — act one's still-Active wage row wins (shipped order), then
-        // act two's. A settle with no Active wage row anywhere rides no quest
-        // signal, exactly as shipped (no second wage path, ever).
+        // act two's. S19: act three's row joins the chain last. A settle with
+        // no Active wage row anywhere rides no quest signal, exactly as
+        // shipped (no second wage path, ever).
         var wageQuestId = _quests.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid)
-            ?? _questsAct2.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid);
+            ?? _questsAct2.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid)
+            ?? _questsAct3.FindActiveIdByObjectiveKind(QuestObjectiveKind.WagePaid);
         if (wageQuestId == null) return;   // no quest is being served right now
         _bus.EmitWagePaid(new QuestId(wageQuestId));
     }
@@ -210,13 +242,15 @@ public partial class WorldDirector
     // ---- MC 10132 S10: ACT TWO (QuestTable.RuinsArc + ActCard, pure-log reuse) ----
 
     /// <summary>Save seam (v3 QuestStates, DATA not schema — F2 zero delta):
-    /// act-one rows then act-two rows, each in its table's arc order. Before
-    /// the act opens act two contributes NOTHING, so the shipped-era save is
-    /// byte-identical (the save gate greps it).</summary>
+    /// act-one rows, then act-two rows, then (S19) act-three rows, each in
+    /// its table's arc order. Before an act opens it contributes NOTHING, so
+    /// the shipped-era save is byte-identical pre-act-open (the save gate
+    /// greps it).</summary>
     private List<string> QuestSaveRows()
     {
         var rows = _questsAct1.ToSaveRows();
         rows.AddRange(_questsAct2.ToSaveRows());
+        rows.AddRange(_questsAct3.ToSaveRows());
         return rows;
     }
 
@@ -231,8 +265,13 @@ public partial class WorldDirector
     {
         _questsAct1.FromSaveRows(rows);
         _questsAct2.FromSaveRows(rows);
+        _questsAct3.FromSaveRows(rows);   // S19: third log on the ONE wire
         _dialogue?.ClearPresentation();
         SyncActTwoFromRestore();
+        // S19: AFTER act two's sync — the act-three sync reads the RESTORED
+        // act-two log as its prev act, so the chain composes (an act-two
+        // rewind rolls the act-three lifecycle back through its own arms).
+        SyncActThreeFromRestore();
     }
 
     private void SyncActTwoFromRestore()
@@ -267,7 +306,7 @@ public partial class WorldDirector
     {
         if (_act2Opened) return;
         AdoptActTwoOpen();
-        PlayActCard(QuestTable.ActTwo.OpenNodes, "open");
+        PlayActCard(QuestTable.ActTwo.Id, QuestTable.ActTwo.OpenNodes, "open");
         _questsAct2.Start(_questsAct2.Table.Entries[0].Id);
     }
 
@@ -297,7 +336,7 @@ public partial class WorldDirector
     private void ShowActTwoClose()
     {
         _act2CloseShown = true;
-        PlayActCard(QuestTable.ActTwo.CloseNodes, "close");
+        PlayActCard(QuestTable.ActTwo.Id, QuestTable.ActTwo.CloseNodes, "close");
     }
 
     /// <summary>Play one act card as GUARDED presentation beats through the
@@ -305,12 +344,14 @@ public partial class WorldDirector
     /// evidence" flag — a card is presentation, like a reward beat; a direct
     /// Show would instead STEAL the box from the mid-read finale beat). Same
     /// gate seam as the reward path. One ACT_CARD marker per event, printed at
-    /// emission regardless of render (REWARD_SHOWN idiom, MC 3915).</summary>
-    private void PlayActCard(IReadOnlyList<string> nodes, string edge)
+    /// emission regardless of render (REWARD_SHOWN idiom, MC 3915). S19: the
+    /// act id joined the signature — act three rides the same emitter; the
+    /// act_two marker line stays byte-identical.</summary>
+    private void PlayActCard(string actId, IReadOnlyList<string> nodes, string edge)
     {
         if (!_storyHooksEnabled || _dialogue == null) return;
         foreach (var node in nodes)
             _dialogue.Show(node, fromReward: true);   // R2/R4: same-tick pair appends in order
-        GD.Print($"ACT_CARD {QuestTable.ActTwo.Id} {edge} -> {string.Join(",", nodes)}");
+        GD.Print($"ACT_CARD {actId} {edge} -> {string.Join(",", nodes)}");
     }
 }
