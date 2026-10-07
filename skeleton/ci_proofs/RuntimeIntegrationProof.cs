@@ -691,7 +691,15 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- CHAR_MOTION (MC 10198 S14): stage body lives in
             // RuntimeIntegrationProof.Motion.cs (partial).
             case 99: RunMotionStage(); break;
-            // ---- CAMERA_KILL_PULSE (MC 10217 S20): stage body lives i, "ZONE4",
+            // ---- S20 camera + S18 zone-four stages (merged W3). Stage numbers are
+            // MODE-SCOPED: CAMERA_KILL_PULSE and ZONE4 both open stage 100, so the
+            // dispatch is mode-gated — the shared numbers cannot collide (MC 10217
+            // 59ab466 stage 100/101; MC 10216 2566df3 stage 100). Bodies live in
+            // RuntimeIntegrationProof.KillPulse.cs / .BossFrame.cs / .Zone4.cs.
+            case 100:
+                if (_mode == "ZONE4") RunZone4Stage(); else RunPulseStage();
+                break;
+            case 101: RunBossFrameStage(); break;
         }
         return false;
     }
