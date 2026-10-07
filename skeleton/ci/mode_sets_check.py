@@ -195,18 +195,28 @@ def allow_list(text):
 # ---- stage pairing (MC 10218): Run*Stage bodies <-> entry switch (_stage) ----
 
 RIP_PREFIX, RIP_ENTRY = "RuntimeIntegrationProof", "RuntimeIntegrationProof.cs"
-STAGE_DEF_RE = re.compile(r"\b(?:void|bool)\s+(Run[A-Za-z0-9_]*Stage)\s*\(")
+# MC 10258 (DA F2 / ARCH P3-B): ANY return type may precede a Run*Stage def —
+# the old void|bool-only form went FALSE-RED ("DEAD dispatch arm") on an
+# int-returning stage WITH its arm and SILENT-GREEN on one WITHOUT it. The
+# signature suffix (closing paren, then '=>' or '{') keeps plain CALLS out of
+# the def set, so e.g. "return RunGhostStage();" can never mask its own dead
+# arm; the leading type-token sequence (identifiers, generics, arrays, ?)
+# requires a return type to be present.
+_TYPE_TOKEN = r"[A-Za-z_][\w<>,\[\]\.?]*"
+STAGE_DEF_RE = re.compile(
+    rf"\b{_TYPE_TOKEN}(?:\s+{_TYPE_TOKEN})*\s+"
+    r"(Run[A-Za-z0-9_]*Stage)\s*\([^()]*\)\s*(?:=>|\{)")
 STAGE_CALL_RE = re.compile(r"\b(Run[A-Za-z0-9_]*Stage)\s*\(")
 
 
 def stage_pairing(skel):
     """(VIOLATION list, "n defs == m arms") for the RuntimeIntegrationProof
-    family: every Run*Stage body (bool-returners included — the Chain stages
-    return bool and their arms can be fused away just the same) must have a
-    call-site arm inside the entry's switch (_stage), and every arm call must
-    have a body. 781ea66 lesson: a merge dropped the S20/S18 stage arms while
-    the mode vocabulary stayed intact — this leg sees what doc/allow-list/
-    arms equality cannot."""
+    family: every Run*Stage body — ANY return type, MC 10258 widened the def
+    regex off void|bool; the Chain stages return bool and their arms can be
+    fused away just the same — must have a call-site arm inside the entry's
+    switch (_stage), and every arm call must have a body. 781ea66 lesson: a
+    merge dropped the S20/S18 stage arms while the mode vocabulary stayed
+    intact — this leg sees what doc/allow-list/arms equality cannot."""
     pdir = os.path.join(skel, "ci_proofs")
     epath = os.path.join(pdir, RIP_ENTRY)
     if not os.path.isdir(pdir) or not os.path.isfile(epath):

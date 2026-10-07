@@ -17,6 +17,12 @@
 # dropped stage arms invisibly to the mode vocabulary); --selftest gained an
 # unpaired-body and a dead-arm plant, both RED, tree untouched.
 #
+# MC 10258 (DA F2 / ARCH P3-B, same script, same plant list): the pairing def
+# regex now accepts ANY return type before Run*Stage( (void|bool-only was
+# false-RED on a paired off-type body and silent-GREEN on an unpaired one);
+# --selftest carries the off-type both-ways pair — paired int stage must stay
+# GREEN, unpaired int stage must go RED UNPAIRED — tree untouched.
+#
 # Usage:
 #   ./ci/mode_sets_check.sh [--project <skeleton_dir>] [--selftest]
 set -uo pipefail
