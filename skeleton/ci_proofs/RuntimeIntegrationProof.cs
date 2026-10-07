@@ -1,4 +1,4 @@
-// SIZE: 767 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
+// SIZE: 775 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
 // per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
 // the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
 // CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
@@ -10,7 +10,7 @@
 // physics-tick hook, budget arm — child measured +36 l on its own branch, 4 l absorbed
 // by the conflict integration; the stage body lives in the 253-l Zone4 partial, 600-
 // ceiling hygiene). MC 10098 idiom: stage bodies live in the per-concern partials, only
-// the dispatch stays here; the W1 rule keeps the >600 drift closed with comment-only
+// the dispatch stays here; the W1 rule keeps the >600 drift closed with comment-only (merge 781ea66 lesson: dispatch arms can be silently fused away — stage switch now carries the mode-gated camera+zone4 arms restored at 4677b7c)
 // restamps — the entry crossing 600 is a KNOWN finding with split card MC 10218.
 using Godot;
 using LastAnimal.Combat;
