@@ -1139,3 +1139,43 @@ old (parallel-orchestrator) account is NOT this seat's to push; that account is 
   wording + VisualJuice.cs PunchDistance "strictly under a third"), S15/S18
   fog_sky_affect=0 rule, S18 main.tscn-instances-meadow-only fact.
   Evidence: .audits/202610062247-w1-close/ (EVIDENCE.md last line VERIFY_EXIT=0).
+- MC 10200 / 10026.27 S16 Resonance passives (code VM350, 2026-10-07, Inc-4 W2, branch
+  vm350/s16-passives off 0968010): counter-band passives WITHOUT new bindings. STEP 0 = the
+  counter-position census, FILED as artifact of record for BOTH consumers (S16 lands first;
+  S8 consumes): the player consensus Counters has exactly ONE live writer — the kill-
+  extraction append (WorldDirector.cs:450, the ONLY _spokenDna.Add) whose signatures come
+  from the fixed-6 allocation DnaLanguage.SignatureForEntity (src/dna/DnaLanguage.cs:54) —
+  so Counters.Length is reachable ONLY at {0, 6}: every position 1..6 exists at extraction #1,
+  the state is never 1..5 wide (the first extract steps 0->6 whole), and >=7 is structurally
+  capped out (save RestoreDna can only reproduce a writer-1 length; LanguageSignature.Generate
+  is test-only; GameState.Representative's width-4 is a DoD fixture). Consequences pinned:
+  thresholds 1..6 census-confirmed (all light on extraction #1 — recorded, not hidden), the
+  hypothetical >=7 third band CUT per S8 P2-1 (no const, no code, census row is the record);
+  S8's rule-4 precondition (FOUR positions reachable) CONFIRMED — reachable, as part of the
+  width-6 state. Authority: PlayerMutations.Passives(profile), pure fn of Counters.Length
+  ONLY (same §G D2 Option B discipline as Unlocked — never ObservedCount/Coverage; band
+  round-trip stability STRUCTURAL, N3 test). Bands: ResonantDraw @ >=1 (+2 Manna/kill),
+  DeepMend @ >=4 (+10 Mend heal); the S16 tuning block (4 consts) is the ONE numeric home.
+  Effects land ONLY at the two shipped write seams (SkillState.OnKill(int bonusManna=0)
+  under the existing OnDnaExtracted rider; SkillState.TryMend(bool, int bonusHeal=0)), caller
+  passes the live verdict (plan §G D4 — no cache); optional params keep every existing call
+  site source-compatible. NO roster seam touched (S17 owns settle). Zero save delta (S9
+  trait-absence idiom REUSED — skill_test run 4 greps src/save/ for "passive" case-
+  INSENSITIVE, expects 0, and a new save-named field can't slip the §G D2 claim); zero new
+  Bus signals ([Signal] delegate census 15, diff zero — no edit near EventBus.cs). skill_test
+  F10..F14+N3 (derivation table pinned row-by-row widths 0..7+null, seam arithmetic exact +
+  cap-honest, threshold-boundary exact, live-extraction width 6 re-derived through the REAL
+  builder = invented-unreachability trap, load-shape equality). Runtime proof: new battery
+  leg passives/stage 65 (RuntimeIntegrationProof.Passives.cs, csproj ItemGroup-END append,
+  Shake.cs precedent) — baseline width-0/no-bands/Manna-0, ONE REAL extract -> width 6,
+  kill credited 7 != base 5 (observed number change at the shipped seam), SECOND extract
+  credits the same 7 (band persists, one payment each), real skill_2 Mend heals 25+10=35;
+  planted spend-site mutation (drop the kill bonus at the director wiring) went RED here
+  (manna=5 vs 7), threshold drift (DeepMendPositions 4->5) went RED in skill_test F10+F13.
+  skill_use leg expectation-swept in the SAME commit (its farm/mend now ride the band: 3
+  kills credit 21 = 3x(5+2), Mend heals 35) and re-greened; skill_neg untouched, still red.
+  Battery script header count line left for the orchestrator (siblings append too). Gates
+  solo green: engine build-solutions, skill_test (2-sided + 16 named F-acts + save-absence
+  row), combat_test 21, smoke RESULT=PASS (3405 colors), passives + skill_use + skill_neg
+  legs. Census: .audits/202610070005-s16/census.md.
+  Evidence: .audits/202610070005-s16/ (EVIDENCE.md last line VERIFY_EXIT=0).
