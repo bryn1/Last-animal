@@ -16,7 +16,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 33 run_mode legs = 23 positive modes + 10 negative (W2 close restamp: +passives S16, +trait_effects S17, +DAYNIGHT_STATE S15, +CHAR_MOTION S14; count = grep -cE '^run_mode ' at this commit)
+# Battery at this HEAD: 33 run_mode legs = 23 positive modes + 10 negative (W2 close restamp: +passives S16, +trait_effects S17, +DAYNIGHT_STATE S15, +CHAR_MOTION S14; count = grep -cE '^run_mode ' at this commit; MC 10210 W2 tail added one NON-run_mode tree leg ci/mode_sets_check.sh before the final banner)
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -399,5 +399,14 @@ for m in CHAR_ENEMY_WALK CHAR_WALK_ACTIVE CHAR_WALK_AT_REST CHAR_LEAN_ACTIVE CHA
   [[ "$LOGP" == *"$m"* ]] || fail "CHAR_MOTION: expected $m"
 done
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; non-blank render)"
+# (Q) MC 10210 W2 tail (F-C): the LA_GATE_MODE vocabulary drift gate — a pure
+# TREE parse (no engine): for every dispatching proof, header-doc modes ==
+# allow-list (KnownModes, where one exists) == dispatch arms, named VIOLATION
+# lines on drift. Red-capability ships with the check (--selftest plants one
+# arm without a doc row and one KnownModes entry on temp copies; all must go
+# RED, tree untouched — run it solo for the logged RED/GREEN pair).
+bash "$HERE/mode_sets_check.sh" \
+  || fail "mode_sets_check exited nonzero — mode vocabulary drift (VIOLATION lines above)"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green — integer-phase walk feed, exact rest return, lean at the hit hunk, player flash at the damage site, body untouched; mode vocabulary drift gate green; non-blank render)"
 exit 0

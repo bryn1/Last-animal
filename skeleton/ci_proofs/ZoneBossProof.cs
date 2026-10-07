@@ -1,4 +1,4 @@
-// SIZE: >400 (441 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l); ONE SceneTree state machine per MC 3895 DA P2-1.
+// SIZE: >400 (459 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l; MC 10210 unknown-mode dispatch switch +18 l, incl. the header Modes default row); ONE SceneTree state machine per MC 3895 DA P2-1.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -9,6 +9,8 @@ using System.Collections.Generic;
 // Last Animal — zone-travel + boss-phase runtime proof (MC 1344 DA findings
 // 3+4, C15). Companion to RuntimeIntegrationProof; owns the NEW behaviour
 // only, so that file stays under its concern:
+//
+// Modes (env LA_GATE_MODE, default "zone_travel"):
 //
 //   zone_travel — the travel action (input map "travel", T) must move the
 //     player meadow -> canyon -> ruins: CurrentZone changes, the player body
@@ -106,7 +108,23 @@ public partial class ZoneBossProof : SceneTree
         switch (_stage)
         {
             case 0:
-                _stage = _mode == "boss_phase" ? 20 : (_mode == "death_load" ? 30 : 10);
+                // MC 10210 W2 tail (F-C + orchestrator ruling 10203 append #5):
+                // the old nested ternary routed ANY unrecognized LA_GATE_MODE to
+                // the zone_travel arc — a typo'd/stale/empty mode could exit 0
+                // having asserted the WRONG leg (the MC 10204 vacuous-green
+                // class). Fail-safe idiom copied from RosterIntegrationProof.
+                // _Process: one named arm per documented mode (enumerable for
+                // ci/mode_sets_check.sh); the default halts by name, exit 1, at
+                // dispatch-top before any stage side-effect. UNSET still means
+                // zone_travel — the _Initialize default is untouched, so default
+                // behavior is byte-unchanged (proven by the ci battery's leg).
+                switch (_mode)
+                {
+                    case "zone_travel": _stage = 10; break;
+                    case "boss_phase": _stage = 20; break;
+                    case "death_load": _stage = 30; break;
+                    default: Fail($"unknown mode {_mode}"); return true;
+                }
                 _stageFrames = 0;
                 break;
 

@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""mode_sets_check.py — MC 10210 (W2 tail): the LA_GATE_MODE vocabulary drift gate.
+
+Every LA_GATE_MODE-dispatching proof carries its mode vocabulary in up to
+THREE places that must never disagree:
+  (1) the header doc block ("Modes (env LA_GATE_MODE ...)" down to "// Run:"),
+  (2) an allow-list where one exists (RuntimeIntegrationProof.KnownModes),
+  (3) the dispatch arms themselves (every `case "x":` inside a `switch (_mode)`
+      block, plus every `_mode == "x"` / `_mode is "x" or "y"` comparison —
+      the idiom the RuntimeIntegrationProof partials use).
+History this gates (F-C + orchestrator ruling 10203 append #5): the S16
+keep-both merge SILENTLY DROPPED the passives doc row (MC 10204 found it),
+and P1FixProof/ZoneBossProof fell unknown modes THROUGH to a default stage —
+a doc/dispatch drift is exactly how a gate goes vacuous-green.
+
+For each proof this check asserts doc == allow-list == dispatch arms and
+exits 1 with a named VIOLATION line per drift. --selftest ships the
+planted-bad RED demo WITHOUT touching the tree: a temp copy gets one extra
+dispatch arm with no doc row (P1FixProof + ZoneBossProof) and one extra
+KnownModes entry (RuntimeIntegrationProof); every plant must go RED, naming
+its planted mode. stdlib-only; no engine; runs from any cwd.
+
+Usage:  mode_sets_check.py [--project <skeleton_dir>] [--selftest]
+"""
+import os
+import re
+import shutil
+import sys
+import tempfile
+
+# proof name -> (entry file, class-file prefix, has an allow-list)
+#   allow-list: KnownModes parsed from the entry file and required to agree.
+#   A proof with no allow-list is gated on doc == dispatch arms — legal here
+#   because its dispatcher is an enumerable switch (the roster idiom).
+PROOFS = [
+    ("RuntimeIntegrationProof", "RuntimeIntegrationProof.cs", "RuntimeIntegrationProof", True),
+    ("RosterIntegrationProof", "RosterIntegrationProof.cs", "RosterIntegrationProof", False),
+    ("ZoneBossProof", "ZoneBossProof.cs", "ZoneBossProof", False),
+    ("P1FixProof", "P1FixProof.cs", "P1FixProof", False),
+]
+
+
+def mask_code(text):
+    """Blank string CONTENTS (to 'x') and comments (to spaces) of C# source,
+    preserving every character offset (newlines stay). Braces inside strings
+    or comments stop interfering with the switch-block walk; interpolation
+    holes are treated as opaque (every real hole is brace-balanced)."""
+    out = list(text)
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if text.startswith("//", i):
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            for k in range(i, j):
+                out[k] = " "
+            i = j
+        elif text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            for k in range(i, j):
+                if out[k] != "\n":
+                    out[k] = " "
+            i = j
+        elif (mc := re.match(r"'(?:\\.|[^'\\])'", text[i:])) and c == "'":
+            out[i + 1] = "x"                       # char literal body
+            i += mc.end()
+        elif (sm := re.match(r'(?:\$@?|@\$?)?"', text[i:])):
+            tok = sm.group(0)
+            verbatim = "@" in tok
+            j = body = i + len(tok)
+            while j < n:
+                if verbatim:
+                    if text[j] == '"':
+                        if text.startswith('""', j):
+                            j += 2
+                            continue
+                        break
+                    j += 1
+                elif text[j] == "\\":
+                    j += 2
+                elif text[j] == '"':
+                    break
+                else:
+                    j += 1
+            for k in range(body, min(j, n)):
+                if out[k] != "\n":
+                    out[k] = "x"
+            i = min(j, n) + 1                      # step past the terminator
+        else:
+            i += 1
+    return "".join(out)
+
+
+def _switch_regions(masked, header_re):
+    """Yield (start, end) spans of `switch ... { ... }` blocks whose header
+    matches, with brace depth computed on masked text (string-safe)."""
+    for m in re.finditer(header_re, masked):
+        brace = masked.index("{", m.start())
+        depth, j, n = 0, brace, len(masked)
+        while j < n:
+            ch = masked[j]
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        yield m.start(), j
+
+
+def dispatch_arms(text):
+    """Mode strings the code can ACTUALLY route on: case labels inside
+    switch (_mode) blocks, `_mode == "x"`, `_mode is "x" or "y"` chains, and
+    (legacy idiom) arms of `_mode switch { "x" => ... }` expressions."""
+    masked = mask_code(text)
+    arms = set()
+
+    def literal_in(orig, s, e):
+        m = re.search(r'"([^"]*)"', orig[s:e])
+        return m.group(1) if m else None
+
+    for a, b in _switch_regions(masked, r"switch\s*\(\s*_mode\s*\)\s*\{"):
+        for cm in re.finditer(r'\bcase\s+"[a-zA-Z_0-9]*"', masked[a:b]):
+            lit = literal_in(text, a + cm.start(), a + cm.end())
+            if lit is not None:
+                arms.add(lit)
+
+    for m in re.finditer(r'_mode\s*==\s*', masked):
+        lit = literal_in(text, m.end(), m.end() + 80)
+        if lit is not None:
+            arms.add(lit)
+
+    for m in re.finditer(r'_mode\s+is\s+', masked):
+        rest = text[m.end():]
+        for cm in re.finditer(r'^\s*"([^"]+)"(?:\s+or\s+"([^"]+)")*', rest):
+            for g in cm.groups():
+                if g is not None:
+                    arms.add(g)
+            break
+
+    for a, b in _switch_regions(masked, r'_mode\s+switch\s*\{'):
+        for lm in re.finditer(r'"([a-zA-Z_0-9]+)"\s*=>', text[a:b]):
+            arms.add(lm.group(1))
+
+    return arms
+
+
+def doc_modes(text):
+    """Mode names from the header block: 'Modes (env LA_GATE_MODE' down to the
+    first '// Run:' line; a doc row is '//   <name>[ (parenthetical)] — ...'."""
+    lines = text.splitlines()
+    start = None
+    for idx, l in enumerate(lines):
+        if "Modes (env LA_GATE_MODE" in l:
+            start = idx
+            break
+    if start is None:
+        return None
+    modes, dup = [], []
+    for l in lines[start:]:
+        if l.startswith("// Run:"):
+            break
+        m = re.match(r"^// {3}([A-Za-z_][A-Za-z0-9_]*)(?:\s*\([^)]*\))?\s+—", l)
+        if m:
+            (dup if m.group(1) in modes else modes).append(m.group(1))
+    if dup:
+        modes.append(f"__duplicate__{dup}")
+    return modes
+
+
+def allow_list(text):
+    m = re.search(r"KnownModes\s*=\s*new[^{]*\{(.*?)\};", text, re.S)
+    if not m:
+        return None
+    return re.findall(r'"([^"]+)"', m.group(1))
+
+
+def check_project(skel):
+    """Return the list of VIOLATION strings for the skeleton dir skel."""
+    pdir = os.path.join(skel, "ci_proofs")
+    vios = []
+    if not os.path.isdir(pdir):
+        return [f"ci_proofs/ not found under {skel}"]
+    for name, entry, prefix, has_allow in PROOFS:
+        epath = os.path.join(pdir, entry)
+        if not os.path.isfile(epath):
+            vios.append(f"{name}: entry file {entry} not found")
+            continue
+        with open(epath, encoding="utf-8") as f:
+            etext = f.read()
+        files = sorted(
+            os.path.join(pdir, f) for f in os.listdir(pdir)
+            if f.startswith(prefix + ".") and f.endswith(".cs")
+        )
+        arms = set()
+        for fp in files:
+            with open(fp, encoding="utf-8") as f:
+                arms |= dispatch_arms(f.read())
+        doc = doc_modes(etext)
+        allow = allow_list(etext) if has_allow else None
+        if doc is None:
+            vios.append(f"{name}: header 'Modes (env LA_GATE_MODE' doc block not found")
+        else:
+            dups = [d for d in doc if str(d).startswith("__duplicate__")]
+            if dups:
+                vios.append(f"{name}: duplicate header doc mode rows {dups}")
+            docset = {d for d in doc if not str(d).startswith("__duplicate__")}
+            if docset != arms:
+                vios.append(
+                    f"{name}: dispatch arms != header doc — "
+                    f"arms-only={sorted(arms - docset)} doc-only={sorted(docset - arms)}"
+                )
+        if has_allow:
+            if allow is None:
+                vios.append(f"{name}: allow-list (KnownModes) not found in {entry}")
+            elif set(allow) != arms:
+                vios.append(
+                    f"{name}: KnownModes allow-list != dispatch arms — "
+                    f"allow-only={sorted(set(allow) - arms)} arms-only={sorted(arms - set(allow))}"
+                )
+        if "unknown mode" not in etext:
+            vios.append(
+                f"{name}: unknown-mode fail-safe guard missing (must halt an "
+                "unrecognized LA_GATE_MODE by name with exit 1 — roster idiom)"
+            )
+    return vios
+
+
+# ---- --selftest: planted-bad RED demos on TEMP copies (tree never touched) --
+
+PLANTS = [
+    # (file, find, replace, mode it plants, proof it must be named under)
+    ("P1FixProof.cs",
+     'default: Fail($"unknown mode {_mode}"); return true;',
+     'case "planted_no_doc": _stage = 10; break;\n'
+     '                    default: Fail($"unknown mode {_mode}"); return true;',
+     "planted_no_doc", "P1FixProof"),
+    ("ZoneBossProof.cs",
+     'default: Fail($"unknown mode {_mode}"); return true;',
+     'case "planted_no_doc": _stage = 10; break;\n'
+     '                    default: Fail($"unknown mode {_mode}"); return true;',
+     "planted_no_doc", "ZoneBossProof"),
+    ("RuntimeIntegrationProof.cs",
+     '"positive", "no_bus",',
+     '"positive", "planted_allow_only", "no_bus",',
+     "planted_allow_only", "RuntimeIntegrationProof"),
+]
+
+
+def selftest(skel):
+    ok = True
+    base = os.path.join(skel, "ci_proofs")
+    for i, (fname, needle, repl, mode, proof) in enumerate(PLANTS):
+        tmp = tempfile.mkdtemp(prefix=f"la-modesets-{i}-")
+        try:
+            shutil.copytree(base, os.path.join(tmp, "ci_proofs"))
+            path = os.path.join(tmp, "ci_proofs", fname)
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            if text.count(needle) != 1:
+                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: plant site not unique in {fname}")
+                ok = False
+                continue
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(text.replace(needle, repl))
+            control = check_project(tmp)
+            hit = [v for v in control if mode in v and proof in v]
+            if control and hit:
+                print(f"MODE_SETS_CHECK: SELFTEST: planted {mode} in {fname}: "
+                      f"RED as expected -> {hit[0]}")
+            else:
+                print(f"MODE_SETS_CHECK: SELFTEST: FAIL: planted {mode} in {fname} "
+                      f"did NOT produce its named VIOLATION (got {len(control)} violations)")
+                ok = False
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return ok
+
+
+def main(argv):
+    skel, do_selftest, i = os.path.dirname(os.path.dirname(os.path.abspath(__file__))), False, 0
+    while i < len(argv):
+        if argv[i] == "--project":
+            i += 1
+            skel = argv[i]
+        elif argv[i] == "--selftest":
+            do_selftest = True
+        else:
+            print(f"MODE_SETS_CHECK: unknown arg {argv[i]}")
+            return 2
+        i += 1
+
+    vios = check_project(skel)
+    for v in vios:
+        print(f"MODE_SETS_CHECK: VIOLATION: {v}")
+    counts = ", ".join(f"{n}={len(set(doc_modes(open(os.path.join(skel, 'ci_proofs', e), encoding='utf-8').read()) or []))}"
+                       for n, e, _, _ in PROOFS)
+    if vios:
+        print(f"MODE_SETS_CHECK: FAIL ({len(vios)} violation(s)) — {counts}")
+        return 1
+    print(f"MODE_SETS_CHECK: GREEN — {len(PROOFS)} dispatching proofs, "
+          f"header-doc == allow-list == dispatch arms ({counts})")
+    if do_selftest:
+        return 0 if selftest(skel) else 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
