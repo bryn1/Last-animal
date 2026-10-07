@@ -79,10 +79,13 @@ public partial class WorldDirector
     private readonly List<MotionRig> _motionRigs = new();
     private bool _playerRigTried;         // resolved once on the first tick
 
-    /// <summary>Motion tick — the partial owns _PhysicsProcess (the base class
-    /// defines only _Process). delta is READ-BUT-NEVER-USED by contract: every
-    /// counter advances by one per tick, never by wall-clock (F4).</summary>
-    public override void _PhysicsProcess(double delta)
+    /// <summary>Motion tick — the single WorldDirector._PhysicsProcess override
+    /// lives in the DayNight partial (MC 10199) and invokes this FIRST, before
+    /// its own guards, so every physics tick reaches both drivers (merge
+    /// integration W2: two partials cannot both override it — CS0111).
+    /// delta is READ-BUT-NEVER-USED by contract: every counter advances by one
+    /// per tick, never by wall-clock (F4).</summary>
+    private void MotionPhysicsTick(double delta)
     {
         if (!_playerRigTried)
         {

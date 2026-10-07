@@ -194,8 +194,13 @@ public partial class WorldDirector
     // The world tick: fixed 60 Hz physics (F4 — integer ticks, never delta
     // time, never wall-clock). Runs alongside the _Process live loop; the
     // driver READS no gameplay state and nothing gameplay-side reads it.
+    // This is the ONE WorldDirector._PhysicsProcess override in the partial
+    // family (W2 merge integration: MC 10198 S14's motion driver was folded
+    // in as MotionPhysicsTick, invoked FIRST and unconditionally so both
+    // drivers keep their per-tick contract regardless of these guards).
     public override void _PhysicsProcess(double delta)
     {
+        MotionPhysicsTick(delta);         // S14: presentation motion, every tick
         if (_dayNightPaused || _dayNightNodesMissing) return;
         if (_dayNightLight == null || _dayNightWorldEnv == null)
             ResolveDayNightNodes();
