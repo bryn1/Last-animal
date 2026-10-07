@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (507 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check, MC 10112 only the 22-line shutdown-ref release (concern 2 fix).
+// SIZE: inherited >400 (527 l) — reasons per MC 3895 DA P2-1: one self-contained six-marker playable-MVP proof (markers share bus/boot state); MC 3895 added only the Visuals-container enemy scan, MC 3897 only the VISUAL_CONTENT spawn assertion, MC 3901 2b only the v3 Followers hunk in the SAVE_ROUNDTRIP check, MC 10112 only the 22-line shutdown-ref release (concern 2 fix), MC 10204 only the recursive subtree counter (+20 l in the VISUAL_CONTENT hunk + a 14-l walk helper).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -170,16 +170,22 @@ public partial class BridgeMvpProof : SceneTree
         // MC 3895); an enemy with an empty Visual subtree is now a loud fail
         // naming the actor. Six-marker assertions and the pre-3895
         // direct-children enemy scan above are untouched.
+        // MC 10204 (W2 consumer fix): the walk is now a REAL recursion. The old
+        // loop used GetChildren(true) believing the bool recursed — in
+        // GodotSharp 4.7.2 that parameter is include_internal and the binding
+        // offers NO recursion overload (Node.GetChildren(System.Boolean) is the
+        // whole surface: engine-shipped GodotSharp.xml + CS1501 on the 2-arg
+        // call). Pre-S14 the mesh parts were DIRECT children, so the
+        // non-recursive loop counted them by luck; MC 10198 S14 re-parented
+        // them one level deeper under the "Lean" node and the luck ran out —
+        // the gate went RED on a tree that verifiably holds 8 meshes (tree
+        // dump: .audits/20261007-0412-s14fix; the meshes never left the Visual
+        // subtree). Contract unchanged and still loud: the subtree — root
+        // included, so the pre-3895 placeholder shape keeps counting — must
+        // hold >=1 MeshInstance3D.
         foreach (EnemyActor e in _enemies)
         {
-            int meshes = 0;
-            if (e.Visual != null)
-            {
-                if (e.Visual is MeshInstance3D) meshes++; // pre-3895 placeholder shape
-                foreach (Node d in e.Visual.GetChildren(true))
-                    if (d is MeshInstance3D) meshes++;
-            }
-            if (meshes == 0)
+            if (CountMeshesInSubtree(e.Visual) == 0)
             {
                 Fail($"VISUAL_CONTENT: enemy {e.Name} ({e.Kind}) Visual subtree has 0 MeshInstance3D — ActorVisual built no mesh");
                 return;
@@ -503,5 +509,19 @@ public partial class BridgeMvpProof : SceneTree
         _failed = true;
         GD.PrintErr($"BRIDGE_MVP_PROOF: FAIL — {why}");
         Quit(1);
+    }
+
+    /// <summary>MC 10204: honest recursive MeshInstance3D count of a subtree
+    /// (root included — the pre-3895 placeholder root itself counts). One
+    /// manual walk because Node.GetChildren never recurses in this binding
+    /// (see the VISUAL_CONTENT comment in _Compose); same walk idiom
+    /// world/VisualJuice.FirstComposedTint already ships for.</summary>
+    private static int CountMeshesInSubtree(Node? root)
+    {
+        if (root == null) return 0;
+        int n = root is MeshInstance3D ? 1 : 0;
+        foreach (Node child in root.GetChildren())
+            n += CountMeshesInSubtree(child);
+        return n;
     }
 }
