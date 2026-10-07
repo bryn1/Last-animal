@@ -94,7 +94,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         var roster = _director.RosterView;
         switch (_cPhase)
         {
-            case 0:   // farm exactly 3 extractions: 15 Manna, the third rule live
+            case 0:   // farm exactly 3 extractions: 3 x (base + live band), the third rule live
                 if (_sKills < 3)
                 {
                     if (_cFrames > 3000) Fail("calm_use: farm never produced 3 extractions");
@@ -103,7 +103,16 @@ public partial class RuntimeIntegrationProof : SceneTree
                 }
                 Input.ActionRelease("attack");
                 Input.ActionRelease("travel");
-                Check("3 kills credited 3 x KillMannaGain", player.Manna == 3 * SkillState.KillMannaGain, $"manna={player.Manna}");
+                // MC 10204 expectation sweep (the S16 leg of MC 10200 swept
+                // skill_use but NOT this leg): the shipped add seam carries the
+                // LIVE Resonant Draw bonus, and the width-6 consensus is created
+                // by the FIRST extraction the handler appends (WorldDirector
+                // .Skills.cs:70 — the append runs before the passives read), so
+                // ALL THREE kills are band-on: 3 x (base + bonus). Expected
+                // COMPUTED from the consts the product pays with — never a
+                // magic number (Skills.cs S16 sweep idiom, F10..F14 precedent).
+                Check($"3 kills credited 3 x ({SkillState.KillMannaGain} + {PlayerMutations.ResonantDrawKillManna} Resonant Draw)",
+                      player.Manna == 3 * (SkillState.KillMannaGain + PlayerMutations.ResonantDrawKillManna), $"manna={player.Manna}");
                 Check("consensus unlocks Calming Speak live (>= 3 positions)", LiveCalm().CalmingSpeak, LiveCalm().ToString());
                 if (_failed) return;
                 GD.Print("LA_GATE: UNLOCK_CALMING_SPEAK — third rule of the frozen authority, read live");

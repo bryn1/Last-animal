@@ -1,8 +1,12 @@
-// SIZE: 613 l (reason): multi-mode proof harness — the entry dispatch grows one small
-// arm per battery mode: MC 10199 S15 +24 l over the 572-l gate base 5bf18b6 (compose +
-// stages moved VERBATIM into the 138-l DayNight partial), MC 10200 S16 passives +17 l at
-// the keep-both merge (MC 10098 idiom: stage bodies live in the 13 per-concern partials,
-// only the dispatch stays here; W1 rule: comment-only restamps close the >600 drift).
+// SIZE: 683 l (reason): multi-mode proof harness, the entry dispatch grows one small arm
+// per battery mode: 572-l gate base 5bf18b6 +24 l S15 (compose/stages moved VERBATIM to
+// the 138-l DayNight partial) +17 l S16 passives at the keep-both merge +24 l S14
+// CHAR_MOTION at merge b2a2b2d (the 613-l stamp at e69e1bc PREDATED that arm) +46 l
+// MC 10204: the unknown-mode dispatch guard + KnownModes allow-list 37 l (S17 TEST F1),
+// the passives mode-doc row 5 l the S16 merge dropped, this restamp 4 l. MC 10098 idiom:
+// stage bodies live in the 13 per-concern partials, only the dispatch stays here; the
+// W1 rule keeps the >600 drift closed with comment-only restamps —
+// 572+24+17+24+46 = 683 = wc -l on the tree this line ships on.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -67,6 +71,11 @@ using System.Linq;
 //                     hit, rejection, Mend (RuntimeIntegrationProof.Skills.cs).
 //   skill_neg       — the SetSkillActionsEnabled gate seam is off; kills and
 //                     presses must move nothing (NEG_SKILL), exit non-zero.
+//   passives        — MC 10200 S16: the Resonant Draw / Deep Mend bands on the
+//                     live scene (REAL extracts + one mend press, stage 65;
+//                     RuntimeIntegrationProof.Passives.cs). Undocumented at the
+//                     S16 keep-both merge; row added MC 10204 so the header's
+//                     mode list matches the dispatch + KnownModes exactly.
 //   calm_use        — MC 10031 Calming Speak end-to-end: cast spend-after-scan,
 //                     pay-in-window join, refusals, expiry, E-stands,
 //                     load-cleared (RuntimeIntegrationProof.CalmingSpeak.cs).
@@ -173,11 +182,48 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _dnaMutated;
     private string _zoneBeforeSave = "";
 
+    /// <summary>The mode vocabulary of THIS dispatch (this file + its partials)
+    /// — the unknown-mode guard's allow-list (MC 10204, S17 TEST F1): a new mode
+    /// arm must register HERE too, or the harness refuses to run it. Kept beside
+    /// the mode doc in the header, which lists the same set. Red-capability of
+    /// the guard itself is proven by LA_GATE_MODE=bogus_mode -> exit 1
+    /// (evidence .audits/*-s16fix). Class-local modes of the sibling proofs
+    /// (RosterIntegrationProof, ZoneBossProof, P1FixProof) are NOT listed: they
+    /// are dispatched by their own entry points.</summary>
+    private static readonly HashSet<string> KnownModes = new(System.StringComparer.Ordinal)
+    {
+        "positive", "no_bus", "no_spawn", "no_controller", "no_dna",
+        "save", "save_bad_version", "dna_speak", "no_interact",
+        "quest_arc", "quest_persist", "quest_neg", "quest_arc2",
+        "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
+        "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
+        "DAYNIGHT_STATE", "CHAR_MOTION",
+    };
+
+    private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
+
     public override void _Initialize()
     {
         GD.Print("LA_GATE: start");
         _mode = System.Environment.GetEnvironmentVariable("LA_GATE_MODE") ?? "positive";
         GD.Print($"LA_GATE: mode={_mode}");
+
+        // MC 10204 hardening (S17 TEST finding F1): an UNRECOGNIZED LA_GATE_MODE
+        // used to be IGNORED — every mode arm below is a positive `if`, so a
+        // typo'd or stale mode fell straight through to the default positive
+        // chain and could exit 0 having asserted nothing (vacuous green: a gate
+        // that cannot go RED is not a gate). The dispatch's own vocabulary is
+        // the allow-list (KnownModes below, this file + its partials); anything
+        // else halts here, by name, exit 1. Proof-class-local modes
+        // (roster_*/trait_effects, the ZoneBoss/P1 proofs) are dispatched by
+        // their own entry points and are untouched by this guard.
+        if (!IsKnownMode(_mode))
+        {
+            _failed = true;   // halts _Process before any stage runs (Fail idiom, MC 1344.1)
+            GD.PrintErr($"LA_GATE: FAIL: unknown mode {_mode}");
+            Quit(1);
+            return;
+        }
 
         // MC 1344.1: in --script mode the autoload EventBus loads AFTER _Initialize,
         // and the HUD is built by WorldDirector.BuildUi() in _Ready — both unavailable
