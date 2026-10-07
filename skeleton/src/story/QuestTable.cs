@@ -286,4 +286,45 @@ public sealed class QuestTable
         "act_two",
         new[] { "act2_open_a", "act2_open_b" },
         new[] { "act2_close_a", "act2_close_b" });
+
+    /// <summary>
+    /// The authored ACT-THREE rows (MC 10273 Inc-4 S19, RULING-8 "yes to
+    /// zone4+act3": the close of the story, the +4 zone-4 rows on the zone
+    /// four "hollow" that merged S18 shipped). Mirror of
+    /// <see cref="RuinsArc"/>'s idiom exactly: the SAME pure QuestLog
+    /// machine plays this table, existing objective kinds only, kinds
+    /// ordered arrival -> tongue -> bread -> reckoning so each completion
+    /// is driven by its own distinct fact, and BossDead/LoyaltyAtLeast/
+    /// DialogueShown stay UNUSED for the same cascade reason the RuinsArc
+    /// header names (the act opens on the act-two finale — a BossDead row
+    /// would ride the corpse the shipped provider still reads as live).
+    /// The final row is the FINAL ZONE-4 CHAIN: the act-completion condition
+    /// the wiring tests is this table completing (ACT_THREE_COMPLETE).
+    /// Rewards name DialogueTable nodes of the act-three set; tests/story
+    /// cross-checks every reference.
+    /// </summary>
+    public static QuestTable ActThreeArc() => new QuestTable(new QuestDef[]
+    {
+        new("q_h_arrival", "The Hollow",
+            new QuestObjective(QuestObjectiveKind.ZoneReached, 1, "hollow"),
+            "hollow_gate"),
+        new("q_h_tongue", "The Last Tongue",
+            new QuestObjective(QuestObjectiveKind.Spoken, 3),
+            "hollow_tongue"),
+        new("q_h_wage", "Bread at the End",
+            new QuestObjective(QuestObjectiveKind.WagePaid, 1),
+            "hollow_wage"),
+        new("q_h_reckoning", "The Hollow Count",
+            new QuestObjective(QuestObjectiveKind.Kills, 8),
+            "hollow_count"),
+    });
+
+    /// <summary>The act-three open/close cards — the same table-driven
+    /// ActCard mechanism as <see cref="ActTwo"/> (RULING-5), opened when the
+    /// act-two arc completes and closed when <see cref="ActThreeArc"/>'s
+    /// last row completes (the story's close).</summary>
+    public static readonly ActCard ActThree = new ActCard(
+        "act_three",
+        new[] { "act3_open_a", "act3_open_b" },
+        new[] { "act3_close_a", "act3_close_b" });
 }

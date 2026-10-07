@@ -137,5 +137,21 @@ public sealed class DialogueTable
         new("act2_open_b",  "Older bones line the dark. They spoke a different tongue."),
         new("act2_close_a", "The deep places keep their count now, and it includes you."),
         new("act2_close_b", "You carry two tongues and the dark's permission. Go up."),
+        // MC 10273 Inc-4 S19 act-three beats (RULING-8 "yes to zone4+act3",
+        // owner ruling D6 tone: English, diegetic-minimal — the close). The
+        // four reward beats are the QuestTable.ActThreeArc() rewards (the
+        // zone-4 "hollow" chain S18 shipped the ground for); the four card
+        // nodes are the QuestTable.ActThree open/close pairs, played as
+        // guarded presentation beats through the SAME view + DLQ (no
+        // cutscene system, S10 mechanism). tests/story cross-checks every
+        // quest reward reference and every act-card id against these entries.
+        new("hollow_gate",  "Wind with no direction. The ground here listens."),
+        new("hollow_tongue","You speak the old words where nothing answers. Nothing ever needed to."),
+        new("hollow_wage",  "The last debt paid in the last dark. Bread does not ask where."),
+        new("hollow_count", "The hollow keeps its count now. It is yours, and it is done."),
+        new("act3_open_a",  "The dark's permission is spent. The hollow takes the rest."),
+        new("act3_open_b",  "Nothing lines this place. That is not the same as empty."),
+        new("act3_close_a", "The count is kept. The land has no more questions for you."),
+        new("act3_close_b", "Last animal. The name means what it means now."),
     });
 }

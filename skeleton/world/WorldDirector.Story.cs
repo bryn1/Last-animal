@@ -237,20 +237,20 @@ public partial class WorldDirector
 
     private void SyncActTwoFromRestore()
     {
-        // The arms themselves are the pure ActTwoSync machine (I1: quest-
+        // The arms themselves are the pure ActChainSync machine (I1: quest-
         // state logic lives in the core, where the act-two unit tests can
         // drive it — F-DA2 fix cycle 2); this seam is its executor and owns
         // only the engine-side halves: the one-time feed subscription, the
         // open card, and the open latch.
-        switch (ActTwoSync.Run(_questsAct1, _questsAct2, _act2Opened, ref _act2CloseShown))
+        switch (ActChainSync.Run(_questsAct1, _questsAct2, _act2Opened, ref _act2CloseShown))
         {
-            case ActTwoSyncAction.Adopt:
+            case ActChainSyncAction.Adopt:
                 AdoptActTwoOpen();   // adopt silently: no card, no re-subscribe
                 break;
-            case ActTwoSyncAction.Rollback:
+            case ActChainSyncAction.Rollback:
                 _act2Opened = false;   // restored logs are the truth (closeShown
                 break;                 // was cleared by the arm)
-            case ActTwoSyncAction.FreshOpen:
+            case ActChainSyncAction.FreshOpen:
                 OpenActTwo();   // fresh open: the act begins on this session's load
                 break;
             // SilentReStart / None: every effect is pure and Run applied it.

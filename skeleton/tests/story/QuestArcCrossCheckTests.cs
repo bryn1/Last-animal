@@ -16,6 +16,8 @@ using LastAnimal.Story;
 // S10 (MC 10132) widened every leg to BOTH authored arcs (QuestTable.RuinsArc)
 // and added leg 5: the act-card node references (QuestTable.ActTwo) resolve to
 // authored DialogueTable nodes too — a renamed act card fails the gate too.
+// S19 (MC 10273) widened every leg to the THIRD arc (QuestTable.ActThreeArc,
+// the zone-4 chain) and leg 5 to BOTH cards (ActTwo + ActThree).
 //
 // The zone set is READ from src/ecosystem/EcosystemSpawner.cs (the source of
 // truth for canonical zone ids) through the QuestBusContractTests source-read
@@ -27,11 +29,17 @@ public class QuestArcCrossCheckTests
 {
     private static DialogueTable Nodes() => DialogueTable.Default();
 
-    /// <summary>BOTH authored tables (MC 10132 S10): the shipped act-one
-    /// Default() arc and the act-two RuinsArc() — every reference leg runs
-    /// over both, so a dangling reward/zone/card id on EITHER arc fails the
-    /// story gate naming the quest (DA P2 discipline, widened with the arc).</summary>
-    private static QuestTable[] Arcs() => new[] { QuestTable.Default(), QuestTable.RuinsArc() };
+    /// <summary>ALL THREE authored tables (MC 10132 S10 widened by MC 10273
+    /// S19): the shipped act-one Default() arc, the act-two RuinsArc() and
+    /// the act-three ActThreeArc() — every reference leg runs over all of
+    /// them, so a dangling reward/zone/card id on ANY arc fails the story
+    /// gate naming the quest (DA P2 discipline, widened with the arcs).</summary>
+    private static QuestTable[] Arcs() => new[]
+        { QuestTable.Default(), QuestTable.RuinsArc(), QuestTable.ActThreeArc() };
+
+    /// <summary>The authored act cards (S10 ActTwo + S19 ActThree) — leg 5
+    /// resolves every card node of every card.</summary>
+    private static ActCard[] Cards() => new[] { QuestTable.ActTwo, QuestTable.ActThree };
 
     /// <summary>Locate a repo file relative to the skeleton dir by walking up
     /// from the test assembly output (QuestBusContractTests.RepoFile idiom —
@@ -103,8 +111,8 @@ public class QuestArcCrossCheckTests
                 $"quest '{q.Id}': ZoneReached arg '{q.Objective.Arg}' names no zone of " +
                 "EcosystemSpawner.ZoneIds — the objective can never be satisfied");
         }
-        Assert.True(zoneRows >= 2, "the authored arcs carry fewer than two ZoneReached rows " +
-            "(act-one intro + act-two descent are both required)");
+        Assert.True(zoneRows >= 3, "the authored arcs carry fewer than three ZoneReached rows " +
+            "(act-one intro + act-two descent + act-three arrival are all required — S19)");
     }
 
     // ------------------------------------------------------------------
@@ -149,24 +157,28 @@ public class QuestArcCrossCheckTests
     }
 
     // ------------------------------------------------------------------
-    // Leg 5 (MC 10132 S10) — the act-two open/close cards are DIALOGUE
-    // references like the rewards: every id QuestTable.ActTwo names must be
-    // authored by DialogueTable.Default(), or that act beat plays the fallback
-    // line and the "table-driven act card" (RULING-5) silently degrades. Same
-    // rename-dangling vector the reward leg closes, now closed for the cards.
+    // Leg 5 (MC 10132 S10, widened to BOTH cards by MC 10273 S19) — the
+    // act-two AND act-three open/close cards are DIALOGUE references like
+    // the rewards: every id QuestTable.ActTwo / QuestTable.ActThree names
+    // must be authored by DialogueTable.Default(), or that act beat plays
+    // the fallback line and the "table-driven act card" (RULING-5) silently
+    // degrades. Same rename-dangling vector the reward leg closes.
     // ------------------------------------------------------------------
 
     [Fact]
     public void ActCardNodes_NameAuthoredDialogueNodes()
     {
         var nodes = Nodes();
-        foreach (var node in QuestTable.ActTwo.OpenNodes)
-            Assert.True(nodes.Has(node),
-                $"act card '{QuestTable.ActTwo.Id}' open beat names node '{node}', which " +
-                "DialogueTable.Default() does not author — the open card cannot play its text");
-        foreach (var node in QuestTable.ActTwo.CloseNodes)
-            Assert.True(nodes.Has(node),
-                $"act card '{QuestTable.ActTwo.Id}' close beat names node '{node}', which " +
-                "DialogueTable.Default() does not author — the close card cannot play its text");
+        foreach (var card in Cards())
+        {
+            foreach (var node in card.OpenNodes)
+                Assert.True(nodes.Has(node),
+                    $"act card '{card.Id}' open beat names node '{node}', which " +
+                    "DialogueTable.Default() does not author — the open card cannot play its text");
+            foreach (var node in card.CloseNodes)
+                Assert.True(nodes.Has(node),
+                    $"act card '{card.Id}' close beat names node '{node}', which " +
+                    "DialogueTable.Default() does not author — the close card cannot play its text");
+        }
     }
 }

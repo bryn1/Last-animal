@@ -250,7 +250,7 @@ public class ActTwoArcTests
     // ------------------------------------------------------------------
     // F-DA2 (DA-verdict 0ad8c81f, fix cycle 2): the DOUBLE-LOAD of a
     // migration-shaped save — the stranding state the shipped three-arm
-    // restore-sync missed. The leg drives the REAL ActTwoSync machine with
+    // restore-sync missed. The leg drives the REAL ActChainSync machine with
     // the director's engine-side follow-ups: load, load again, NO save
     // between — the chain must come out ALIVE.
     // ------------------------------------------------------------------
@@ -276,11 +276,11 @@ public class ActTwoArcTests
         {
             act1.FromSaveRows(migration);
             act2.FromSaveRows(migration);
-            switch (ActTwoSync.Run(act1, act2, opened, ref closeShown))
+            switch (ActChainSync.Run(act1, act2, opened, ref closeShown))
             {
-                case ActTwoSyncAction.Adopt: opened = true; break;   // AdoptActTwoOpen, silent
-                case ActTwoSyncAction.Rollback: opened = false; break;
-                case ActTwoSyncAction.FreshOpen:                     // OpenActTwo:
+                case ActChainSyncAction.Adopt: opened = true; break;   // AdoptActTwoOpen, silent
+                case ActChainSyncAction.Rollback: opened = false; break;
+                case ActChainSyncAction.FreshOpen:                     // OpenActTwo:
                     opened = true; openCardsPlayed++;                //   card + Start
                     act2.Start(act2.Table.Entries[0].Id);
                     break;

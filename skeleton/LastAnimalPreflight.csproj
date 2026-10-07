@@ -171,8 +171,10 @@
     <!-- Compile MC 10132 S10 FIX CYCLE 2 (F-DA2): the act-two restore-sync
          machine — quest-state logic, pure home (I1); the Story.cs partial is
          its executor. Appended at the ItemGroup END (S2 Shake.cs precedent)
-         so parallel W2 csproj hunks merge cleanly. -->
-    <Compile Include="src/story/ActTwoSync.cs" />
+         so parallel W2 csproj hunks merge cleanly. RENAMED ActTwoSync ->
+         ActChainSync at MC 10273 S19 (the arms are (prevAct, thisAct)-
+         parameterized; act three rides the SAME machine — no second sync). -->
+    <Compile Include="src/story/ActChainSync.cs" />
     <!-- Compile MC 10138 act-two quest tracker capture script (the
          framebuffer leg HUD_QUESTLINE_ACT2 of ci/ui_test.sh: act-one title
          at boot, act-two title mid-arc after the shipped restore-sync open).
