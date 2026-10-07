@@ -276,8 +276,8 @@ and `DISSOLVE_ABSENT`; rides the battery as leg (N).
 `RuntimeIntegrationProof.DayNight.cs` — stage 98, mode `DAYNIGHT_STATE`: MC 10199
 S15 day-night on the LIVE scene — the shipped `Environment` + `DirectionalLight3D`
 resolve; dawn/noon/dusk/night EXACT on the shipped nodes; the S13 carry PINNED
-(`fog_sky_affect` reads exactly 0.0 on every anchor — the sky-wash class); three
-distinct zone tables. The never-ticked budget rides the leg's own arming, never an
+(`fog_sky_affect` reads exactly 0.0 on every anchor — the sky-wash class); four
+distinct zone tables (S18 `hollow` appended at the S18 merge). The never-ticked budget rides the leg's own arming, never an
 absolute tick count (the blocking navmesh bake eats a variable catch-up-tick count —
 MC 10199 RED pre-proof). Gate marker `DAYNIGHT_NIGHT` plus seven `DAYNIGHT_*`
 sub-markers (`DAWN`/`NOON`/`DUSK`/`FOGPIN_0`/`TABLE_CANYON`/`WRAP_CONTINUOUS`/`LINEAR`);
@@ -309,6 +309,19 @@ boss_phase idioms, a REAL-wire boss kill eases the preset out and every
 window close leaves the camera BIT-EXACTLY on its event-free follow base
 (markers `BOSS_FRAME_ENTER` / `BOSS_FRAME_HELD` / `BOSS_FRAME_KILLED` /
 `BOSS_FRAME_AT_BASE`); rides the battery as leg (R).
+NOTE (MC 10216 S18 P0 lesson): stage numbers are MODE-SCOPED — `ZONE4` also
+opens stage 100, so the entry dispatch is MODE-GATED at stage 100
+(`if (_mode == "ZONE4") RunZone4Stage(); else RunPulseStage();`, restored at
+4677b7c after merge 781ea66 fused the block away). `mode_sets_check` cannot
+see the stage switch — a GREEN there is not a battery GREEN (pairing check
+owed: card 10218).
+`RuntimeIntegrationProof.Zone4.cs` — stage 100 (mode-gated), mode `ZONE4`:
+MC 10216 S18 zone four — the 4th zone `hollow` is TABLES-ONLY (ZoneIds +
+Tables + DayNight Hollow const; no new .tscn): travel cycle + wrap on the
+shipped seam, 6 live Wraiths, 4 EXACT anchors + fog pin re-read, pairwise
+distinct noon rows, gait +1 mod 14 integer tick; markers `ZONE4_TRAVEL` /
+`ZONE4_TABLE` / `ZONE4_ENEMY4` / `ZONE4_GAIT_INT` / `ZONE4_ANCHOR_*` /
+`ZONE4_FOGPIN_0` / `ZONE4_KEY4_DISTINCT` / `ZONE4_WRAP`; rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL
@@ -353,10 +366,10 @@ mode…)`, proven red on `LA_GATE_MODE=bogus` and empty. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**35 `run_mode` legs = 25 positive + 10 negative** (W2 close added `passives`
+**36 `run_mode` legs = 26 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
-`CAMERA_KILL_PULSE` and `BOSS_FRAME`; count = `grep -cE '^run_mode '` at this
-commit), and every negative control is asserted to
+`CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; count = `grep -cE '^run_mode '`
+at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate.
 
