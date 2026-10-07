@@ -1,8 +1,8 @@
-// SIZE: >400 (596 l, MC 10199 S15 day-night mode arm + compose moved VERBATIM into the
-// DayNight partial for 600-ceiling hygiene; 555 at the MC 10139 W2 wave-close restamp) —
-// multi-mode proof harness (test-class ceiling 600; MC 10098 split moved stages 1-4
-// verbatim into Chain.cs, stage 80 into Bus.cs; W1 disclosed the 466-l drift as owed
-// debt: stage 95/96/97/55/98 mode arms grew the entry dispatch — comment-only restamps close it).
+// SIZE: 613 l (reason): multi-mode proof harness — the entry dispatch grows one small
+// arm per battery mode: MC 10199 S15 +24 l over the 572-l gate base 5bf18b6 (compose +
+// stages moved VERBATIM into the 138-l DayNight partial), MC 10200 S16 passives +17 l at
+// the keep-both merge (MC 10098 idiom: stage bodies live in the 13 per-concern partials,
+// only the dispatch stays here; W1 rule: comment-only restamps close the >600 drift).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
