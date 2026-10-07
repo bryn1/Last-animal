@@ -98,13 +98,25 @@ public partial class P1FixProof : SceneTree
         switch (_stage)
         {
             case 0:
-                _stage = _mode switch
+                // MC 10210 W2 tail (F-C + orchestrator ruling 10203 append #5):
+                // the old switch expression's `_ => 10` sent ANY unrecognized
+                // LA_GATE_MODE (typo, stale card, empty env value) into the
+                // corpse_damage arc — the run could exit 0 having asserted the
+                // WRONG leg (the MC 10204 vacuous-green class, main-dispatch
+                // twin of S17 TEST F1). Fail-safe idiom copied from
+                // RosterIntegrationProof._Process: every mode gets its OWN named
+                // arm; the default halts by name, exit 1, at dispatch-top before
+                // any stage side-effect. UNSET still means corpse_damage — the
+                // _Initialize default is untouched, so default behavior is
+                // byte-unchanged (proven by the ci battery's corpse_damage leg).
+                switch (_mode)
                 {
-                    "wage_betrayal" => 20,
-                    "empathy_book" => 30,
-                    "zone_travel_boot" => 40,
-                    _ => 10,
-                };
+                    case "corpse_damage": _stage = 10; break;
+                    case "wage_betrayal": _stage = 20; break;
+                    case "empathy_book": _stage = 30; break;
+                    case "zone_travel_boot": _stage = 40; break;
+                    default: Fail($"unknown mode {_mode}"); return true;
+                }
                 _stageFrames = 0;
                 break;
 
