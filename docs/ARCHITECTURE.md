@@ -236,8 +236,8 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
-split duty: the entry harness had reached the 600-l proof ceiling at the W4
-tip da0bdaf (MC 10165 S11 touched zero ci_proofs files then). **FINDING —
+split duty: the entry harness had approached the 600-l proof ceiling at the W4
+tip da0bdaf (555 l there; crossed later — DA-c1 P3d wording fix; MC 10165 S11 touched zero ci_proofs files then). **FINDING —
 re-derived 2026-10-07 at b8e8776: the entry file has since grown PAST that
 ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
 carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
