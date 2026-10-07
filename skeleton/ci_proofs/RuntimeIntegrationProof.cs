@@ -1,5 +1,5 @@
-// SIZE: 516 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 148-l
+// SIZE: 529 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 161-l
 // mode doc mode_sets_check parses and the 28-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
