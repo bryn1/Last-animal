@@ -93,12 +93,17 @@ public sealed class SkillState
     /// MaxHealth by the controller). Rejected (and NOTHING spent) when
     /// locked or when Manna is short. A full-health Mend still fires —
     /// spending is per USE, the heal clamp belongs to health, not the economy.
+    /// MC 10200 S16: bonusHeal is the LIVE Deep Mend read the caller derives
+    /// from PlayerMutations.Passives(...) (0 = band locked) — this class
+    /// never reads the consensus itself (plan §G D4: caller passes the live
+    /// verdict); the clamp still belongs to the controller.
     /// </summary>
-    public bool TryMend(bool unlocked)
+    public bool TryMend(bool unlocked, int bonusHeal = 0)
     {
         if (!unlocked) return false;
+        if (bonusHeal < 0) return false;   // negative "bonus" is a caller bug, pay nothing
         if (!TrySpend(MendCost)) return false;
-        _player.RestoreHealth(Math.Min(_player.MaxHealth, _player.Health + MendHeal));
+        _player.RestoreHealth(Math.Min(_player.MaxHealth, _player.Health + MendHeal + bonusHeal));
         return true;
     }
 
@@ -126,8 +131,17 @@ public sealed class SkillState
         return baseDamage * mult;
     }
 
-    /// <summary>Per-kill Manna gain (rider — see file header).</summary>
-    public void OnKill() => GainManna(KillMannaGain);
+    /// <summary>Per-kill Manna gain (rider — see file header). MC 10200 S16:
+    /// bonusManna is the LIVE Resonant Draw read the caller derives from
+    /// PlayerMutations.Passives(...) (0 = band locked) — one payment per
+    /// extraction, still cap-honest through the controller's clamped setter.
+    /// A negative bonus is a caller bug: the whole gain is refused (same
+    /// refuse-spend-zero discipline as TrySpend).</summary>
+    public void OnKill(int bonusManna = 0)
+    {
+        if (bonusManna < 0) return;
+        GainManna(KillMannaGain + bonusManna);
+    }
 
     /// <summary>Add Manna, clamped at the cap (writes route through the
     /// controller's clamping setter, so this is cap-honest even if doubled).</summary>

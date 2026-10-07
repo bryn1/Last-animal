@@ -28,6 +28,20 @@ using System.Collections.Generic;
 // cache. The panel/HUD read Unlocked(...) LIVE; there is no cache to go
 // stale. The id strings below are the stable SkillUsed wire ids (2c batch,
 // GD0202 string-Id carriers).
+//
+// S16 Resonance passives (MC 10200, owner-ratified Inc-4 §S16): the passive
+// AUTHORITY rides the SAME discipline as Unlocked — Passives(profile) is a
+// pure function of profile.Counters.Length ONLY (never ObservedCount, never
+// Coverage), so round-trip stability of the bands is STRUCTURAL, same §G D2
+// Option B argument. Band k unlocks when learned positions REACH k; the
+// bands only DERIVE, they never touch a seam — effects apply solely at the
+// shipped write sites (SkillState kill-manna + Mend heal, wired by the
+// director). Runtime-only: zero save delta (S9 trait-absence idiom — no
+// Passive field exists in src/save/, pinned by a named skill_test grep row).
+// Band reachability is CENSUS-GATED (S8 P2-1 discipline): the thresholds
+// below are census-confirmed reachable in live content; a ≥7 band was CUT
+// (positions are structurally capped at 6 — see the census artifact named
+// in the card evidence, .audits/*-s16/census.md).
 namespace LastAnimal.Dna;
 
 /// <summary>
@@ -82,6 +96,48 @@ public readonly struct SkillUnlocks : IEquatable<SkillUnlocks>
 }
 
 /// <summary>
+/// The set of unlocked resonance passives at one instant (MC 10200 S16).
+/// Value-equality like SkillUnlocks: same consensus in -> same bands out.
+/// The bonus amounts are NOT fields — they are reads of the ONE tuning block
+/// below through the derived getters, so no caller can carry a stale number.
+/// </summary>
+public readonly struct SkillPassives : IEquatable<SkillPassives>
+{
+    /// <summary>Resonant Draw band unlocked (extra Manna per kill).</summary>
+    public bool ResonantDraw { get; }
+
+    /// <summary>Deep Mend band unlocked (Mend heals for more).</summary>
+    public bool DeepMend { get; }
+
+    public SkillPassives(bool resonantDraw, bool deepMend)
+    {
+        ResonantDraw = resonantDraw;
+        DeepMend = deepMend;
+    }
+
+    /// <summary>Manna-per-kill bonus credited at the shipped OnDnaExtracted
+    /// add seam while Resonant Draw is unlocked (0 while locked).</summary>
+    public int KillMannaBonus => ResonantDraw ? PlayerMutations.ResonantDrawKillManna : 0;
+
+    /// <summary>Mend heal-amount bonus applied at the shipped Mend seam while
+    /// Deep Mend is unlocked (0 while locked).</summary>
+    public int MendHealBonus => DeepMend ? PlayerMutations.DeepMendHeal : 0;
+
+    public bool Equals(SkillPassives other) =>
+        ResonantDraw == other.ResonantDraw && DeepMend == other.DeepMend;
+
+    public override bool Equals(object? obj) => obj is SkillPassives p && Equals(p);
+
+    public override int GetHashCode() => (ResonantDraw, DeepMend).GetHashCode();
+
+    public static bool operator ==(SkillPassives a, SkillPassives b) => a.Equals(b);
+    public static bool operator !=(SkillPassives a, SkillPassives b) => !a.Equals(b);
+
+    public override string ToString() =>
+        $"SkillPassives[resonant_draw:{ResonantDraw}, deep_mend:{DeepMend}]";
+}
+
+/// <summary>
 /// The unlock authority: a pure function from the ecosystem's CounterProfile
 /// consensus to the player's unlocked mutations (see file header).
 /// </summary>
@@ -130,4 +186,39 @@ public static class PlayerMutations
             CalmingSpeakId => Unlocked(profile).CalmingSpeak,
             _ => false,   // unknown id is never unlocked
         };
+
+    // ---- S16 Resonance passives: the ONE tuning block (MC 10200) ----------
+    // Every S16 number lives HERE and nowhere else (the R1/R2-class tuning
+    // face — re-tune once, re-pin the derivation table in
+    // tests/skill/ResonancePassiveTests.cs in the same change). Band
+    // thresholds are census-confirmed reachable (the first live extraction
+    // reaches 6 positions; a ≥7 band was CUT, census §"Consequences" 2).
+    /// <summary>Learned positions that unlock the Resonant Draw band.</summary>
+    public const int ResonantDrawPositions = 1;
+
+    /// <summary>Extra Manna per kill while Resonant Draw is unlocked.</summary>
+    public const int ResonantDrawKillManna = 2;
+
+    /// <summary>Learned positions that unlock the Deep Mend band (the S8
+    /// census number: 4 counter-carrying positions, census-confirmed).</summary>
+    public const int DeepMendPositions = 4;
+
+    /// <summary>Extra heal per Mend while Deep Mend is unlocked.</summary>
+    public const int DeepMendHeal = 10;
+    // ---- end S16 tuning block ----------------------------------------------
+
+    /// <summary>
+    /// The passive authority (MC 10200 S16): reads profile.Counters.Length
+    /// (how many positions carry a learned counter) and NOTHING ELSE — the
+    /// same §G D2 Option B authority as Unlocked, so the bands are
+    /// round-trip-stable for the same structural reason. A null/empty
+    /// profile unlocks no band. Monotone in positions by construction.
+    /// </summary>
+    public static SkillPassives Passives(CounterProfile? profile)
+    {
+        int positions = profile?.Counters.Length ?? 0;
+        return new SkillPassives(
+            positions >= ResonantDrawPositions,
+            positions >= DeepMendPositions);
+    }
 }

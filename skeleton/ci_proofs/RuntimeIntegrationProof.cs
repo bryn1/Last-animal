@@ -317,6 +317,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // passives (MC 10200 S16): the resonance-passive chain drives its own
+        // input (REAL extracts + one mend press); route to stage 65 — NOT a
+        // 9x number: the skill-family slot between 60 and 70 (quest_arc2's
+        // 55 precedent), merging collision-free with the sibling W2 legs.
+        // Stage body lives in RuntimeIntegrationProof.Passives.cs.
+        if (_mode == "passives")
+        {
+            _stage = 65;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (passives mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna}");
+            return;
+        }
+
         // calm_use / calm_neg (MC 10031): the calming-speak chain drives its
         // own input (farm + calm casts + pay/interact/save/load presses);
         // skip the movement press and route to stage 70 — stage bodies live
@@ -387,7 +400,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -462,6 +475,10 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- skill_use / skill_neg (MC 3912 2e): stage bodies live in
             // RuntimeIntegrationProof.Skills.cs (partial).
             case 60: RunSkillStage(); break;
+
+            // ---- passives (MC 10200 S16): stage body lives in
+            // RuntimeIntegrationProof.Passives.cs (partial).
+            case 65: RunPassivesStage(); break;
 
             // ---- calm_use / calm_neg (MC 10031): stage bodies live in
             // RuntimeIntegrationProof.CalmingSpeak.cs (partial).

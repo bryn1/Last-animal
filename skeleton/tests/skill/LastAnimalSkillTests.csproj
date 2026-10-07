@@ -49,6 +49,9 @@
     <Compile Include="PlayerMutationsTests.cs" />
     <Compile Include="SkillEconomyTests.cs" />
     <Compile Include="SkillSaveRoundtripTests.cs" />
+    <!-- MC 10200 S16: the resonance-passive rows (derivation table pinned to
+         the ONE S16 tuning block + the two shipped write seams). -->
+    <Compile Include="ResonancePassiveTests.cs" />
     <Compile Include="SkillHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
   </ItemGroup>
 

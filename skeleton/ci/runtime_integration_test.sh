@@ -324,5 +324,23 @@ done
 [[ "$LOGA2" == *'ACT2_CLOSED'* ]] || fail "quest_arc2: expected ACT2_CLOSED (close card drained + uniform auto-close)"
 [[ "$LOGA2" == *'ACT_CARD act_two close'* ]] || fail "quest_arc2: expected the close ACT_CARD marker"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; non-blank render)"
+# (P) MC 10200 Inc-4 S16 Resonance passives: ONE passive proven end-to-end
+# on the LIVE scene, band reached via REAL extracts (not a hand-fed fixture).
+# Baseline consensus width 0 = no bands + zero Manna; the FIRST real kill
+# through the ONE kill path takes the consensus to its census width 6 (both
+# bands live); the kill credited at the SHIPPED add seam shows the OBSERVED
+# NUMBER CHANGE (base + Resonant Draw, not base alone); a second real extract
+# proves the band persists (same credited amount, one payment each); and a
+# real skill_2 Mend press heals base + Deep Mend through the shipped heal
+# seam. Stage 65, proof partial RuntimeIntegrationProof.Passives.cs. The
+# spend-site planted-bad (drop a bonus at either seam) goes RED on the live
+# number; band-threshold drift goes RED in ci/skill_test.sh F10/F13 first.
+run_mode passives pass "PASSIVES_MEND_BONUS"
+LOGPA="$(LA_GATE_MODE=passives timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGPA" == *'PASSIVES_BASELINE'* ]] || fail "PASSIVES: expected PASSIVES_BASELINE (width 0, no bands, Manna=0)"
+[[ "$LOGPA" == *'PASSIVES_KILL_BONUS'* ]] || fail "PASSIVES: expected PASSIVES_KILL_BONUS (first real extract -> width 6, kill credited base + Resonant Draw)"
+[[ "$LOGPA" == *'PASSIVES_KILL_CREDIT'* ]] || fail "PASSIVES: expected PASSIVES_KILL_CREDIT (second real extract credited the same band-on amount)"
+[[ "$LOGPA" == *'PASSIVES_MEND_BONUS'* ]] || fail "PASSIVES: expected PASSIVES_MEND_BONUS (Mend healed base + Deep Mend on the live scene)"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; resonance passives green (band reached by REAL extracts, both seams show the number change); non-blank render)"
 exit 0
