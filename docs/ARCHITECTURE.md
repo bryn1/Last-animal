@@ -209,7 +209,8 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 `RuntimeIntegrationProof.Quests.cs` / `RuntimeIntegrationProof.Chain.cs` /
 `RuntimeIntegrationProof.Bus.cs` / `RuntimeIntegrationProof.Juice.cs` /
 `RuntimeIntegrationProof.Shake.cs` / `RuntimeIntegrationProof.Story2.cs` /
-`RuntimeIntegrationProof.Dissolve.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+`RuntimeIntegrationProof.Dissolve.cs` / `RuntimeIntegrationProof.DayNight.cs` /
+`RuntimeIntegrationProof.Motion.cs` / `RuntimeIntegrationProof.Passives.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
@@ -233,17 +234,22 @@ emission order; `DLQ_CLOSED`: the empty queue auto-closes the box;
 `load_game` press) / `calm_neg` (`NEG_CALM`; MC 10031);
 `RuntimeIntegrationProof.Chain.cs` — the positive-chain stages 1-4
 (MOVE/KILL/HUD/FOLLOW) moved VERBATIM out of the main dispatch (MC 10098 S0
-split duty: the entry harness had reached the 600-l proof ceiling; re-derived
-at the W4 tip da0bdaf (MC 10165 S11 touched zero ci_proofs files — all counts
-below unchanged since the W2/W3 stamp): Proof.cs is 555 l carrying its restamped `SIZE:` reason header,
+split duty: the entry harness had reached the 600-l proof ceiling at the W4
+tip da0bdaf (MC 10165 S11 touched zero ci_proofs files then). **FINDING —
+re-derived 2026-10-07 at b8e8776: the entry file has since grown PAST that
+ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
+carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
+(Motion/DayNight/Passives + the roster Traits half) landed beneath it; the
+split still owed is those stage bodies.** Current per-file sizes: Proof.cs 683 l,
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
-Dissolve.cs 209 l, P1FixProof.cs 356 l — every proof file under 600 (max
-Bus.cs 566), no mode router moved: the
-entry file's stage switch stays the only mode router);
+Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
+P1FixProof.cs 356 l — **every PARTIAL and standalone proof stays under 600
+(max Bus.cs 566); only the entry file has crossed the 600-l ceiling.** No
+mode router moved: the entry file's stage switch stays the only mode router);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
 presentation emits land EXACTLY ONCE per edge on the live autoload EventBus
 (markers `BUS_SHOWN_ONCE`, `BUS_CLOSED_ONCE`, `BUS_HURT_ONCE`,
@@ -267,6 +273,24 @@ at f+21, body `Visual` ref cleared); targeting exclusion REUSES the
 director's existing `IsDead` predicate (no second list; a boss rides the
 same KillHide choke — EnemyActor in `_enemies`); markers `DISSOLVE_GONE`
 and `DISSOLVE_ABSENT`; rides the battery as leg (N).
+`RuntimeIntegrationProof.DayNight.cs` — stage 98, mode `DAYNIGHT_STATE`: MC 10199
+S15 day-night on the LIVE scene — the shipped `Environment` + `DirectionalLight3D`
+resolve; dawn/noon/dusk/night EXACT on the shipped nodes; the S13 carry PINNED
+(`fog_sky_affect` reads exactly 0.0 on every anchor — the sky-wash class); three
+distinct zone tables. The never-ticked budget rides the leg's own arming, never an
+absolute tick count (the blocking navmesh bake eats a variable catch-up-tick count —
+MC 10199 RED pre-proof). Gate marker `DAYNIGHT_NIGHT` plus seven `DAYNIGHT_*`
+sub-markers (`DAWN`/`NOON`/`DUSK`/`FOGPIN_0`/`TABLE_CANYON`/`WRAP_CONTINUOUS`/`LINEAR`);
+rides the battery.
+`RuntimeIntegrationProof.Motion.cs` — stage 99, mode `CHAR_MOTION`: MC 10198 S14
+character life on the LIVE scene — integer-phase walk feed, exact rest return at
+`CHAR_WALK_AT_REST`, attack lean at the hit hunk, player flash at the REAL damage
+site, BODY `GlobalPosition` untouched; PASS banner "S14 character life verified",
+gate marker `CHAR_BODY_STILL`; rides the battery.
+`RuntimeIntegrationProof.Passives.cs` — stage 65, mode `passives`: MC 10200 S16
+resonance-passive runtime — reuses the skill partial's subscribe/farm/press machinery
+(same class, no new mode router); the Mend passive's DNA-model bonus is proven against
+`EcosystemAdaptation.ModelPlayerDna`; gate marker `PASSIVES_MEND_BONUS`; rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
 on the live scene through the SHIPPED pure `QuestLog` machine off a REAL
@@ -281,10 +305,13 @@ leg (O); the death leg in
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
-`RosterIntegrationProof.cs` (+ partial-class half `RosterIntegrationProof.Follow.cs`
-— MC 10036 moves-only split: the `roster_follow` arc moved verbatim at the 600-l
+`RosterIntegrationProof.cs` (+ partial-class halves `RosterIntegrationProof.Follow.cs` /
+`RosterIntegrationProof.Traits.cs` — MC 10036 moves-only split: the `roster_follow` arc moved verbatim at the 600-l
 proof ceiling; class name, modes and the `_Process` mode switch stay in the entry
-file) — standalone proof — modes `roster_follow`/`roster_neg`:
+file) — standalone proof — modes `roster_follow`/`roster_neg`/`trait_effects` (S17,
+MC 10201: per-SLOT bonded traits felt on the live roster — [Bonded]/[Forager]/[Steadfast]
+settle deltas + DNA-width, saves OWNED delete-then-write per the MC 3910 idiom; gate
+marker `TRAIT_EFFECTS`):
 recruit-to-cap, per-follower wages, pay-after-break refused, save/restore,
 mean-hearts-last, oversized-save trim with no orphan bodies; a partial cannot
 route new modes — the main proof's stage switch is the only mode router,
@@ -294,6 +321,22 @@ after its PASS marker (MC 3896: `MainCompositionProof` holds its window ~30s on 
 non-headless display; the headless leg still quits immediately). Tests live in `skeleton/tests/` (per-module csproj files:
 combat, dna_npc, ecosystem, companion, empathy, runtime, save, story, quest,
 skill, roster; ui tests compile into the main csproj and run via `--script`).
+
+**Dispatch-guard contract (fail-safe default).** An unrecognized `LA_GATE_MODE`
+MUST make a proof exit RED, never default to a PASS leg. At tip (re-derived
+2026-10-07 at b8e8776): `RuntimeIntegrationProof.cs` guards it explicitly —
+`IsKnownMode(_mode)` rejects an unknown mode with `LA_GATE: FAIL: unknown mode …`
++ a non-zero exit (MC 10204 hardening, S17 TEST finding F1; the guard is itself
+proven by `LA_GATE_MODE=bogus_mode -> exit 1`); `RosterIntegrationProof.cs` fails
+closed through its `default: Fail(…unknown mode…)` arm. `P1FixProof.cs` and
+`ZoneBossProof.cs` ARE multi-mode stage routers but LACK that fail-safe default
+(they assert only that their stage set completed) — **hardening pending card 10210.**
+The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
+**33 `run_mode` legs = 23 positive + 10 negative** (the W2 close restamp added
+`passives` S16, `trait_effects` S17, `DAYNIGHT_STATE` S15 and `CHAR_MOTION` S14; count
+= `grep -cE '^run_mode '` at this commit), and every negative control is asserted to
+FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
+trips the gate.
 
 ## 7. Docs map (`skeleton/docs/`)
 
