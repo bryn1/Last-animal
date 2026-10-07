@@ -105,7 +105,8 @@ public partial class WorldDirector : Node3D
     // trailing companion is talkable when the player stops.
     private const float TalkRange = 4.5f;
 
-    // --- read-only surface the runtime proof reads (proof-only, no logic) ----
+    // --- read-only surface: runtime proofs READ here; since S20 the camera
+    // (HasLiveBoss) is a production reader too. No logic lives on this seam. --
     public PlayerController PlayerModel => _player;
     public CombatSystem Combat => _combat;
     public IReadOnlyList<LanguageSignature> SpokenDna => _spokenDna;

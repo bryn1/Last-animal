@@ -240,7 +240,10 @@ re-derived 2026-10-07 at b8e8776: the entry file has since grown PAST that
 ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
 carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
 (Motion/DayNight/Passives + the roster Traits half) landed beneath it; the
-split still owed is those stage bodies.** Current per-file sizes: Proof.cs 683 l,
+split still owed is those stage bodies.** Current per-file sizes (restamped at
+570996e+; ARCH wall S20 P2-1): Proof.cs 775 l (S14-S20 merge growth; the
+mode-gated camera+zone4 dispatch block restored at 4677b7c; split still owed =
+card 10218),
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
