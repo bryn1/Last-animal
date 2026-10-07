@@ -242,19 +242,25 @@ re-derived 2026-10-07 at b8e8776: the entry file has since grown PAST that
 ceiling — `RuntimeIntegrationProof.cs` is now 683 l (was 555 l at da0bdaf),
 carrying a now-STALE `SIZE:` reason header, and the S14–S17 proof partials
 (Motion/DayNight/Passives + the roster Traits half) landed beneath it; the
-split still owed is those stage bodies.** Current per-file sizes (restamped at
-6ad4007, W3 close; was 570996e+; ARCH wall S20 P2-1 + ARCH S8 F1/Q6): Proof.cs 814 l
-(S14-S20 merge growth plus the S8 bark arm; the mode-gated camera+zone4 dispatch
-block restored at 4677b7c; split still owed = card 10218),
+split still owed is those stage bodies.** [SPLIT PAID at 4134d67 — MC 10218
+moved the compose routes + harness helpers VERBATIM to
+`RuntimeIntegrationProof.Compose.cs` (270 l) + `.Harness.cs` (70 l) and shipped
+the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
+unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
+at 4134d67; was 6ad4007 W3 close): Proof.cs 510 l
+(entry = header doc + KnownModes + the single mode router only; the 814-l
+figure is history: S14-S20 growth + S8 bark arm + the mode-gated dispatch
+restored at 4677b7c),
 Chain.cs 221 l, Bus.cs 566 l (grown past its 342-l split size by the MC 10103
 edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l,
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-P1FixProof.cs 368 l — **every PARTIAL and standalone proof stays under 600
-(max Bus.cs 566); only the entry file has crossed the 600-l ceiling.** No
-mode router moved: the entry file's stage switch stays the only mode router);
+P1FixProof.cs 368 l — **every proof file now sits under the 600-l ceiling
+(max Bus.cs 566), entry included since the MC 10218 split.** No
+mode router moved: the entry file's stage switch stays the only mode router,
+and the pairing gate makes a dropped or orphaned stage arm a RED gate);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
 presentation emits land EXACTLY ONCE per edge on the live autoload EventBus
 (markers `BUS_SHOWN_ONCE`, `BUS_CLOSED_ONCE`, `BUS_HURT_ONCE`,
