@@ -16,7 +16,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 37 run_mode legs = 27 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; count = grep -cE '^run_mode ' here).
+# Battery at this HEAD: 38 run_mode legs = 28 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; count = grep -cE '^run_mode ' here).
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -24,7 +24,7 @@
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
 # and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
-# proof invocations exceed the 37-leg count; the (E) framebuffer render bar
+# proof invocations exceed the 38-leg count; the (E) framebuffer render bar
 # runs once more through graphical-test-helper.
 #
 # Usage:
@@ -500,5 +500,39 @@ for m in BARK_ROSTER_ONE BARK_OPEN_1 BARK_STEP BARK_GONE_1 BARK_NO_GAMEPLAY_DELT
   [[ "$LOGBK" == *"$m"* ]] || fail "BARK: expected $m (S8 command-bark leg)"
 done
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; mode vocabulary drift gate green; non-blank render)"
+# (T) MC 10273 / 10026.23.6 Inc-4 S19 STORY ACT THREE (the close, RULING-8
+# "yes to zone4+act3"): the four zone-4 QuestTable.ActThreeArc() rows played
+# by a THIRD pure QuestLog on the SHIPPED S10 act mechanism, on the live
+# scene. The act opens through the REAL save path (owned save: act one + act
+# two diverged all-complete -> SaveGame -> LoadGame; act two ADOPTS silently,
+# act three FreshOpens — ACT3_OPENED) with the table-driven open card painted
+# as a guarded beat (ACT3_CARD_ON_SCREEN). Four completions each off its OWN
+# distinct fact (W6 pin): three real travels onto the S18-shipped "hollow"
+# complete q_h_arrival (ACT3_ARRIVAL), three real speaks complete q_h_tongue
+# (ACT3_TONGUE), the ONE wage path attributes q_h_wage across THREE logs
+# (ACT3_WAGE), eight extractions complete the FINAL ZONE-4 CHAIN
+# (ACT3_RECKONING) — where the wiring's act-completion condition prints the
+# named ACT_THREE_COMPLETE marker and the close card drains in emission order
+# behind the finale reward (ACT3_CLOSED). The mid-quest save round-trip rides
+# the SHIPPED v3 QuestStates wire — zero save fields, no card replay on load
+# (ACT3_PERSIST). Restore decision arms: the pure ActChainSync machine
+# (ActTwoSync renamed — (prevAct, thisAct)-parameterized; S19 rides it over
+# (act2, act3)). Zero new bus signals (census 15), zero scene edits. Stage
+# 103 (UNIQUE — the pairing gate), proof partial RuntimeIntegrationProof.Story3.cs.
+run_mode ACT_THREE pass "ACT3_CLOSED"
+LOGA3="$(LA_GATE_MODE=ACT_THREE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGA3" == *'ACT3_OPENED'* ]] || fail "ACT_THREE: ACT3_OPENED missing (restore-sync open edge broken)"
+[[ "$LOGA3" == *'ACT3_CARD_ON_SCREEN'* ]] || fail "ACT_THREE: ACT3_CARD_ON_SCREEN missing (open card never painted)"
+[[ "$LOGA3" == *'ACT_CARD act_three open'* ]] || fail "ACT_THREE: act_three open ACT_CARD marker missing (W5 emission leg)"
+for q in q_h_arrival q_h_tongue q_h_wage q_h_reckoning; do
+  [[ "$LOGA3" == *"QUEST_COMPLETED $q"* ]] || fail "ACT_THREE: QUEST_COMPLETED $q missing (W6 pin: four completions, four separate drives)"
+  [[ "$LOGA3" == *"REWARD_SHOWN $q"* ]] || fail "ACT_THREE: REWARD_SHOWN $q missing (per-row reward state truth)"
+done
+[[ "$LOGA3" == *'WAGE_PAID for q_h_wage'* ]] || fail "ACT_THREE: WAGE_PAID q_h_wage missing (three-log attribution broken)"
+[[ "$LOGA3" == *'ACT3_PERSIST'* ]] || fail "ACT_THREE: ACT3_PERSIST missing (act-three rows do not ride the shipped save wire)"
+[[ "$LOGA3" == *'ACT_THREE_COMPLETE'* ]] || fail "ACT_THREE: ACT_THREE_COMPLETE missing (the named act-completion marker never fired)"
+[[ "$LOGA3" == *'ACT_CARD act_three close'* ]] || fail "ACT_THREE: act_three close ACT_CARD marker missing (W5 emission leg)"
+[[ "$LOGA3" == *'ACT3_CLOSED'* ]] || fail "ACT_THREE: ACT3_CLOSED missing (the close card never drained in order behind the finale)"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; mode vocabulary drift gate green; non-blank render)"
 exit 0

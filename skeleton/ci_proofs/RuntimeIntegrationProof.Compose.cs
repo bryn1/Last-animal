@@ -159,6 +159,21 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // ACT_THREE (MC 10273 S19): the ACT-THREE chain drives its own input
+        // (speak, owned save/load, three travels, pay, farm); route to
+        // stage 103 — the number is UNIQUE across the entry's stage switch
+        // (the mode-scoped 100 lesson from ZONE4/CAMERA_KILL_PULSE: a re-used
+        // number silently drops one leg; the pairing gate enforces). Live-
+        // spawn mode: the speaks + wage + farm drive the real zone pipeline
+        // (quiet-boot would starve it — Story2 precedent).
+        if (_mode == "ACT_THREE")
+        {
+            _stage = 103;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (act-three mode) — enemies={_enemies.Count} intro={_director.Quests.Status("q_intro")}");
+            return;
+        }
+
         // skill_use / skill_neg (MC 3912 2e): the skill chain drives its own
         // input (farm + measured hits + skill presses); skip the movement
         // press and route to stage 60 — stage bodies live in

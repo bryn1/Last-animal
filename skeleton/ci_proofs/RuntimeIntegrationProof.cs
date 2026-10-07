@@ -1,6 +1,7 @@
-// SIZE: 529 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 161-l
-// mode doc mode_sets_check parses and the 28-mode dispatch ride together here. W4 SPLIT,
+// SIZE: 554 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 183-l mode
+// doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 161 at the S24
+// stamp, same measure) and the 29-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -189,6 +190,27 @@ using System.Linq;
 //                     zero-walk is floored above the settle so every frame of
 //                     window + margin is walked (F1; stage
 //                     102, RuntimeIntegrationProof.Bark.cs).
+//   ACT_THREE       — MC 10273 Inc-4 S19: story ACT THREE, the close
+//                     (RULING-8 "yes to zone4+act3") on the live scene — the
+//                     four zone-4 QuestTable.ActThreeArc() rows played by a
+//                     THIRD pure QuestLog on the shipped S10 act mechanism.
+//                     The act opens through the REAL save path (owned save:
+//                     act one + act two diverged all-complete -> SaveGame ->
+//                     LoadGame: act two ADOPTS, act three FreshOpens —
+//                     ACT3_OPENED + the table-driven open card on the live
+//                     view ACT3_CARD_ON_SCREEN); then four completions each
+//                     off its OWN distinct fact (W6): three real travels
+//                     onto the S18-shipped "hollow" (ACT3_ARRIVAL), three
+//                     speaks (ACT3_TONGUE), the single wage settle (ACT3_WAGE,
+//                     three-logs attribution), eight extractions
+//                     (ACT3_RECKONING); the mid-quest save round-trip of the
+//                     act-three rows on the SHIPPED v3 QuestStates wire
+//                     (ACT3_PERSIST, zero save fields, no card replay); the
+//                     wiring's act-completion condition prints the named
+//                     ACT_THREE_COMPLETE marker and the close card drains in
+//                     order behind the finale reward (ACT3_CLOSED).
+//                     Runtime-only, zero save delta, zero new signal (stage
+//                     103, RuntimeIntegrationProof.Story3.cs).
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -269,7 +291,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
-        "ZONE4", "BARK",
+        "ZONE4", "BARK", "ACT_THREE",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -391,7 +413,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -507,6 +529,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- BARK (MC 10131 S8): stage body lives in
             // RuntimeIntegrationProof.Bark.cs (partial).
             case 102: RunBarkStage(); break;
+            // ---- ACT_THREE (MC 10273 S19): stage body lives in
+            // RuntimeIntegrationProof.Story3.cs (partial).
+            case 103: RunActThreeStage(); break;
         }
         return false;
     }

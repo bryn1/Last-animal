@@ -238,10 +238,12 @@
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Harness.cs" />
     <!-- Compile MC 10273 Inc-4 S19 act three: the act-three lifecycle
          partial (third pure QuestLog over QuestTable.ActThreeArc on the
-         shipped S10 act mechanism; restore arms ride ActChainSync).
+         shipped S10 act mechanism; restore arms ride ActChainSync) and the
+         ACT_THREE proof partial (mode ACT_THREE, stage 103 — UNIQUE number).
          Appended at the ItemGroup END (S2 Shake.cs precedent) so parallel
          W4 csproj hunks merge cleanly. -->
     <Compile Include="world/WorldDirector.Story.Act3.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Story3.cs" />
   </ItemGroup>
 
 </Project>
