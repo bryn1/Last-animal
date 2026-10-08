@@ -1,5 +1,6 @@
-// SIZE: 554 l measured (reason): the multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 183-l mode
+// SIZE: 557 l measured (reason; +3 l S19 fix-cycle RULING-8 attribution): the
+// multi-mode harness ENTRY keeps ONLY the mode-doc
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 185-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 161 at the S24
 // stamp, same measure) and the 29-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
@@ -191,7 +192,9 @@ using System.Linq;
 //                     window + margin is walked (F1; stage
 //                     102, RuntimeIntegrationProof.Bark.cs).
 //   ACT_THREE       — MC 10273 Inc-4 S19: story ACT THREE, the close
-//                     (RULING-8 "yes to zone4+act3") on the live scene — the
+//                     (RULING-8, board line MC 10026 append #9 row 895:
+//                     "R8 zone four + act three = YES -> S18 + S19 proceed",
+//                     owner chat "Rec on all.") on the live scene — the
 //                     four zone-4 QuestTable.ActThreeArc() rows played by a
 //                     THIRD pure QuestLog on the shipped S10 act mechanism.
 //                     The act opens through the REAL save path (owned save:

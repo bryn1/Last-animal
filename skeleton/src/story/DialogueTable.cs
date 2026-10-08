@@ -137,7 +137,9 @@ public sealed class DialogueTable
         new("act2_open_b",  "Older bones line the dark. They spoke a different tongue."),
         new("act2_close_a", "The deep places keep their count now, and it includes you."),
         new("act2_close_b", "You carry two tongues and the dark's permission. Go up."),
-        // MC 10273 Inc-4 S19 act-three beats (RULING-8 "yes to zone4+act3",
+        // MC 10273 Inc-4 S19 act-three beats (RULING-8, board line MC 10026
+        // append #9 row 895: "R8 zone four + act three = YES -> S18 + S19
+        // proceed", owner chat "Rec on all.";
         // owner ruling D6 tone: English, diegetic-minimal — the close). The
         // four reward beats are the QuestTable.ActThreeArc() rewards (the
         // zone-4 "hollow" chain S18 shipped the ground for); the four card

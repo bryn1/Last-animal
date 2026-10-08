@@ -4,7 +4,9 @@ using LastAnimal.Story;
 // Last Animal — stage S19 story ACT THREE wiring (MC 10273, code, 2026-10-07).
 //
 // Partial-class half of WorldDirector: the act-three lifecycle riding the
-// SHIPPED S10 act mechanism only (RULING-8 "yes to zone4+act3"). A third
+// SHIPPED S10 act mechanism only (RULING-8, board line MC 10026 append #9
+// row 895: "R8 zone four + act three = YES -> S18 + S19 proceed", owner
+// chat "Rec on all."). A third
 // pure QuestLog plays QuestTable.ActThreeArc() — the final zone-4 chain on
 // the "hollow" ground S18 shipped — after the ACT-TWO arc completes. Exact
 // mirror of the Story.cs act-two seams: open (finale edge or restore

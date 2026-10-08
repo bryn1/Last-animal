@@ -8,7 +8,9 @@ using System.Collections.Generic;
 // Last Animal — stage S19 ACT-THREE runtime proof (MC 10273, code, 2026-10-07).
 //
 // Partial-class half of RuntimeIntegrationProof: the act-three chain (the +4
-// QuestTable.ActThreeArc() rows, RULING-8 "yes to zone4+act3") driven on the
+// QuestTable.ActThreeArc() rows, RULING-8 — board line MC 10026 append #9
+// row 895: "R8 zone four + act three = YES -> S18 + S19 proceed", owner chat
+// "Rec on all.") driven on the
 // REAL playable scene — the same WorldDirector + InitStory + pure QuestLog
 // machine, now playing the THIRD log instance through its whole lifecycle:
 // act open (act-two rows complete -> restore-driven FreshOpen edge + the

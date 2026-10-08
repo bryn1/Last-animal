@@ -251,9 +251,9 @@ the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
 10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
-ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): Proof.cs 554 l
-(+38 l since the S24 516-l carry: the S19 ACT_THREE mode-doc row, KnownModes
-entry, case 103 arm and the SIZE restamp)
+ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): Proof.cs 557 l
+(+41 l since the S24 516-l carry: the S19 ACT_THREE mode-doc row, KnownModes
+entry, case 103 arm and the SIZE restamp; +3 l S19 fix-cycle attribution)
 (entry = mode-doc header + KnownModes allow-list + shared fields/consts + the
 single mode router + the lifecycle trio _Initialize/_PhysicsProcess-tick-hooks/
 _Finalize — DA c1 F1: matching the entry's own SIZE stamp wording; the 814-l
@@ -264,7 +264,7 @@ edge fixes and the MC 10117 rooted-fields release; TOOL/NOTE: no in-file SIZE
 header yet — inside the 600 test-class ceiling, flagged not fixed, one run's
 comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
-281 l (S19/MC 10273, act-three proof),
+283 l (S19/MC 10273, act-three proof; +2 l fix-cycle attribution),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
 P1FixProof.cs 368 l, Quests.cs 559 l (ARCH 49162d57: added — the second-largest
 file and the next ceiling watch), Compose.cs 270 l, Harness.cs 70 l —
@@ -377,8 +377,10 @@ shipped v3 `QuestStates` wire (F2 zero save-file delta), `ACT2_CLOSED`
 (the DLQ path stays untouched, uniform auto-close); rides the battery as
 leg (O);
 `RuntimeIntegrationProof.Story3.cs` — stage 103 (UNIQUE number — the pairing
-gate), mode `ACT_THREE`: MC 10273 S19 story ACT THREE, the close (RULING-8
-"yes to zone4+act3") — the four zone-4 `QuestTable.ActThreeArc()` rows played
+gate), mode `ACT_THREE`: MC 10273 S19 story ACT THREE, the close (RULING-8,
+board line MC 10026 append #9 row 895: "R8 zone four + act three = YES ->
+S18 + S19 proceed", owner chat "Rec on all.") — the four zone-4
+`QuestTable.ActThreeArc()` rows played
 by a THIRD pure `QuestLog` on the live scene; the act opens through the REAL
 save path (owned save: both prior logs diverged all-complete, the restore
 sync chain ADOPTS act two and FreshOpens act three), four completions each

@@ -49,7 +49,9 @@ using System.Collections.Generic;
 // act two reads go through QuestsAct2. S0's DialogueShown BUS emit is
 // consumer-facing only (plan §S10): nothing here wires it into quest rules.
 //
-// MC 10273 Inc-4 S19 ACT THREE (RULING-8 "yes to zone4+act3"): the close. A
+// MC 10273 Inc-4 S19 ACT THREE (RULING-8, board line MC 10026 append #9 row
+// 895: "R8 zone four + act three = YES -> S18 + S19 proceed", owner chat
+// "Rec on all."): the close. A
 // THIRD pure QuestLog plays QuestTable.ActThreeArc() (the +4 zone-4 "hollow"
 // rows on the S18-shipped ground) after the ACT-TWO arc completes — exact
 // S10 idiom, still NO new mechanism: same machine, same bus hooks subscribed

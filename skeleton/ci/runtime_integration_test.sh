@@ -500,8 +500,10 @@ for m in BARK_ROSTER_ONE BARK_OPEN_1 BARK_STEP BARK_GONE_1 BARK_NO_GAMEPLAY_DELT
   [[ "$LOGBK" == *"$m"* ]] || fail "BARK: expected $m (S8 command-bark leg)"
 done
 
-# (T) MC 10273 / 10026.23.6 Inc-4 S19 STORY ACT THREE (the close, RULING-8
-# "yes to zone4+act3"): the four zone-4 QuestTable.ActThreeArc() rows played
+# (T) MC 10273 / 10026.23.6 Inc-4 S19 STORY ACT THREE (the close; RULING-8,
+# board line MC 10026 append #9 row 895: "R8 zone four + act three = YES ->
+# S18 + S19 proceed", owner chat "Rec on all."): the four zone-4
+# QuestTable.ActThreeArc() rows played
 # by a THIRD pure QuestLog on the SHIPPED S10 act mechanism, on the live
 # scene. The act opens through the REAL save path (owned save: act one + act
 # two diverged all-complete -> SaveGame -> LoadGame; act two ADOPTS silently,
