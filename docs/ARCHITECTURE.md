@@ -6,6 +6,7 @@ Repo root: `/srv/workspace/last-animal/` (git tree at root). The game project
 lives in `skeleton/`; `engine/` holds the pinned engine binaries; `animation_pipeline/`
 is a separate bake project. This document describes the tree AS IT IS; the
 Architect updates it whenever reality moves.
+Length note (file-hygiene, MC 10255): this is ONE architecture statement by design — the sections mirror the tree and a proof-mode fan must get §6 whole; a split needs an owner ruling, not a silent slice.
 
 ## 1. Top-level layout
 
@@ -99,7 +100,13 @@ the composition root (see §3).
   `OpenRecruitOffer`/`CloseRecruitOffer` pair; Calming Speak opens the same offer
   and its window dies at the `ClearCalmWindows` load seam at the END of
   `RestoreFollowers` — MC 10031 — plus the interact scan `TryRosterNpc` and the
-  TEST-seam `SpawnWildFollower`)), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
+  TEST-seam `SpawnWildFollower`)), `WorldDirector.DayNight.cs` (partial: the
+S15/MC 10199 day-night driver — INTEGER frame clock on the 60 Hz world tick + the
+per-zone const keyframe tables on the shipped `Environment` + `DirectionalLight3D`,
+280 l), `WorldDirector.Motion.cs` (partial: the S14/MC 10198 character-life driver —
+integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `VisualJuice.cs`
+(the S1/MC 10120 juice node: hit-flash + offset-punch presentation, split out of
+`ActorVisual.cs` at MC 10183, 186 l), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
   `scripts/capture_wrapper.gd` also carries the MC 10165 S11 `PERF_WINDOW=N` capture
@@ -252,8 +259,10 @@ unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
 10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
 ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): Proof.cs 557 l
-(+41 l since the S24 516-l carry: the S19 ACT_THREE mode-doc row, KnownModes
-entry, case 103 arm and the SIZE restamp; +3 l S19 fix-cycle attribution)
+(== wc at MC 10255 head; +25 l over the S24-head truth 529 l — the S19 ACT_THREE mode-doc row, KnownModes
+entry, case 103 arm and the SIZE restamp — then +3 l S19 fix-cycle attribution; the older
+"516-l carry / +41 l" anchor was arithmetic off a stale stamp: S24 head measured 529 by wc,
+never 516 — ARCH-S23 P3-2 HARD FIX at MC 10255)
 (entry = mode-doc header + KnownModes allow-list + shared fields/consts + the
 single mode router + the lifecycle trio _Initialize/_PhysicsProcess-tick-hooks/
 _Finalize — DA c1 F1: matching the entry's own SIZE stamp wording; the 814-l
@@ -267,7 +276,7 @@ W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 283 l (S19/MC 10273, act-three proof; +2 l fix-cycle attribution),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
 P1FixProof.cs 368 l, Quests.cs 559 l (ARCH 49162d57: added — the second-largest
-file and the next ceiling watch), Compose.cs 270 l, Harness.cs 70 l —
+file and the next ceiling watch), Compose.cs 285 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head), Harness.cs 70 l —
 **every proof file now sits under the 600-l ceiling
 (max Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
 mode router moved: the entry file's stage switch stays the only mode router,
@@ -320,8 +329,11 @@ pin N-3: NO new signal, census 15; quiet boot + a direct emit, the shipped
 consumer-test idiom): the 8f INTEGER punch window opens on the emit, HELD
 +4f (camera strictly closer to the player), and with the player's physics
 frozen the camera returns BIT-EQUAL to its pre-trigger transform (markers
-`CAMERA_PULSE_ACTIVE` / `CAMERA_PULSE_HELD` / `CAMERA_PULSE_AT_BASE`; the
-camera prints NOTHING, F4-CMP); rides the battery as leg (Q).
+`CAMERA_PULSE_ACTIVE` / `CAMERA_PULSE_HELD` / `CAMERA_PULSE_AT_BASE`; the S23
+strength pins (MC 10229 + S23c MC 10280) print `CAMERA_PULSE_DIR` /
+`CAMERA_PULSE_WINDOW_8` / `CAMERA_PULSE_PUNCH_075` and the every-frame kick-sign
+walk fails BY NAME `CAMERA_PULSE_SIGN`; the camera itself prints NOTHING, F4-CMP);
+rides the battery as leg (Q).
 `RuntimeIntegrationProof.BossFrame.cs` — stage 101, mode `BOSS_FRAME`:
 MC 10217 S20 boss framing — the camera READS the shipped boss-threshold state
 (`WorldDirector.HasLiveBoss`; presentation authority: zero Bus/GameState
@@ -330,7 +342,8 @@ an INTEGER progress clock (F4); farm + travel ride the ZoneBossProof
 boss_phase idioms, a REAL-wire boss kill eases the preset out and every
 window close leaves the camera BIT-EXACTLY on its event-free follow base
 (markers `BOSS_FRAME_ENTER` / `BOSS_FRAME_HELD` / `BOSS_FRAME_KILLED` /
-`BOSS_FRAME_AT_BASE`); rides the battery as leg (R).
+`BOSS_FRAME_AT_BASE` + the S23/MC 10229 preset pin `BOSS_FRAME_CONSTANTS` —
+pull-back 3.0 m + height 1.5 m MEASURED at full progress); rides the battery as leg (R).
 NOTE (MC 10216 S18 P0 lesson): stage numbers are MODE-SCOPED — `ZONE4` also
 opens stage 100, so the entry dispatch is MODE-GATED at stage 100
 (`if (_mode == "ZONE4") RunZone4Stage(); else RunPulseStage();`, restored at
@@ -362,7 +375,8 @@ fresh press followed by `LoadGame` INSIDE the window leaves the REUSED bodies
 window-free — zero walked bubbles post-load (S24 F2: the load seam's
 `ClearBarkWindows`, mirror of `ClearCalmWindows`); markers
 `BARK_ROSTER_*` / `BARK_OPEN_*` / `BARK_STEP` / `BARK_GONE_*` / `BARK_EMPTY_ZERO`
-/ `BARK_LOAD_CLEAR` / `BARK_NO_GAMEPLAY_DELTA_*` / in-leg `BARK_CENSUS_15`;
+/ `BARK_LOAD_CLEAR` / `BARK_SAVE_OWNED` (MC 3910 delete-then-write ownership on
+the planted roster saves) / `BARK_NO_GAMEPLAY_DELTA_*` / in-leg `BARK_CENSUS_15`;
 rides the battery.
 `RuntimeIntegrationProof.Story2.cs` — stage 55, mode `quest_arc2`: MC 10132
 S10 story ACT TWO — the four ruins-deep `QuestTable.RuinsArc()` rows play
@@ -434,6 +448,41 @@ added `ACT_THREE`; count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate.
+
+### 6.1 Recipe — adding a proof-mode leg (MC 10255; every fact measured at this tip; shipped exemplars: S8 `BARK`, S19 `ACT_THREE`)
+
+1. **Stage body lives in a partial** per concern: `ci_proofs/RuntimeIntegrationProof.<Concern>.cs` (house ceiling 600 l/file). A partial NEVER registers a mode into another proof's dispatcher — the ENTRY's `switch (_stage)` is the only mode router this class has (MC 3943 F-A).
+2. **csproj registration is required**: `skeleton/LastAnimalPreflight.csproj` sets `EnableDefaultCompileItems=false` and carries exactly ONE `<ItemGroup>` (measured at this tip), so every new `.cs` — proof partials included — needs an explicit `<Compile Include>`, appended at the ItemGroup END with the sibling comment idiom (S2 `Shake.cs` precedent) so parallel cards merge collision-free. (Should a second ItemGroup ever appear, mirror the sibling's placement in BOTH.)
+3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 29 ci_proofs sidecars are tracked).
+4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 185 l at this tip by that very awk), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof carry none and are gated doc == arms). Header == allow-list == dispatch arms, or the gate names the drift RED.
+5. **Unknown-mode fail-safe**: the entry rejects an off-list `LA_GATE_MODE` with `LA_GATE: FAIL: unknown mode <x>` + exit 1 at dispatch top, BEFORE any stage side-effect — a set-but-empty value fails closed too (`GetEnvironmentVariable` returns `""`, the `??` default never fires). Standalone proofs keep one named arm per documented mode plus `default: Fail(…unknown mode…)`. Never let an unknown mode fall through to a PASS leg (MC 10204 F1, the vacuous-green class).
+6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **103** (`ACT_THREE`); **NEXT FREE = 104** (measured: zero `case 104` / `_stage = 104` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
+
+   | stage | mode(s) | stage body |
+   |---|---|---|
+   | 0, 5-6 | chain bootstrap, PASS banner, framebuffer hold | entry `RuntimeIntegrationProof.cs` |
+   | 1-4 | MOVE/KILL/HUD/FOLLOW (positive family) | `.Chain.cs` |
+   | 20-22 / 30 | `save` / `save_bad_version` | `.Save.cs` |
+   | 40 / 90 | `dna_speak`,`no_interact` / `no_spawn` | `.Interact.cs` |
+   | 50 | `quest_arc`,`quest_persist`,`quest_neg` | `.Quests.cs` |
+   | 55 | `quest_arc2` | `.Story2.cs` |
+   | 60 | `skill_use`,`skill_neg` | `.Skills.cs` |
+   | 65 | `passives` | `.Passives.cs` |
+   | 70 | `calm_use`,`calm_neg` | `.CalmingSpeak.cs` |
+   | 80 | `bus_emit` (F5 — NOT a battery leg yet) | `.Bus.cs` |
+   | 95 / 96 / 97 | `JUICE_HITFLASH` / `JUICE_SHAKE` / `DISSOLVE_SUPPRESS` | `.Juice.cs` / `.Shake.cs` / `.Dissolve.cs` |
+   | 98 | `DAYNIGHT_STATE` (tick-driven in `_PhysicsProcess`; the case arm is a watchdog no-op) | `.DayNight.cs` |
+   | 99 | `CHAR_MOTION` | `.Motion.cs` |
+   | 100 | `CAMERA_KILL_PULSE` (mode-gated) / `ZONE4` (mode-gated) | `.KillPulse.cs` / `.Zone4.cs` |
+   | 101 | `BOSS_FRAME` | `.BossFrame.cs` |
+   | 102 | `BARK` | `.Bark.cs` |
+   | 103 | `ACT_THREE` | `.Story3.cs` |
+
+   The sibling proofs (ZoneBossProof, P1FixProof, RosterIntegrationProof) run class-local stage machines behind their own `run_mode` proof paths — they share no numbers with this map.
+7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **38 legs = 28 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
+8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 25 stage bodies == 25 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
+
+**NOTE — battery leg letters (MC 10255, NOTE only; NO re-lettering).** The banner letters (A)-(T) are decorative and DO collide at this tip: **(P) marks four legs** (S16 passives, S17 trait_effects, S15 DAYNIGHT_STATE, S14 CHAR_MOTION) and **(Q) marks three** (MC 10210 sets-gate, S20 CAMERA_KILL_PULSE, S18 ZONE4) — measured by `grep -oE '\([A-Z]\)' ci/runtime_integration_test.sh | sort | uniq -c`. Consumers grep the letters, so they stay untouched; the STABLE identifier of a leg is its MODE name plus its LEDGER row. Docs/evidence must name the mode and treat the letter as decoration.
 
 ## 7. Docs map (`skeleton/docs/`)
 

@@ -1,8 +1,8 @@
 // SIZE: 557 l measured (reason; +3 l S19 fix-cycle RULING-8 attribution): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list, shared fields and dispatch — >400 because the 185-l mode
-// doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 161 at the S24
-// stamp, same measure) and the 29-mode dispatch ride together here. W4 SPLIT,
+// doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 29-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/

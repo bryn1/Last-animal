@@ -1,4 +1,4 @@
-// SIZE: >400 (459 l) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l; MC 10210 unknown-mode dispatch switch +18 l, incl. the header Modes default row); ONE SceneTree state machine per MC 3895 DA P2-1.
+// SIZE: >400 (460 l measured at MC 10255 head) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l; MC 10210 unknown-mode dispatch switch +18 l, incl. the header Modes default row; MC 10216 S18 BaseHealth row +1 l — the 459 stamp lagged it, restamped from wc MC 10255); ONE SceneTree state machine per MC 3895 DA P2-1.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;

@@ -1,4 +1,4 @@
-// SIZE: proof partial (~270 l), test-class ceiling 600 (MC 10273 S19).
+// SIZE: proof partial (283 l measured, restamped MC 10255 — was ~270), test-class ceiling 600 (MC 10273 S19).
 using Godot;
 using LastAnimal.Story;
 using LastAnimal.Ui;

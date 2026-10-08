@@ -1,5 +1,5 @@
-// SIZE: 298 l — MC 3943 2g roster proof (DA W5 F1 + W5 c3 F-A oversized-save
-// trim leg). MC 10036 split (was 600 l, AT the ceiling): the roster_follow arc
+// SIZE: 305 l measured (MC 10255 restamp: 278 l at the MC 10036 split, +7 l by the S17/MC 10201 trait rows; the 298 stamp lagged)
+// — MC 3943 2g roster proof (DA W5 F1 + W5 c3 F-A oversized-save trim leg). MC 10036 split (was 600 l, AT the ceiling): the roster_follow arc
 // moved VERBATIM to RosterIntegrationProof.Follow.cs (partial half); this file
 // keeps the mode router, the shared helpers and the roster_neg leg.
 using Godot;
