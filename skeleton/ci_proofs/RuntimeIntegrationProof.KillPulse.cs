@@ -30,7 +30,7 @@ using LastAnimal.World;
 // PunchMetres still measures closer. So the leg now additionally asserts:
 //   4. CAMERA_PULSE_DIR — the punch KICK VECTOR (observed pos minus the
 //      bit-still rest base) lies ON the player->camera sight-line
-//      (collinear, off-axis residual < 1e-3) and AGAINST it (dot < 0:
+//      (collinear, off-axis residual < 1e-2) and AGAINST it (dot < 0:
 //      punch-IN); a wrong-direction or off-axis punch lands RED even while
 //      strictly closer;
 //   5. CAMERA_PULSE_WINDOW_8 — the kick envelope, sampled EVERY frame from
@@ -132,6 +132,12 @@ public partial class RuntimeIntegrationProof : SceneTree
                     if (_pulseMotionStart == 0) _pulseMotionStart = _frames;
                     float disp = pos.DistanceTo(_pulseRestPos);
                     if (disp > _pulseMaxDisp) _pulseMaxDisp = disp;
+                    // MC 10280 (DA S23 P2-1): the +4f DIR sample alone let an
+                    // alternating outward punch ship GREEN — pin the kick SIGN
+                    // on EVERY off-base frame (DIR's convention: player->camera
+                    // sight, punch-IN means the dot is negative).
+                    if ((pos - _pulseRestPos).Dot(_pulseRestPos - _playerBody!.GlobalPosition) >= 0f)
+                    { PulseFail($"CAMERA_PULSE_SIGN: off-base kick {pos - _pulseRestPos} NOT toward the player at +{_frames - _pulseHitFrame}f"); break; }
                 }
 
                 if (_frames - _pulseHitFrame >= PulseHoldFrames && !_pulseDirDone)
