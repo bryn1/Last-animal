@@ -5,8 +5,11 @@ using Xunit;
 using LastAnimal.Story;
 
 // Last Animal — ACT-THREE state-machine tests (MC 10273 Inc-4 S19, code,
-// 2026-10-07). RULING-8 ("yes to zone4+act3") mirror of ActTwoArcTests for
-// QuestTable.ActThreeArc(): the four zone-4 ("hollow", S18-shipped ground)
+// 2026-10-07; RULING-8 attribution fixed MC 10273 fix cycle to the real
+// board line, MC 10026 append #9 row 895: "R8 zone four + act three = YES
+// -> S18 + S19 proceed", owner chat "Rec on all."). Mirror of
+// ActTwoArcTests for QuestTable.ActThreeArc(): the four zone-4 ("hollow",
+// S18-shipped ground)
 // rows on the SAME pure QuestLog machine — shipped objective kinds only, no
 // new state, no new kind:
 //   * the four rows chain fact-for-fact (arrival -> tongue -> wage ->
@@ -207,6 +210,12 @@ public class ActThreeArcTests
     // mid-act restore edge EXISTS (player saves mid-act-three), so the same
     // four arms decide what a LOAD means; this leg pins FreshOpen + Adopt +
     // the F-DA2 double-load shape at the act-three seam.
+    // MC 10273 fix cycle (DA-verdict 097f750 P2-1): the act now COMPLETES
+    // before the rewind and the finale edge latches closeShown3 (the real
+    // completion path, the mirrored ShowActThreeClose guard) — so the
+    // post-rewind Assert.False is LOAD-BEARING (it shipped vacuous: the
+    // latch was never true before it): the SilentReStart clear must run,
+    // or the close card can never replay (mutation-proven named RED).
     // ------------------------------------------------------------------
 
     [Fact]
@@ -217,6 +226,7 @@ public class ActThreeArcTests
         var act3 = ActThreeLog();
         bool opened2 = false, opened3 = false, closeShown3 = false;
         var openCardsPlayed3 = 0;
+        var closeCardsPlayed3 = 0;
 
         // The shipped act-one + act-two rows (both arcs complete on disk).
         var throughActTwo = new List<string>
@@ -240,6 +250,12 @@ public class ActThreeArcTests
             }
         }
 
+        void FinaleEdge3()   // the OnQuestChanged Completed arm (Story.cs) mirrored:
+        {                    // if (act3 opened && act3.IsArcComplete && !closeShown3)
+            if (opened3 && act3.IsArcComplete && !closeShown3)    //   ShowActThreeClose()
+                { closeShown3 = true; closeCardsPlayed3++; }      //   — latch + close card
+        }
+
         act1.FromSaveRows(throughActTwo);
         act2.FromSaveRows(throughActTwo);
         Assert.True(act2.IsArcComplete);        // the act-three open edge is armed
@@ -256,22 +272,108 @@ public class ActThreeArcTests
         Assert.Equal(QuestStatus.Completed, act3.Status("q_h_arrival"));
         Assert.Equal(QuestStatus.Active, act3.Status("q_h_tongue"));
 
+        // The act RUNS to completion before the rewind (DA P2-1): the rows
+        // left active complete on their own observations, then the finale
+        // edge latches closeShown3 — the latched state is what the rewind
+        // clear exists to survive.
+        act3.ObserveSpoken(3);
+        act3.ObserveWagePaid("q_h_wage");
+        act3.ObserveKill(8);
+        Assert.True(act3.IsArcComplete);                              // the completion edge fired
+        FinaleEdge3();
+        Assert.True(closeShown3);                                     // latched through the guard
+        Assert.Equal(1, closeCardsPlayed3);                           // close card played once
+
         // F-DA2 shape at the act-three seam: prev act complete + latch open +
         // ZERO act-three rows (an older save loaded AGAIN in one session) —
         // SilentReStart, chain ALIVE, no second card.
         throughActTwo.RemoveRange(9, 2);
         LoadThree();
         Assert.Equal(1, openCardsPlayed3);
-        Assert.False(closeShown3);
+        Assert.False(closeShown3);                                    // the rewind CLEARED the
+                                                                      // latch — LOAD-BEARING:
+                                                                      // delete the arm's clear
+                                                                      // and this line goes RED
         Assert.Equal("q_h_arrival", act3.ActiveQuestId);
 
         // …and COMPLETABLE from the re-Started state — the act-completion
-        // condition (the ACT_THREE_COMPLETE edge) is reachable.
+        // condition (the ACT_THREE_COMPLETE edge) is reachable, and the
+        // close edge FIRES A SECOND TIME: exactly what the clear protects
+        // (a stuck latch would silently suppress the story close).
         act3.ObserveZoneEntered("hollow");
         act3.ObserveSpoken(3);
         act3.ObserveWagePaid("q_h_wage");
         act3.ObserveKill(8);
         Assert.True(act3.IsArcComplete);
+        FinaleEdge3();
+        Assert.Equal(2, closeCardsPlayed3);                           // the close card REPLAYS
+    }
+
+    // ------------------------------------------------------------------
+    // MC 10273 fix cycle (DA-verdict 097f750 P2-1): the ROLLBACK arm at
+    // the ACT-THREE seam — ZERO shipped coverage. Load-shuffle shape,
+    // game-reachable: act three completed (closeShown3 latched through the
+    // Adopt of that save), then the player loads an OLDER save taken mid-
+    // act-two. The chain composes through the ONE restore feed: the re-
+    // incompleted act-two log is this seam's prevAct, so act three ROLLS
+    // BACK — open latch off, close latch CLEARED (the load-bearing
+    // assert), rows rewound, no card.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Sync_RollbackArm_IntoMidActTwoSave_ActThreeClosesAgain()
+    {
+        var completedThroughActThree = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+            "q_h_arrival:completed", "q_h_tongue:completed", "q_h_wage:completed", "q_h_reckoning:completed",
+        };
+        var olderMidActTwo = new List<string>       // act two still open: only descent active
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:active",
+        };
+
+        var act2 = new QuestLog(QuestTable.RuinsArc());
+        var act3 = ActThreeLog();
+        bool opened3 = false, closeShown3 = false;
+        var openCardsPlayed3 = 0;
+        var last = ActChainSyncAction.None;
+
+        void LoadThree(List<string> disk)   // QuestRestoreRows feed + the act-3 sync half
+        {
+            act2.FromSaveRows(disk);
+            act3.FromSaveRows(disk);
+            last = ActChainSync.Run(act2, act3, opened3, ref closeShown3);
+            switch (last)
+            {
+                case ActChainSyncAction.Adopt: opened3 = true; break;   // silent adoption
+                case ActChainSyncAction.Rollback: opened3 = false; break;
+                case ActChainSyncAction.FreshOpen:                      // OpenActThree
+                    opened3 = true; openCardsPlayed3++;
+                    act3.Start(act3.Table.Entries[0].Id);
+                    break;
+            }
+        }
+
+        LoadThree(completedThroughActThree);            // the completed-act restore
+        Assert.Equal(ActChainSyncAction.Adopt, last);
+        Assert.True(opened3);
+        Assert.True(closeShown3);                       // the Adopt arm latches the completed act
+
+        LoadThree(olderMidActTwo);                      // load-shuffle back into act two
+        Assert.Equal(ActChainSyncAction.Rollback, last);            // the never-exercised arm, named
+        Assert.False(act2.IsArcComplete);                           // restored act-2 truth behind it
+        Assert.False(opened3);                                      // the act is closed again
+        Assert.False(closeShown3);                                  // ROLLBACK CLEARED the latch —
+                                                                    // LOAD-BEARING: delete that
+                                                                    // arm's clear and this goes RED
+        Assert.Equal(0, openCardsPlayed3);              // a rollback plays no card …
+        Assert.Equal(QuestStatus.NotStarted, act3.Status("q_h_arrival"));   // rows rewound …
+        Assert.Empty(act3.ToSaveRows());                // … nothing left to persist
     }
 
     // ------------------------------------------------------------------

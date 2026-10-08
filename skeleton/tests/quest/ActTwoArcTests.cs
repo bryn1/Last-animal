@@ -253,6 +253,12 @@ public class ActTwoArcTests
     // restore-sync missed. The leg drives the REAL ActChainSync machine with
     // the director's engine-side follow-ups: load, load again, NO save
     // between — the chain must come out ALIVE.
+    // MC 10273 fix cycle (DA-verdict 097f750 P2-1): the act now COMPLETES
+    // between the loads and the finale edge latches closeShown (the real
+    // completion path, the mirrored ShowActTwoClose guard) — so the
+    // post-rewind Assert.False below is LOAD-BEARING: the SilentReStart
+    // clear must run, or the latch stays stuck and the close card can never
+    // replay (mutation-proven: delete that clear and this leg names RED).
     // ------------------------------------------------------------------
 
     [Fact]
@@ -271,6 +277,7 @@ public class ActTwoArcTests
         var act2 = ActTwoLog();
         bool opened = false, closeShown = false;
         var openCardsPlayed = 0;
+        var closeCardsPlayed = 0;
 
         void Load()   // QuestRestoreRows + the director's follow-ups (Story.cs partial)
         {
@@ -288,21 +295,106 @@ public class ActTwoArcTests
             }
         }
 
+        void FinaleEdge()   // the OnQuestChanged Completed arm (Story.cs) mirrored:
+        {                   // if (opened && act2.IsArcComplete && !closeShown)
+            if (opened && act2.IsArcComplete && !closeShown)         //     ShowActTwoClose()
+                { closeShown = true; closeCardsPlayed++; }           //     — latch + card
+        }
+
         Load();                                                       // load 1
         Assert.Equal(1, openCardsPlayed);
         Assert.Equal("q_r_descent", act2.ActiveQuestId);
 
+        // The act RUNS to completion before the rewind (DA P2-1): every row
+        // on its own observation, then the finale edge latches closeShown —
+        // the latched state is what the rewind clear exists to survive.
+        act2.ObserveZoneEntered("ruins");
+        act2.ObserveSpoken(2);
+        act2.ObserveWagePaid("q_r_bread");
+        act2.ObserveKill(6);
+        Assert.True(act2.IsArcComplete);                              // the completion edge fired
+        FinaleEdge();
+        Assert.True(closeShown);                                      // latched through the guard
+        Assert.Equal(1, closeCardsPlayed);                            // close card played once
+
         Load();                                                       // load 2, NO save between
         Assert.Equal(1, openCardsPlayed);    // a load is not a beat: NO second open card
-        Assert.False(closeShown);            // the act is live again from row one
+        Assert.False(closeShown);            // the rewind CLEARED the latch — LOAD-BEARING:
+                                             // delete the arm's clear and this line goes RED
         Assert.Equal("q_r_descent", act2.ActiveQuestId);              // chain ALIVE, not stranded
 
-        // …and COMPLETABLE: the same driven walk as the fact-for-fact leg
-        // completes every row from the re-Started state.
+        // …and COMPLETABLE again: the same driven walk as the fact-for-fact
+        // leg completes every row from the re-Started state, and the close
+        // edge FIRES A SECOND TIME — exactly what the clear protects: a
+        // stuck latch would silently suppress the story close for the
+        // session (DA S-C probe sequence, now pinned as a test).
         act2.ObserveZoneEntered("ruins");
         act2.ObserveSpoken(2);
         act2.ObserveWagePaid("q_r_bread");
         act2.ObserveKill(6);
         Assert.True(act2.IsArcComplete);
+        FinaleEdge();
+        Assert.Equal(2, closeCardsPlayed);                            // the close card REPLAYS
+    }
+
+    // ------------------------------------------------------------------
+    // MC 10273 fix cycle (DA-verdict 097f750 P2-1): the ROLLBACK arm —
+    // ZERO shipped coverage at this seam. Load-shuffle shape, game-
+    // reachable: the player completed act two (closeShown latched through
+    // the Adopt of that save), then loads an OLDER save taken BEFORE the
+    // act-one finale. The restored logs are the truth: act two rolls BACK —
+    // open latch off, close latch CLEARED (the load-bearing assert), rows
+    // rewound, no card.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Restore_RollbackArm_IntoPreActOneFinaleSave_ActClosesAgain()
+    {
+        var completedThroughActTwo = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+        };
+        var olderMidActOne = new List<string>       // act one still open: no q_boss row
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed", "q_kills:completed",
+        };
+
+        var act1 = new QuestLog(QuestTable.Default());
+        var act2 = ActTwoLog();
+        bool opened = false, closeShown = false;
+        var last = ActChainSyncAction.None;
+
+        void Load(List<string> disk)   // QuestRestoreRows + SyncActTwoFromRestore, pure half
+        {
+            act1.FromSaveRows(disk);
+            act2.FromSaveRows(disk);
+            last = ActChainSync.Run(act1, act2, opened, ref closeShown);
+            switch (last)
+            {
+                case ActChainSyncAction.Adopt: opened = true; break;   // silent adoption
+                case ActChainSyncAction.Rollback: opened = false; break;
+                case ActChainSyncAction.FreshOpen:                     // card + Start
+                    opened = true;
+                    act2.Start(act2.Table.Entries[0].Id);
+                    break;
+            }
+        }
+
+        Load(completedThroughActTwo);                 // the completed-act restore
+        Assert.Equal(ActChainSyncAction.Adopt, last);
+        Assert.True(opened);
+        Assert.True(closeShown);                      // the Adopt arm latches the completed act
+
+        Load(olderMidActOne);                         // load-shuffle into a pre-finale save
+        Assert.Equal(ActChainSyncAction.Rollback, last);           // the never-exercised arm, named
+        Assert.False(act1.IsArcComplete);                          // the restored truth behind it
+        Assert.False(opened);                                      // the act is closed again
+        Assert.False(closeShown);                                  // ROLLBACK CLEARED the latch —
+                                                                  // LOAD-BEARING: delete that
+                                                                  // arm's clear and this goes RED
+        Assert.Equal(QuestStatus.NotStarted, act2.Status("q_r_descent"));   // rows rewound …
+        Assert.Empty(act2.ToSaveRows());                           // … nothing left to persist
     }
 }
