@@ -397,4 +397,114 @@ public class ActTwoArcTests
         Assert.Equal(QuestStatus.NotStarted, act2.Status("q_r_descent"));   // rows rewound …
         Assert.Empty(act2.ToSaveRows());                           // … nothing left to persist
     }
+
+    // ------------------------------------------------------------------
+    // MC 10281 (DA-verdict 22ac1aa8 P3-2): the ADOPT arm's REWIND — the
+    // defect this card exists for. The session has shown the act-two close
+    // card (closeShown latched through the Adopt of the completed save);
+    // the player loads an OLDER save taken MID-act-two. The restored rows
+    // are still act-two rows, so the Adopt arm adopts the open act — and
+    // now also rewinds the close latch: the save predates the close, so
+    // the finale edge can print the close card again. Before the fix the
+    // latch stayed stuck and act two's close could never print again in
+    // that session (DA probe S-C, inherited from the act-two seam on master).
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Restore_AdoptArm_IntoOlderMidActTwoSave_CloseCardReplays()
+    {
+        var completedThroughActTwo = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+        };
+        var olderMidActTwo = new List<string>       // act two still open: tongue active
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:active",
+        };
+
+        var act1 = new QuestLog(QuestTable.Default());
+        var act2 = ActTwoLog();
+        bool opened = false, closeShown = false;
+        var closeCardsPlayed = 0;
+        var last = ActChainSyncAction.None;
+
+        void Load(List<string> disk)   // QuestRestoreRows + SyncActTwoFromRestore, pure half
+        {
+            act1.FromSaveRows(disk);
+            act2.FromSaveRows(disk);
+            last = ActChainSync.Run(act1, act2, opened, ref closeShown);
+            switch (last)
+            {
+                case ActChainSyncAction.Adopt: opened = true; break;   // silent adoption
+                case ActChainSyncAction.Rollback: opened = false; break;
+                case ActChainSyncAction.FreshOpen:                     // card + Start
+                    opened = true;
+                    act2.Start(act2.Table.Entries[0].Id);
+                    break;
+            }
+        }
+
+        void FinaleEdge()   // the OnQuestChanged Completed arm (Story.cs) mirrored:
+        {                   // if (opened && act2.IsArcComplete && !closeShown)
+            if (opened && act2.IsArcComplete && !closeShown)    //     ShowActTwoClose()
+                { closeShown = true; closeCardsPlayed++; }      //     — latch + card
+        }
+
+        Load(completedThroughActTwo);                 // close card shown in session
+        Assert.Equal(ActChainSyncAction.Adopt, last);
+        Assert.True(closeShown);                      // the Adopt arm latches the completed act
+
+        Load(olderMidActTwo);                         // load-shuffle into an older mid-act save
+        Assert.Equal(ActChainSyncAction.Adopt, last);             // the act stays adopted …
+        Assert.False(closeShown);      // AdoptRewind: the save predates the close and
+                                       // CLEARED the latch — LOAD-BEARING: delete the
+                                       // arm's else-clear and this line goes RED
+        Assert.Equal(QuestStatus.Active, act2.Status("q_r_tongue"));   // rows adopted, not rolled back
+
+        act2.ObserveSpoken(2);                        // the act re-runs to its finale …
+        act2.ObserveWagePaid("q_r_bread");
+        act2.ObserveKill(6);
+        Assert.True(act2.IsArcComplete);
+        FinaleEdge();
+        Assert.Equal(1, closeCardsPlayed);            // … and the close card prints AGAIN, once
+    }
+
+    // ------------------------------------------------------------------
+    // MC 10281: the rewind clear is ARM-GATED, not global (DA-verdict-c2
+    // G2: mutant F — a global closeShown=false at the TOP of Run — stayed
+    // GREEN on the shipped suite; this leg is the suite's counter-proof).
+    // The close latch belongs ONLY to the arms that complete (Adopt of a
+    // complete act) or rewind (Rollback / SilentReStart / Adopt of an
+    // older mid-act save) the act — FreshOpen begins the act FRESH on a
+    // save that predates it and passes the latch through UNTOUCHED. Unit
+    // leg over the pure machine: no shipped load sequence needs this combo
+    // today — that is exactly the point: whatever the session carries in
+    // the latch, this arm must not silently rewrite it.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Run_FreshOpenArm_PassesTheCloseLatch_Untouched()
+    {
+        var throughActOne = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+        };
+        var act1 = new QuestLog(QuestTable.Default());
+        var act2 = ActTwoLog();
+        act1.FromSaveRows(throughActOne);             // prev act complete …
+        Assert.Empty(act2.ToSaveRows());              // … this act zero rows: FreshOpen shape
+
+        bool closeShown = true;                       // session already showed act two's close
+        var last = ActChainSync.Run(act1, act2, opened: false, ref closeShown);
+
+        Assert.Equal(ActChainSyncAction.FreshOpen, last);
+        Assert.True(closeShown);       // ArmGate: FreshOpen rewinds NOTHING —
+                                       // LOAD-BEARING: a global closeShown=false
+                                       // at the top of Run (mutant F) goes RED here
+    }
 }

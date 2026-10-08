@@ -377,6 +377,121 @@ public class ActThreeArcTests
     }
 
     // ------------------------------------------------------------------
+    // MC 10281 (DA-verdict 22ac1aa8 P3-2): the ADOPT arm's REWIND at the
+    // ACT-THREE seam — the exact probe S-D sequence that found the defect.
+    // The session has shown the act-three close card (closeShown3 latched
+    // through the Adopt of the completed save); the player loads an OLDER
+    // save taken MID-act-three. The restored rows are still act-three
+    // rows, so the Adopt arm adopts the open act — and now also rewinds
+    // the close latch: the save predates the close, so the finale edge
+    // can print ACT_THREE_COMPLETE's close card again. Before the fix the
+    // latch stayed TRUE and the story close was silently suppressed for
+    // the session (IsArcComplete=True, card never played — probe S-D).
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Sync_AdoptArm_IntoOlderMidActThreeSave_ActThreeCloseReplays()
+    {
+        var completedThroughActThree = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+            "q_h_arrival:completed", "q_h_tongue:completed", "q_h_wage:completed", "q_h_reckoning:completed",
+        };
+        var olderMidActThree = new List<string>       // act three still open: tongue active
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+            "q_h_arrival:completed", "q_h_tongue:active",
+        };
+
+        var act2 = new QuestLog(QuestTable.RuinsArc());
+        var act3 = ActThreeLog();
+        bool opened3 = false, closeShown3 = false;
+        var openCardsPlayed3 = 0;
+        var closeCardsPlayed3 = 0;
+        var last = ActChainSyncAction.None;
+
+        void LoadThree(List<string> disk)   // QuestRestoreRows feed + the act-3 sync half
+        {
+            act2.FromSaveRows(disk);
+            act3.FromSaveRows(disk);
+            last = ActChainSync.Run(act2, act3, opened3, ref closeShown3);
+            switch (last)
+            {
+                case ActChainSyncAction.Adopt: opened3 = true; break;   // silent adoption
+                case ActChainSyncAction.Rollback: opened3 = false; break;
+                case ActChainSyncAction.FreshOpen:                      // OpenActThree
+                    opened3 = true; openCardsPlayed3++;
+                    act3.Start(act3.Table.Entries[0].Id);
+                    break;
+            }
+        }
+
+        void FinaleEdge3()   // the OnQuestChanged Completed arm (Story.cs) mirrored:
+        {                    // if (act3 opened && act3.IsArcComplete && !closeShown3)
+            if (opened3 && act3.IsArcComplete && !closeShown3)  //   ShowActThreeClose()
+                { closeShown3 = true; closeCardsPlayed3++; }    //   — latch + close card
+        }
+
+        LoadThree(completedThroughActThree);          // close card shown in session
+        Assert.Equal(ActChainSyncAction.Adopt, last);
+        Assert.True(opened3);
+        Assert.True(closeShown3);                     // the Adopt arm latches the completed act
+
+        LoadThree(olderMidActThree);                  // load-shuffle into an older mid-act save
+        Assert.Equal(ActChainSyncAction.Adopt, last);             // the act stays adopted …
+        Assert.False(closeShown3);     // AdoptRewind: the save predates the close and
+                                       // CLEARED the latch — LOAD-BEARING: delete the
+                                       // arm's else-clear and this line goes RED
+        Assert.Equal(0, openCardsPlayed3);             // a load is still not a beat …
+        Assert.Equal(QuestStatus.Active, act3.Status("q_h_tongue"));   // rows adopted, not rolled back
+
+        act3.ObserveSpoken(3);                        // the act re-runs to its finale …
+        act3.ObserveWagePaid("q_h_wage");
+        act3.ObserveKill(8);
+        Assert.True(act3.IsArcComplete);
+        FinaleEdge3();
+        Assert.Equal(1, closeCardsPlayed3);           // … and the close card prints AGAIN, once
+    }
+
+    // ------------------------------------------------------------------
+    // MC 10281: the rewind clear is ARM-GATED, not global (DA-verdict-c2
+    // G2: mutant F — a global closeShown=false at the TOP of Run — stayed
+    // GREEN on the shipped suite; this act-three leg is its counter-proof
+    // at this seam, mirroring the act-two one). The close latch belongs
+    // ONLY to the arms that complete (Adopt of a complete act) or rewind
+    // (Rollback / SilentReStart / Adopt of an older mid-act save) the act
+    // — FreshOpen begins the act FRESH on a save that predates it and
+    // passes the latch through UNTOUCHED.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Run_FreshOpenArm_PassesTheCloseLatch_Untouched_ActThree()
+    {
+        var throughActTwo = new List<string>
+        {
+            "q_intro:completed", "q_speak:completed", "q_wage:completed",
+            "q_kills:completed", "q_boss:completed",
+            "q_r_descent:completed", "q_r_tongue:completed", "q_r_bread:completed", "q_r_bones:completed",
+        };
+        var act2 = new QuestLog(QuestTable.RuinsArc());
+        var act3 = ActThreeLog();
+        act2.FromSaveRows(throughActTwo);             // prev act complete …
+        Assert.Empty(act3.ToSaveRows());              // … this act zero rows: FreshOpen shape
+
+        bool closeShown3 = true;                      // session already showed act three's close
+        var last = ActChainSync.Run(act2, act3, opened: false, ref closeShown3);
+
+        Assert.Equal(ActChainSyncAction.FreshOpen, last);
+        Assert.True(closeShown3);      // ArmGate: FreshOpen rewinds NOTHING —
+                                       // LOAD-BEARING: a global closeShown=false
+                                       // at the top of Run (mutant F) goes RED here
+    }
+
+    // ------------------------------------------------------------------
     // Act card data — the table shape (node REFERENCE integrity is pinned
     // against DialogueTable by tests/story/QuestArcCrossCheckTests)
     // ------------------------------------------------------------------

@@ -55,6 +55,10 @@ public static class ActChainSync
         if (thisAct.ToSaveRows().Count > 0)
         {
             if (thisAct.IsArcComplete) closeShown = true;
+            // MC 10281 (DA-verdict 22ac1aa8 P3-2): an OLDER mid-act save on
+            // this arm predates the close card the session already showed —
+            // the adopt REWINDS the latch too, so the close can play again.
+            else closeShown = false;
             return ActChainSyncAction.Adopt;
         }
         if (opened && !prevAct.IsArcComplete)
