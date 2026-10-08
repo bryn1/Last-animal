@@ -288,9 +288,11 @@ public sealed class QuestTable
         new[] { "act2_close_a", "act2_close_b" });
 
     /// <summary>
-    /// The authored ACT-THREE rows (MC 10273 Inc-4 S19, RULING-8 "yes to
-    /// zone4+act3": the close of the story, the +4 zone-4 rows on the zone
-    /// four "hollow" that merged S18 shipped). Mirror of
+    /// The authored ACT-THREE rows (MC 10273 Inc-4 S19, RULING-8 "R8 zone
+    /// four + act three = YES -> S18 + S19 proceed" (MC 10026 append #9 row
+    /// 895, owner chat "Rec on all."): the close of the story, the +4
+    /// zone-4 rows on the zone four "hollow" that merged S18 shipped).
+    /// Mirror of
     /// <see cref="RuinsArc"/>'s idiom exactly: the SAME pure QuestLog
     /// machine plays this table, existing objective kinds only, kinds
     /// ordered arrival -> tongue -> bread -> reckoning so each completion
