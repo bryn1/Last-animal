@@ -18,6 +18,7 @@ Length note (file-hygiene, MC 10255): this is ONE architecture statement by desi
 | `animation_pipeline/` | Standalone Godot mono project that retargets/bakes CC0 humanoid walk animations (`animation_pipeline/tools/retarget_bake.sh`, output `bake/*.tres`; consumed by the game as `skeleton/resources/animation/walkBaked.tres` — the real C12 substance; there is no literal `RetargetPipeline` module). |
 | `docs/` | This file + the docs map in §7. |
 | `.audits/` | Audit/verify/fix run dirs (`<YYYYMMDD-HHMM>-<slug>/`), never deliverables. |
+| `skeleton/build/` | Export outputs (release binaries + `.NET` data dirs + zips, §5) — generated, not source (gitignored). |
 | `LEDGER.md`, `PREFLIGHT.md` | Project state ledger; M00 preflight record. |
 
 ## 2. Game modules (`skeleton/src/`, pure C# logic)
@@ -159,7 +160,7 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `VisualJuice.cs
   fails loudly when the data dir or the game assembly is missing from the zip.
 - `tools/export_windows.sh` — gate → zip (exe + `data_LastAnimalPreflight_windows_x86_64/`)
   → optional wine smoke (skipped explicitly when wine is absent; never faked).
-- `tools/export_linux.sh` — gate → zip (binary + `data_*_linux_x86_64/`) →
+- `tools/export_linux.sh` — gate → zip (binary + `data_*_linuxbsd_x86_64/`) →
   native Xvfb launch smoke.
 - `tools/launch_linux_smoke.sh` — launches the packaged Linux binary under Xvfb
   via the existing `graphical-test-helper.sh`; RESULT=PASS means a non-blank
