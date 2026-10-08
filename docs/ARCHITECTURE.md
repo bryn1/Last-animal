@@ -74,7 +74,7 @@ the composition root (see §3).
   lifecycle — third `QuestLog` over `QuestTable.ActThreeArc()`, open/adopt/close
   mirrors of the S10 act-two seams, restore decision executed from the pure
   `ActChainSync` run over (act2, act3), the named `ACT_THREE_COMPLETE`
-  act-completion marker on the final zone-4 chain; wiring only),
+  act-completion marker on the final zone-4 chain; wiring only; 110 l),
   `WorldDirector.Skills.cs` (partial: the skill root seam —
   `InitSkills` wiring, Q/R/F input poll — skill_3 Calming Speak spends 12 Manna
   AFTER its target scan (refusal spends zero) and opens the SAME recruit offer
