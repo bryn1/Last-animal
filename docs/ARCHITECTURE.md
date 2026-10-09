@@ -276,7 +276,11 @@ comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 283 l (S19/MC 10273, act-three proof; +2 l fix-cycle attribution),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-P1FixProof.cs 368 l, Quests.cs 559 l (ARCH 49162d57: added — the second-largest
+P1FixProof.cs 426 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
+`fall_recovered` stages 50/51), FloorCoverageProof.cs 194 l (MC 10404: the
+standalone zone-boot 2 m grid probe — owns ONLY mode `FLOOR_COVERAGE`, boots
+zones WITHOUT main.tscn, class-local like RosterIntegrationProof so the
+stage-pairing gate's family rule exempts it), Quests.cs 559 l (ARCH 49162d57: added — the second-largest
 file and the next ceiling watch), Compose.cs 285 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head), Harness.cs 70 l —
 **every proof file now sits under the 600-l ceiling
 (max Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
@@ -412,6 +416,11 @@ rides the battery as leg (T); the death leg in
 writing, stamps `PlayerHealth=42`, and the load asserts that content
 (marker `DEATH_SAVE_OWNED`; a stale sibling-mode save can no longer pass off, MC 3910)),
 `BridgeMvpProof.cs`, `MainCompositionProof.cs`, `P1FixProof.cs`,
+`FloorCoverageProof.cs` (MC 10404 — boots every `zones/` scene ALONE (no
+main.tscn: the probe space holds ONLY the zone under test) and grid-probes
+each TerrainVisual's AABB with 2 m downward rays; any walkable point without
+floor within the terrain's height range + 2 m is named and exits 1; decor-only
+scenes print NAMED skips),
 `RosterIntegrationProof.cs` (+ partial-class halves `RosterIntegrationProof.Follow.cs` /
 `RosterIntegrationProof.Traits.cs` — MC 10036 moves-only split: the `roster_follow` arc moved verbatim at the 600-l
 proof ceiling; class name, modes and the `_Process` mode switch stay in the entry
@@ -438,14 +447,20 @@ proven by `LA_GATE_MODE=bogus_mode -> exit 1`); `RosterIntegrationProof.cs` fail
 closed through its `default: Fail(…unknown mode…)` arm. `P1FixProof.cs` and
 `ZoneBossProof.cs` gained the same fail-safe at MC 10210 (commit 46aa55f —
 shipped): one named arm per documented mode plus `default: Fail(…unknown
-mode…)`, proven red on `LA_GATE_MODE=bogus` and empty. Vocabulary drift across
+mode…)`, proven red on `LA_GATE_MODE=bogus` and empty; `FloorCoverageProof.cs`
+ships born of that law (MC 10404) — one `FLOOR_COVERAGE` arm + a `default:
+Fail(unknown mode …)`. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**38 `run_mode` legs = 28 positive + 10 negative** (W2 close added `passives`
+**40 `run_mode` legs = 30 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
 `CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; S19/MC 10273
-added `ACT_THREE`; count = `grep -cE '^run_mode '`
+added `ACT_THREE`; MC 10404 added `FLOOR_COVERAGE` (FloorCoverageProof — every
+visible zone ground has collision EVERYWHERE: 110,475-ray grid, zero uncovered
+walkable points) and `fall_recovered` (P1FixProof stages 50/51 — a below-plane
+fall restores to the zone entry with Life intact; the product
+`FALL_RECOVERED from=` guarantee line is grepped in-leg); count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate.
@@ -454,7 +469,7 @@ trips the gate.
 
 1. **Stage body lives in a partial** per concern: `ci_proofs/RuntimeIntegrationProof.<Concern>.cs` (house ceiling 600 l/file). A partial NEVER registers a mode into another proof's dispatcher — the ENTRY's `switch (_stage)` is the only mode router this class has (MC 3943 F-A).
 2. **csproj registration is required**: `skeleton/LastAnimalPreflight.csproj` sets `EnableDefaultCompileItems=false` and carries exactly ONE `<ItemGroup>` (measured at this tip), so every new `.cs` — proof partials included — needs an explicit `<Compile Include>`, appended at the ItemGroup END with the sibling comment idiom (S2 `Shake.cs` precedent) so parallel cards merge collision-free. (Should a second ItemGroup ever appear, mirror the sibling's placement in BOTH.)
-3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 29 ci_proofs sidecars are tracked).
+3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 30 ci_proofs sidecars are tracked since MC 10404's `FloorCoverageProof.cs.uid`).
 4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 185 l at this tip by that very awk), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof carry none and are gated doc == arms). Header == allow-list == dispatch arms, or the gate names the drift RED.
 5. **Unknown-mode fail-safe**: the entry rejects an off-list `LA_GATE_MODE` with `LA_GATE: FAIL: unknown mode <x>` + exit 1 at dispatch top, BEFORE any stage side-effect — a set-but-empty value fails closed too (`GetEnvironmentVariable` returns `""`, the `??` default never fires). Standalone proofs keep one named arm per documented mode plus `default: Fail(…unknown mode…)`. Never let an unknown mode fall through to a PASS leg (MC 10204 F1, the vacuous-green class).
 6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **103** (`ACT_THREE`); **NEXT FREE = 104** (measured: zero `case 104` / `_stage = 104` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
@@ -480,7 +495,7 @@ trips the gate.
    | 103 | `ACT_THREE` | `.Story3.cs` |
 
    The sibling proofs (ZoneBossProof, P1FixProof, RosterIntegrationProof) run class-local stage machines behind their own `run_mode` proof paths — they share no numbers with this map.
-7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **38 legs = 28 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
+7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **40 legs = 30 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
 8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 25 stage bodies == 25 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
 
 **NOTE — battery leg letters (MC 10255, NOTE only; NO re-lettering).** The banner letters (A)-(T) are decorative and DO collide at this tip: **(P) marks four legs** (S16 passives, S17 trait_effects, S15 DAYNIGHT_STATE, S14 CHAR_MOTION) and **(Q) marks three** (MC 10210 sets-gate, S20 CAMERA_KILL_PULSE, S18 ZONE4) — measured by `grep -oE '\([A-Z]\)' ci/runtime_integration_test.sh | sort | uniq -c`. Consumers grep the letters, so they stay untouched; the STABLE identifier of a leg is its MODE name plus its LEDGER row. Docs/evidence must name the mode and treat the letter as decoration.

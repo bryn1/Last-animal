@@ -2,7 +2,10 @@ extends Node3D
 ## M07 terrain builder (Last Animal world-environment)
 ##
 ## Turns a heightmap PNG under res://assets/terrain/<zone>.png into BOTH:
-##   - a HeightMapShape3D on a StaticBody3D collision shape (walkable ground, default physics)
+##   - a HeightMapShape3D on a StaticBody3D collision shape (walkable ground, default
+##     physics), resampled to one sample per metre over the h_scale-extended footprint so
+##     the collider covers EXACTLY the visible ground (MC 10404: laid at pixel counts it
+##     fell short of the visual span and the player fell through the ring), and
 ##   - a matching ArrayMesh visual surface whose vertices come from the SAME pixel data
 ##     at the same world scale, so collision and rendering provably agree.
 ##
@@ -49,16 +52,66 @@ func _ready() -> void:
         mn = min(mn, h)
         mx = max(mx, h)
     print("[terrain] %s: %dx%d map, height range %.2f..%.2f" % [name, _w, _d, mn, mx])
+    # MC 10404: the lowest point of THIS ground surface, published for the
+    # director's below-plane fall-recovery guarantee (WorldDirector._Process;
+    # the FLOOR_RECOVERED battery leg). Meta, not a new signal: read lazily.
+    set_meta("floor_min_y", mn)
 
 func build_collision() -> void:
-    # HeightMapShape3D wants map_height as a flat array (row-major, x then z),
-    # with the LOCAL x/z size set by map_width/map_depth and y = height.
+    # MC 10404 (owner playtest P1 — fell THROUGH the visible ground and died):
+    # HeightMapShape3D spans map_width x map_depth METRES (one sample per
+    # metre), so laying it at the PNG pixel counts gave only _w x _d metres
+    # of floor under a _w*h_scale x _d*h_scale visual ground — every shipped
+    # zone (h_scale 1.5/1.6/2.0, all > 1) had a floorless ring past
+    # +/- (map-half) that the player could walk onto (FLOOR_COVERAGE RED
+    # pair: 60-76 % of the visible ground uncovered, uncovered == 1 -
+    # 1/h_scale^2). Godot 4 physics IGNORES CollisionShape3D node scaling,
+    # so the closure is geometry: resample to ONE SAMPLE PER METRE over the
+    # scaled extent, sampling the SAME nearest-pixel height field as
+    # build_visual_mesh at the SAME world<->pixel mapping (int(u *
+    # (pixels-1)) — byte-mirrors the visual builder). Godot 4.7 uses map_data as RAW local-Y heights, so the old
+    # body.position y-shift (a "visual mesh pivoted at top" compensation)
+    # only floated the collider v_scale/2 ABOVE the ground (FLOOR_COVERAGE
+    # DIAG: meadow hit-heights rode a median +0.82 m over a surface whose
+    # bottom is 0.0) — it is gone. ceil(): a rounding step must never
+    # re-leave an edge gap. Row/column pixel indices are precomputed so the
+    # 256k-sample canyon grid is a flat lookup.
+    # SEMANTICS MEASURED (FLOOR_COVERAGE edge pair): samples sit at 1 m
+    # spacing and the mw-sample grid must OVERSHOOT the visual's +/- half-size
+    # by a full sample each side (mw = ceil(size) + 2): with the grid ending
+    # exactly at the border (mw = ceil(size), and even mw = ceil(size)+1
+    # vertex-on-edge) rays landing ON the border vertex resolved
+    # inconsistently — the canyon +/-256 ring missed at mw=512, meadow's
+    # x=-48 row missed at mw=97 while +48 hit. One metre of overshoot makes
+    # every visible border column strictly INTERIOR: deterministic hits.
+    # Sample c therefore sits at x = c - (mw-1)/2; its height is the SAME
+    # nearest pixel the visual vertex at that world x gets. The padded ring
+    # clamps to the border pixel — a <=1.5 m skirt of edge height beyond the
+    # visible ground, strictly better than a floorless border.
+    var mw: int = int(ceil(_w * h_scale)) + 2
+    var md: int = int(ceil(_d * h_scale)) + 2
+    var size_x: float = _w * h_scale
+    var size_z: float = _d * h_scale
+    var cols := PackedInt32Array()
+    for c in mw:
+        var x: float = float(c) - float(mw - 1) * 0.5
+        var u: float = x / size_x + 0.5
+        cols.append(clampi(int(u * float(_w - 1)), 0, _w - 1))
+    var data := PackedFloat32Array()
+    data.resize(mw * md)
+    for r in md:
+        var z: float = float(r) - float(md - 1) * 0.5
+        var v: float = z / size_z + 0.5
+        var pz: int = clampi(int(v * float(_d - 1)), 0, _d - 1)
+        var row: int = pz * _w
+        for c in mw:
+            data[r * mw + c] = _heights[row + cols[c]]
     var shape := HeightMapShape3D.new()
-    shape.map_width = _w
-    shape.map_depth = _d
-    # In Godot 4.7 the elevation array property is map_data (PackedFloat32Array).
+    shape.map_width = mw
+    shape.map_depth = md
+    # In Godot 4.7 the elevation array property is map_data (PackedFloat32Array);
     # map_width/map_depth set the local x/z size; map_data carries the heights.
-    shape.map_data = _heights  # already elevation in world units
+    shape.map_data = data  # raw world-unit heights, same field as the visual
     var body := StaticBody3D.new()
     body.name = "TerrainCollision"
     var col := CollisionShape3D.new()
@@ -68,8 +121,6 @@ func build_collision() -> void:
     # runtime-built bodies: owner is unnecessary (not saved to a packed scene),
     # and setting it on the parent while the child shape has none triggers a
     # "owner must be an ancestor" error — leave both owner-less.
-    # real height, offset so our visual mesh (pivoted at top) sits on the same surface
-    body.position = Vector3(0, v_scale * 0.5, 0)
     add_child(body)
 
 func build_heightfield_mesh() -> ArrayMesh:

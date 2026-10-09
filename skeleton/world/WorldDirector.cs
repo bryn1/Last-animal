@@ -1,6 +1,7 @@
 // SIZE: inherited >400 (506 l at the MC 10167 W4 restamp; 501 after MC 3943 2g,
 // 539 pre-2g — live companion loop left for Roster.cs; since 2g: +4 l S1 hunk
-// a6704d0, +1 l W1 note 87ba446) — reasons per MC 3895 DA P2-1; block below.
+// a6704d0, +1 l W1 note 87ba446, +63 l MC 10404 fall-recovery hunk = 572 l) —
+// reasons per MC 3895 DA P2-1; block below.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -87,6 +88,19 @@ public partial class WorldDirector : Node3D
     private Vector3 _spawnOrigin;
     private EnemyActor? _boss;
     private BossPhaseState _bossPhase;
+
+    // MC 10404 (owner playtest P1: fell through a ground-collision gap and
+    // DIED below the world — there is no kill-plane and no respawn, so any
+    // future seam is an unrecoverable death). The guarantee: once the player
+    // is below the LOWEST loaded ground's floor_min by this margin, no
+    // surface can be under them any more — return them to the zone-entry
+    // spawn (the byte-same point zone travel repositions to), zero the fall
+    // velocity, Life untouched. This is a rescue, never a punishment.
+    // The plane resolves from the terrain_builder "floor_min_y" meta.
+    private float _floorMinY = float.PositiveInfinity;
+    private bool _fallRecoveryArmed;
+    private bool _fallWarnedMissingFloor;
+    private const float FallRecoverMargin = 2.0f;
 
     // Gate seams (design §4.2): one-line bool guards, default true, no gameplay behavior.
     private bool _spawningEnabled = true;
@@ -219,6 +233,24 @@ public partial class WorldDirector : Node3D
     {
         if (Player == null) return;
         Vector3 ppos = Player.GlobalPosition;
+
+        // MC 10404 (owner playtest P1): a fall below the loaded ground's floor
+        // has no bottom — no kill-plane, no respawn, so a bare fall becomes an
+        // unrecoverable death below the world. One rescue, zero punishment:
+        // back to the zone-entry spawn (the byte-same point zone travel uses),
+        // fall velocity cleared, Life/model untouched. Armed at boot from the
+        // terrain "floor_min_y" meta (ResolveFallPlane); a scene with no
+        // ground meta leaves the guarantee DISARMED and the fall_recovered
+        // battery leg RED, so disarm can never pass silently.
+        if (_fallRecoveryArmed && ppos.Y < _floorMinY - FallRecoverMargin)
+        {
+            GD.Print($"FALL_RECOVERED from=({ppos.X:0.##},{ppos.Y:0.##},{ppos.Z:0.##}) " +
+                     $"floorMin={_floorMinY:0.##} margin={FallRecoverMargin:0.#} " +
+                     $"-> zone-entry=({_spawnOrigin.X:0.##},{_spawnOrigin.Y:0.##},{_spawnOrigin.Z:0.##})");
+            Player.GlobalPosition = _spawnOrigin;
+            if (Player is CharacterBody3D fallen) fallen.Velocity = Vector3.Zero;   // the shell is a CharacterBody3D (main.tscn)
+            return;   // stale ppos: this frame drives nothing else
+        }
 
         // Point each enemy's AI at the live player; collect incoming damage.
         int incoming = 0;
@@ -480,6 +512,38 @@ public partial class WorldDirector : Node3D
     {
         var profile = EcosystemAdaptation.ModelPlayerDna(_spokenDna);
         _ecosystem.OnZoneEnter(zoneId, profile);
+        // MC 10404: the fall plane belongs to the ground the player will walk
+        // in THIS zone — re-resolve it on every entry (boot included).
+        ResolveFallPlane();
+    }
+
+    private void ResolveFallPlane()
+    {
+        float mn = float.PositiveInfinity;
+        CollectFloorMin(this, ref mn);
+        if (!float.IsFinite(mn))
+        {
+            if (!_fallWarnedMissingFloor)
+            {
+                _fallWarnedMissingFloor = true;
+                GD.PushWarning("MC 10404: no ground floor_min_y meta in scene — fall recovery DISARMED (the fall_recovered battery leg goes RED on this, never silently)");
+            }
+            _fallRecoveryArmed = false;
+            return;
+        }
+        _floorMinY = mn;
+        _fallRecoveryArmed = true;
+        GD.Print($"W3: fall-recovery plane floorMin={mn:0.##} (triggers below y<{mn - FallRecoverMargin:0.##})");
+    }
+
+    private static void CollectFloorMin(Node from, ref float mn)
+    {
+        if (from.HasMeta("floor_min_y"))
+        {
+            float v = (float)from.GetMeta("floor_min_y").AsDouble();
+            if (v < mn) mn = v;
+        }
+        foreach (var c in from.GetChildren()) CollectFloorMin(c, ref mn);
     }
 
     // ---- save/load (design §4.4): delegated to SaveLoadController (MC 1344) -
