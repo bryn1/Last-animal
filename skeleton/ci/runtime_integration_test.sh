@@ -16,15 +16,18 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 38 run_mode legs = 28 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; count = grep -cE '^run_mode ' here).
+# Battery at this HEAD: 40 run_mode legs = 30 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; count = grep -cE '^run_mode ' here).
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
 # skill/calm/juice/dissolve/day-night legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
-# P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot)
-# and RosterIntegrationProof.cs (roster_follow/roster_neg). Most positive legs
+# P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot/
+# fall_recovered), RosterIntegrationProof.cs (roster_follow/roster_neg)
+# and FloorCoverageProof.cs (floor_coverage — the standalone dense grid probe,
+# booted WITHOUT main.tscn so the zone under test is alone in the physics
+# space). Most positive legs
 # re-run their proof a second time to grep extra inline markers, so total
-# proof invocations exceed the 38-leg count; the (E) framebuffer render bar
+# proof invocations exceed the 40-leg count; the (E) framebuffer render bar
 # runs once more through graphical-test-helper.
 #
 # Usage:
@@ -536,5 +539,36 @@ done
 [[ "$LOGA3" == *'ACT_CARD act_three close'* ]] || fail "ACT_THREE: act_three close ACT_CARD marker missing (W5 emission leg)"
 [[ "$LOGA3" == *'ACT3_CLOSED'* ]] || fail "ACT_THREE: ACT3_CLOSED missing (the close card never drained in order behind the finale)"
 
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; mode vocabulary drift gate green; non-blank render)"
+# (U) MC 10404 FLOOR COVERAGE (owner playtest P1: fell through the visible
+# ground and died below it — no collider where the rendered floor was): the
+# dense grid probe boots each zones/ scene ALONE (no main.tscn — the probe
+# space must hold only the zone under test) and casts a downward ray at every
+# 2 m of the visual ground's extent; every column must return solid within the
+# terrain's own height range + 2 m. Zero uncovered points is the assert; the
+# per-zone hit-minus-terrain-bottom stats print as diagnostics. The two decor-
+# only test scenes must be NAMED as skipped (never silently absent).
+PROOF_FLOOR="res://ci_proofs/FloorCoverageProof.cs"
+[ -f "$PROJ/ci_proofs/FloorCoverageProof.cs" ] || fail "FloorCoverageProof.cs not found"
+run_mode FLOOR_COVERAGE pass "FLOOR_COVERAGE_CLEAR" "$PROOF_FLOOR"
+LOGFC="$(LA_GATE_MODE=FLOOR_COVERAGE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF_FLOOR" 2>&1)" || true
+for zn in meadow canyon ruins; do
+  [[ "$LOGFC" == *"FLOOR_COVERAGE res://zones/$zn/"* ]] \
+    || fail "FLOOR_COVERAGE: probe line for zones/$zn missing (terrain ground absent from the shipped set?)"
+done
+for sk in bluetest/blue redtest/red; do
+  [[ "$LOGFC" == *"FLOOR_COVERAGE skip res://zones/$sk.tscn"* ]] \
+    || fail "FLOOR_COVERAGE: named skip line for zones/$sk.tscn missing (decor-only scenes are disclosed, not silently skipped)"
+done
+
+# (V) MC 10404 FALL RECOVERY: the general guarantee — a player below the
+# loaded ground's visual floor (the fall-through state, forced at y=-30 in
+# the proof) is restored by the director's clamp to the zone-entry column,
+# Life UNCHANGED, no re-fall loop (P1FixProof stage 50/51). The product line
+# FALL_RECOVERED is grepped here in the second run.
+run_mode fall_recovered pass "FALL_RECOVERED_EXACT" "$PROOF_P1"
+LOGFR="$(LA_GATE_MODE=fall_recovered timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF_P1" 2>&1)" || true
+[[ "$LOGFR" == *'FALL_RECOVERED from'* ]] \
+  || fail "fall_recovered: the product FALL_RECOVERED guarantee line never printed (clamp missing or below-plane never detected)"
+
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; mode vocabulary drift gate green; non-blank render)"
 exit 0

@@ -244,6 +244,11 @@
          W4 csproj hunks merge cleanly. -->
     <Compile Include="world/WorldDirector.Story.Act3.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Story3.cs" />
+    <!-- Compile MC 10404 (owner playtest P1, fall-through-floor): the
+         floor-coverage grid probe — a companion proof class owning the
+         floor_coverage mode only (standalone scene-tree probe, no composition
+         boot). Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="ci_proofs/FloorCoverageProof.cs" />
   </ItemGroup>
 
 </Project>

@@ -52,6 +52,8 @@ PROOFS = [
     ("RosterIntegrationProof", "RosterIntegrationProof.cs", "RosterIntegrationProof", False),
     ("ZoneBossProof", "ZoneBossProof.cs", "ZoneBossProof", False),
     ("P1FixProof", "P1FixProof.cs", "P1FixProof", False),
+    # MC 10404: the floor-coverage companion proof (single-mode dispatch).
+    ("FloorCoverageProof", "FloorCoverageProof.cs", "FloorCoverageProof", False),
 ]
 
 

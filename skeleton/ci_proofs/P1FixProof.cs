@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 // Last Animal — MC 1348 P1 gameplay-bug regression proofs (A2/A3/A4/A5).
 //
-// Companion to RuntimeIntegrationProof/ZoneBossProof; owns the four P1
+// Companion to RuntimeIntegrationProof/ZoneBossProof; owns the five P1
 // regression modes only, so those files stay under their concern. Each mode
 // reproduces one audited P1 against the REAL playable scene and prints its
 // marker ONLY after its assertion passes; a mode that never asserts fails via
@@ -29,6 +29,12 @@ using System.Collections.Generic;
 //   zone_travel_boot — A5: zone travel despawns the BOOT enemy set too — after
 //                   travelling, no enemy from the boot composition remains
 //                   alive or in the director's live set. Markers: BOOT_SET_CLEARED.
+//   fall_recovered  — MC 10404: a player teleported BELOW the loaded ground's
+//                   visual floor (the owner's unrecoverable fall-through-
+//                   terrain death on v0.4.0 Windows) must be restored by the
+//                   director's fall guarantee: back at the zone-entry XZ,
+//                   Life untouched, no re-fall loop over the settle window.
+//                   Markers: FALL_RECOVERED (the product line), FALL_RECOVERED_EXACT.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
 public partial class P1FixProof : SceneTree
@@ -38,6 +44,7 @@ public partial class P1FixProof : SceneTree
     private const int BetrayalBudget = 3600; // wage stage: grace 20 s + interval 30 s + margin
     private const int BookBudget = 600;      // book stage: press cycles + settle
     private const int TravelSettleFrames = 15; // zone travel: let QueueFree land
+    private const float BelowPlaneY = -30f;    // fall_recovered drop depth: far under every zone's floor min
 
     private EventBus? _bus;
     private WorldDirector? _director;
@@ -55,6 +62,8 @@ public partial class P1FixProof : SceneTree
     private int _betrayalCount;
     private int _bookOpenedCount;
     private string _bootZone = "";
+    private Vector3 _homePos;              // fall_recovered: the pristine scene spawn
+    private int _healthBeforeFall;
     private readonly List<EnemyActor> _bootEnemies = new();
 
     public override void _Initialize()
@@ -67,6 +76,11 @@ public partial class P1FixProof : SceneTree
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
         _main = packed.Instantiate<Node3D>();
+        // MC 10404 fall_recovered: capture the PRISTINE scene spawn — the same
+        // un-moved transform the director reads as _spawnOrigin in its _Ready
+        // (physics has not ticked yet: this runs between Instantiate and
+        // AddChild). The recovery target must match it byte-exact in XZ.
+        _homePos = _main.GetNodeOrNull<Node3D>("Player")?.GlobalPosition ?? Vector3.Zero;
         Root.AddChild(_main);
     }
 
@@ -115,6 +129,7 @@ public partial class P1FixProof : SceneTree
                     case "wage_betrayal": _stage = 20; break;
                     case "empathy_book": _stage = 30; break;
                     case "zone_travel_boot": _stage = 40; break;
+                    case "fall_recovered": _stage = 50; break;
                     default: Fail($"unknown mode {_mode}"); return true;
                 }
                 _stageFrames = 0;
@@ -302,6 +317,49 @@ public partial class P1FixProof : SceneTree
                 ReleaseHeldRefsBeforeQuit();
                 Quit(0);
                 return true;
+
+            // ---- fall_recovered (MC 10404): a below-plane fall is not a death ----
+            case 50:
+                if (_stageFrames == 1)
+                {
+                    // Force y BELOW the plane on the live scene (the owner's
+                    // fall-through state, deterministic, no terrain hole
+                    // needed): the director's guarantee must fire next frame.
+                    _healthBeforeFall = _director!.PlayerModel.Health;
+                    _playerBody!.GlobalPosition = new Vector3(_homePos.X, BelowPlaneY, _homePos.Z);
+                    GD.Print($"LA_GATE: fall_recovered — player forced below the world (y={BelowPlaneY:0})");
+                    break;
+                }
+                if (_playerBody!.GlobalPosition.Y > BelowPlaneY + 20f)
+                {
+                    Check("FALL_RECOVERED_XZ: the guarantee returned the player to the zone-entry column",
+                          _playerBody.GlobalPosition.X == _homePos.X && _playerBody.GlobalPosition.Z == _homePos.Z,
+                          $"pos={_playerBody.GlobalPosition} home={_homePos}");
+                    Check("FALL_RECOVERED_HEALTH: the fall costs no Life",
+                          _director!.PlayerModel.Health == _healthBeforeFall,
+                          $"health={_director.PlayerModel.Health} atDrop={_healthBeforeFall}");
+                    if (_failed) return true;
+                    _stage = 51;
+                    _stageFrames = 0;
+                }
+                else if (_stageFrames > 120)
+                    Fail("no fall recovery 120 frames after the below-plane drop (player still below the world)");
+                break;
+            case 51:
+                // 90 settle frames after the recovery the player must STILL be
+                // above the plane — an oscillating guarantee lands RED here.
+                if (_playerBody!.GlobalPosition.Y < BelowPlaneY + 20f)
+                    Fail($"re-fell below the plane after recovery (y={_playerBody.GlobalPosition.Y:0.#} at +{_stageFrames})");
+                else if (_stageFrames >= 90)
+                {
+                    GD.Print("LA_GATE: FALL_RECOVERED_EXACT — below-plane fall recovers to the zone entry, Life intact, no re-fall (MC 10404)");
+                    GD.Print("LA_GATE: PASS — fall-recovery guarantee verified");
+                    _asserted = true;
+                    ReleaseHeldRefsBeforeQuit();
+                    Quit(0);
+                    return true;
+                }
+                break;
         }
         return false;
     }
