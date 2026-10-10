@@ -137,12 +137,20 @@ public partial class FloorCoverageProof : SceneTree
         int uncovered = 0, probes = 0;
         var holes = new List<string>();
         var deltas = new List<float>();
+        // MC 10026.30 (CI hygiene): ONE query object for the whole grid, From/To
+        // set per probe. The old PhysicsRayQueryParameters3D.Create per probe
+        // leaked 731 RefCounted natives at exit (engine leak report; a RED run
+        // aborted SIGABRT post-print, exit 134). Dispose releases the native
+        // ref deterministically before exit-time finalizers. Probe semantics —
+        // ray, order, grid — are byte-unchanged.
+        var q = new PhysicsRayQueryParameters3D();
         for (float x = ab.Position.X; x <= ab.End.X + 0.001f; x += StepM)
         {
             for (float z = ab.Position.Z; z <= ab.End.Z + 0.001f; z += StepM)
             {
                 probes++;
-                var q = PhysicsRayQueryParameters3D.Create(new Vector3(x, top, z), new Vector3(x, bottom, z));
+                q.From = new Vector3(x, top, z);
+                q.To = new Vector3(x, bottom, z);
                 var hit = space.IntersectRay(q);
                 if (hit.Count == 0)
                 {
@@ -157,6 +165,7 @@ public partial class FloorCoverageProof : SceneTree
                 }
             }
         }
+        q.Dispose();   // MC 10026.30: release the shared native query before the next zone boots
         string sink = "n/a";
         if (deltas.Count > 0)
         {
