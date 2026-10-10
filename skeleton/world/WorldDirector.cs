@@ -1,7 +1,7 @@
-// SIZE: inherited >400 (506 l at the MC 10167 W4 restamp; 501 after MC 3943 2g,
-// 539 pre-2g — live companion loop left for Roster.cs; since 2g: +4 l S1 hunk
-// a6704d0, +1 l W1 note 87ba446, +63 l MC 10404 fall-recovery hunk = 572 l) —
-// reasons per MC 3895 DA P2-1; block below.
+// SIZE: inherited >400 (573 l by wc at the MC 10404 wall-fix head; the prior
+// stamp's delta chain 506@MC10167 W4 -> 501@3943 2g -> 539 pre-2g -> +4 S1
+// a6704d0 -> +1 W1 87ba446 -> +63 MC 10404 summed 569 — the §6.1-7 arithmetic-
+// off-a-prior-stamp class, ARCH wall F-1) — reasons per 3895 DA P2-1; block below.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
