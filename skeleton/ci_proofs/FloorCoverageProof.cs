@@ -28,6 +28,11 @@ using System.Collections.Generic;
 //                    plus hit-minus-visual diagnostics, then the PASS marker
 //                    "FLOOR_COVERAGE_CLEAR zones=N probes=M". Unknown modes
 //                    FAIL LOUDLY (the silent-default-path lesson, MC 10210).
+//                    MC 10026.31 adds the HEIGHT-MATCH leg: on an every-8th
+//                    point subgrid |hit_y - visual_y| < 0.5 m, visual_y
+//                    recomputing terrain_builder's world<->pixel mapping on
+//                    the zone's OWN heightmap; per-zone "FLOOR_HEIGHT_DIAG
+//                    ..." lines + the "FLOOR_HEIGHT_CLEAR" marker.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/FloorCoverageProof.cs
 public partial class FloorCoverageProof : SceneTree
@@ -43,6 +48,22 @@ public partial class FloorCoverageProof : SceneTree
     private const float FallToleranceM = 2.0f;
     private const int SettleFrames = 3;      // physics sync after zone add/free
     private const int FrameBudget = 12000;   // probe runs are wall-cheap; this only catches a wedged boot
+    // MC 10026.31(c): the HEIGHT-MATCH leg — hit EXISTENCE alone (the MC 10404
+    // leg) stayed green through the SECOND MC 10404 bug: the collider laid
+    // v_scale/2 above the rendered ground (meadow DIAG median +0.82 m) had a
+    // floor, just not the floor the player could see. Every 8th grid point on
+    // BOTH axes (1/64 of the grid, ~1.7k samples over the shipped zones) also
+    // asserts the hit's HEIGHT matches the visual surface. PER-POINT, not
+    // median-vs-mean: collision and visual are two samplings of the SAME
+    // nearest-pixel field (terrain_builder.build_collision "byte-mirrors the
+    // visual builder"), so a correct build differs only by sub-metre
+    // interpolation — the per-zone FLOOR_HEIGHT_DIAG maxabs printed on every
+    // GREEN run is the falsification record of that choice: if a future
+    // terrain makes per-point fragile, the named RED states the point and
+    // the zone's maxabs, and the assert can move to the median then — with
+    // the numbers, not on taste.
+    private const int HeightSampleStride = 8;
+    private const float HeightTolM = 0.5f;
 
     private string _mode = "FLOOR_COVERAGE";
     private readonly List<string> _scenePaths = new();
@@ -55,6 +76,9 @@ public partial class FloorCoverageProof : SceneTree
     private bool _failed;                    // hard instrument failure: stop now
     private bool _holesFound;                // coverage miss: finish the sweep, fail at the end
     private string _firstHole = "";
+    private bool _heightMiss;                // height-match miss: finish the sweep too, fail at the end
+    private string _firstHeightOff = "";
+    private int _totalHeightSamples, _totalHeightMisses;
 
     public override void _Initialize()
     {
@@ -131,12 +155,22 @@ public partial class FloorCoverageProof : SceneTree
         if (Root.GetWorld3D() != visual.GetWorld3D())
         { Fail($"{zoneName}: probe space mismatch (zone is not in the root World3D)"); return; }
         var space = Root.GetWorld3D().DirectSpaceState;
+        // MC 10026.31(c): visual ground truth for the height leg — the very
+        // field build_visual_mesh samples, read back the same way. A probed
+        // Ground that cannot supply it is a HARD instrument failure: the
+        // height leg must never silently shrink to existence-only.
+        var hfield = LoadHeightField(ground, out int hw, out int hd, out float hScale);
+        if (hfield == null)
+        { Fail($"{zoneName}: height-match impossible — no heightmap field on Ground (the height leg never silently skips)"); return; }
 
         float top = ab.End.Y + 1.0f;
         float bottom = ab.End.Y - (ab.Size.Y + 1.0f + FallToleranceM);
         int uncovered = 0, probes = 0;
         var holes = new List<string>();
         var deltas = new List<float>();
+        var hDeltas = new List<float>();
+        int heightMisses = 0;
+        float heightMaxAbs = 0f;
         // MC 10026.30 (CI hygiene): ONE query object for the whole grid, From/To
         // set per probe. The old PhysicsRayQueryParameters3D.Create per probe
         // leaked 731 RefCounted natives at exit (engine leak report; a RED run
@@ -144,9 +178,11 @@ public partial class FloorCoverageProof : SceneTree
         // ref deterministically before exit-time finalizers. Probe semantics —
         // ray, order, grid — are byte-unchanged.
         var q = new PhysicsRayQueryParameters3D();
-        for (float x = ab.Position.X; x <= ab.End.X + 0.001f; x += StepM)
+        int ix = 0;
+        for (float x = ab.Position.X; x <= ab.End.X + 0.001f; x += StepM, ix++)
         {
-            for (float z = ab.Position.Z; z <= ab.End.Z + 0.001f; z += StepM)
+            int iz = 0;
+            for (float z = ab.Position.Z; z <= ab.End.Z + 0.001f; z += StepM, iz++)
             {
                 probes++;
                 q.From = new Vector3(x, top, z);
@@ -162,6 +198,20 @@ public partial class FloorCoverageProof : SceneTree
                 {
                     Vector3 hp = hit["position"].AsVector3();
                     deltas.Add(hp.Y - ab.Position.Y);
+                    if (ix % HeightSampleStride == 0 && iz % HeightSampleStride == 0)
+                    {
+                        float vy = VisualHeight(hfield, hw, hd, hScale, x, z);
+                        float dh = hp.Y - vy;
+                        hDeltas.Add(dh);
+                        float ad = System.MathF.Abs(dh);
+                        if (ad > heightMaxAbs) heightMaxAbs = ad;
+                        if (ad >= HeightTolM)
+                        {
+                            heightMisses++;
+                            if (_firstHeightOff == "")
+                                _firstHeightOff = $"{zoneName} @ ({x:0.#},{z:0.#}) hit={hp.Y:0.###} visual={vy:0.###} off={dh:0.###}";
+                        }
+                    }
                 }
             }
         }
@@ -172,12 +222,22 @@ public partial class FloorCoverageProof : SceneTree
             deltas.Sort();
             sink = $"hit-height min={deltas[0]:0.##} median={deltas[deltas.Count / 2]:0.##} max={deltas[^1]:0.##} (terrain bottom={ab.Position.Y:0.##} top={ab.End.Y:0.##})";
         }
+        string hsink = "n/a (no sampled hits)";
+        if (hDeltas.Count > 0)
+        {
+            hDeltas.Sort();
+            hsink = $"median={hDeltas[hDeltas.Count / 2]:0.###} maxabs={heightMaxAbs:0.###} misses={heightMisses} tol={HeightTolM:0.##}";
+        }
         GD.Print($"FLOOR_COVERAGE {zoneName}: probes={probes} uncovered={uncovered} holes=[{string.Join(" ", holes)}]");
         GD.Print($"FLOOR_COVERAGE_DIAG {zoneName}: hit-minus-terrain-bottom {sink}");
+        GD.Print($"FLOOR_HEIGHT_DIAG {zoneName}: height-samples={hDeltas.Count} |hit_y-visual_y| {hsink} (every {HeightSampleStride}th point both axes)");
         _totalProbes += probes;
         _totalUncovered += uncovered;
         _probedZones++;
+        _totalHeightSamples += hDeltas.Count;
+        _totalHeightMisses += heightMisses;
         if (uncovered > 0) _holesFound = true;   // keep sweeping: RED must name EVERY hole zone
+        if (heightMisses > 0) _heightMiss = true; // and EVERY height-off zone (the two RED classes name themselves)
     }
 
     private void Finish()
@@ -189,9 +249,60 @@ public partial class FloorCoverageProof : SceneTree
             Fail($"FLOOR_COVERAGE {_totalUncovered}/{_totalProbes} walkable points have no floor within {FallToleranceM:0.#} m — first hole: {_firstHole}");
             return;
         }
+        if (_heightMiss)   // MC 10026.31(c): floor EXISTS but is not the floor you SEE
+        {
+            Fail($"FLOOR_HEIGHT_OFF {_totalHeightMisses}/{_totalHeightSamples} sampled points sit >= {HeightTolM:0.##} m off the visual ground — first: {_firstHeightOff}");
+            return;
+        }
         GD.Print($"FLOOR_COVERAGE_CLEAR zones={_probedZones} probes={_totalProbes} uncovered=0");
+        GD.Print($"FLOOR_HEIGHT_CLEAR zones={_probedZones} samples={_totalHeightSamples} misses=0");
         GD.Print("LA_GATE: PASS");
         Quit(0);
+    }
+
+    /// <summary>
+    /// MC 10026.31(c): the SAME height field the visual builder samples —
+    /// terrain_builder.gd's _heights: load(heightmap_path).get_image(),
+    /// convert to RGBA8, red channel * v_scale (its `r * 255.0 * v_scale /
+    /// 255.0`, which is exactly r * vScale). Read from the Ground node's own
+    /// exported config, so a re-scaled or re-pointed zone can never be
+    /// checked against a stale copy. Null = not a configured
+    /// terrain_builder ground (the caller fails the leg — never skip).
+    /// </summary>
+    private static float[]? LoadHeightField(Node ground, out int w, out int d, out float hScale)
+    {
+        w = d = 0; hScale = 0f;
+        string path = ground.Get("heightmap_path").AsString();
+        if (path == "" || GD.Load<Texture2D>(path) is not Texture2D tex) return null;
+        float vScale = ground.Get("v_scale").AsSingle();
+        hScale = ground.Get("h_scale").AsSingle();
+        if (vScale <= 0f || hScale <= 0f) return null;
+        var img = tex.GetImage();
+        img.Convert(Image.Format.Rgba8);
+        w = img.GetWidth(); d = img.GetHeight();
+        var h = new float[w * d];
+        for (int y = 0; y < d; y++)
+            for (int x = 0; x < w; x++)
+                h[y * w + x] = img.GetPixel(x, y).R * vScale;
+        img.Dispose();
+        return h;
+    }
+
+    /// <summary>
+    /// The visual builder's world<->pixel mapping, mirrored from
+    /// terrain_builder.gd build_visual_mesh: u = world/(pixels*h_scale) + 0.5,
+    /// pixel = clamp(int(u * (pixels-1)), 0, pixels-1) — the nearest-pixel
+    /// height the mesh vertex at this world position carries. (The mesh
+    /// linearly interpolates BETWEEN vertices, 1.5-8 m apart; shipped terrain
+    /// slopes under 0.02 make that interpolation centimetres — the green run's
+    /// maxabs lines are the standing evidence, cf. the HeightSampleStride
+    /// comment.)
+    /// </summary>
+    private static float VisualHeight(float[] h, int w, int d, float hScale, float x, float z)
+    {
+        int px = Mathf.Clamp((int)((x / (w * hScale) + 0.5f) * (w - 1)), 0, w - 1);
+        int pz = Mathf.Clamp((int)((z / (d * hScale) + 0.5f) * (d - 1)), 0, d - 1);
+        return h[pz * w + px];
     }
 
     private void Fail(string msg)

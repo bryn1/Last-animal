@@ -276,9 +276,14 @@ comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 283 l (S19/MC 10273, act-three proof; +2 l fix-cycle attribution),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-P1FixProof.cs 426 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
-`fall_recovered` stages 50/51), FloorCoverageProof.cs 194 l (MC 10404: the
-standalone zone-boot 2 m grid probe — owns ONLY mode `FLOOR_COVERAGE`, boots
+P1FixProof.cs 443 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
+`fall_recovered` stages 50/51; MC 10026.31(a): +17 l — the drop moves +40/+40
+OFF the entry column so byte-exact recovery-to-entry is a traversal, not a
+tautology), FloorCoverageProof.cs 314 l (MC 10404: the standalone zone-boot
+2 m grid probe; MC 10026.30: shared query Dispose; MC 10026.31(c): +height-
+match leg — every 8th point |hit_y - visual_y| < 0.5 m vs the heightmap
+recomputed through terrain_builder's own world<->pixel mapping, markers
+`FLOOR_HEIGHT_DIAG`/`FLOOR_HEIGHT_CLEAR`) — owns ONLY mode `FLOOR_COVERAGE`, boots
 zones WITHOUT main.tscn, class-local like RosterIntegrationProof so the
 stage-pairing gate's family rule exempts it), Quests.cs 559 l (ARCH 49162d57: added — the second-largest
 file and the next ceiling watch), Compose.cs 285 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head), Harness.cs 70 l —
@@ -458,12 +463,18 @@ S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
 `CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; S19/MC 10273
 added `ACT_THREE`; MC 10404 added `FLOOR_COVERAGE` (FloorCoverageProof — every
 visible zone ground has collision EVERYWHERE: 110,475-ray grid, zero uncovered
-walkable points) and `fall_recovered` (P1FixProof stages 50/51 — a below-plane
+walkable points; MC 10026.31(c) adds the every-8th-point HEIGHT assert vs the
+visual surface — `FLOOR_HEIGHT_CLEAR` grepped in-leg too) and `fall_recovered` (P1FixProof stages 50/51 — a below-plane
 fall restores to the zone entry with Life intact; the product
-`FALL_RECOVERED from=` guarantee line is grepped in-leg); count = `grep -cE '^run_mode '`
+`FALL_RECOVERED from=` guarantee line is grepped in-leg; MC 10026.31(a) drops
+the player +40/+40 OFF the entry column so the assert is a traversal); count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
-trips the gate.
+trips the gate. MC 10026.31(b) additionally wraps the legs in `battery_body()` whose
+whole stdout is tee'd to a census log: the tail asserts the product line
+`FALL_RECOVERED from=` appears EXACTLY `FR_CENSUS` times battery-wide (today 3:
+1 own-leg + 2 calm_use wild-id-24 drift rescues — tightened to 1 when card
+10026.29 lands).
 
 ### 6.1 Recipe — adding a proof-mode leg (MC 10255; every fact measured at this tip; shipped exemplars: S8 `BARK`, S19 `ACT_THREE`)
 

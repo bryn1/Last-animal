@@ -17,6 +17,7 @@
 #     the live scene after PASS so 15s lands on real scene content).
 #
 # Battery at this HEAD: 40 run_mode legs = 30 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; count = grep -cE '^run_mode ' here).
+# SIZE reason (file hygiene law, past the 600 test ceiling at 620 l): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count.
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -46,6 +47,12 @@ fail() { echo "RUNTIME_INTEGRATION_TEST: GATE FAIL: $*" >&2; exit 1; }
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER"
+
+# MC 10026.31(b): the battery runs as battery_body() below and its WHOLE
+# stdout is tee'd to a census log, so the tail can grep product lines ACROSS
+# EVERY LEG (see FR_CENSUS at the tail). Body legs are verbatim; a fail()
+# inside exits the pipeline subshell, the wrapper propagates its code.
+battery_body() {
 
 # (A-1) clean-clone import: a fresh clone has an empty/missing .godot/imported/,
 # so the first gate run spams import errors and the navmesh bakes 0 polygons.
@@ -547,6 +554,11 @@ done
 # terrain's own height range + 2 m. Zero uncovered points is the assert; the
 # per-zone hit-minus-terrain-bottom stats print as diagnostics. The two decor-
 # only test scenes must be NAMED as skipped (never silently absent).
+# MC 10026.31(c): the leg ALSO asserts height-match — on an every-8th-point
+# subgrid the ray's hit_y must sit within 0.5 m of the visual surface height
+# recomputed through terrain_builder's own world<->pixel mapping (existence of
+# a floor was NOT enough: the pre-fix collider floated +0.82 m over the meadow
+# ground with full coverage). Marker FLOOR_HEIGHT_CLEAR is grepped below.
 PROOF_FLOOR="res://ci_proofs/FloorCoverageProof.cs"
 [ -f "$PROJ/ci_proofs/FloorCoverageProof.cs" ] || fail "FloorCoverageProof.cs not found"
 run_mode FLOOR_COVERAGE pass "FLOOR_COVERAGE_CLEAR" "$PROOF_FLOOR"
@@ -559,16 +571,50 @@ for sk in bluetest/blue redtest/red; do
   [[ "$LOGFC" == *"FLOOR_COVERAGE skip res://zones/$sk.tscn"* ]] \
     || fail "FLOOR_COVERAGE: named skip line for zones/$sk.tscn missing (decor-only scenes are disclosed, not silently skipped)"
 done
+[[ "$LOGFC" == *'FLOOR_HEIGHT_CLEAR'* ]] \
+  || fail "FLOOR_COVERAGE: FLOOR_HEIGHT_CLEAR missing (MC 10026.31(c) height-match leg — |hit_y-visual_y| < 0.5 m on the every-8th-point subgrid)"
 
 # (V) MC 10404 FALL RECOVERY: the general guarantee — a player below the
-# loaded ground's visual floor (the fall-through state, forced at y=-30 in
-# the proof) is restored by the director's clamp to the zone-entry column,
-# Life UNCHANGED, no re-fall loop (P1FixProof stage 50/51). The product line
+# loaded ground's visual floor (the fall-through state, forced at y=-30 and
+# +40/+40 OFF the entry column in the proof — MC 10026.31(a): the drop no
+# longer lands on the player's own home X/Z, so the byte-exact recovery-to-
+# entry assert is a real ~57 m traversal, not a tautology) is restored by the
+# director's clamp to the zone-entry column, Life UNCHANGED, no re-fall loop
+# (P1FixProof stage 50/51). The product line
 # FALL_RECOVERED is grepped here in the second run.
 run_mode fall_recovered pass "FALL_RECOVERED_EXACT" "$PROOF_P1"
 LOGFR="$(LA_GATE_MODE=fall_recovered timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF_P1" 2>&1)" || true
 [[ "$LOGFR" == *'FALL_RECOVERED from'* ]] \
   || fail "fall_recovered: the product FALL_RECOVERED guarantee line never printed (clamp missing or below-plane never detected)"
 
+}   # ---- end battery_body ----
+
+# MC 10026.31(b): battery-wide FALL_RECOVERED census — the product guarantee
+# line 'FALL_RECOVERED from=' must appear EXACTLY FR_CENSUS times in the WHOLE
+# battery log (the tee'd stdout above), not just in its own leg. Today the
+# count is 3, and NOT all of it is its own leg:
+#   1  section V (fall_recovered, run_mode echo)
+#   2  section J2 (calm_use): the leg's choreography co-locates the player
+#      with wild id 24, whose spawn sits beyond the meadow ground edge
+#      (x=66.69); the wild agent's UNBOUNDED drift drags the player below the
+#      plane and the MC 10404 guarantee RESCUES twice (disclosed: LEDGER
+#      MC 10404 row, calm_use interaction).
+# Card 10026.29 (bound the wild-agent drift) retires those 2 calm_use lines —
+# when it lands, TIGHTEN FR_CENSUS to 1 (own-leg only) IN THAT COMMIT.
+# Red-capability (logs .tmp/close-10422/): a planted extra 'FALL_RECOVERED
+# from=' echo takes the census 3->4 and this tail goes RED, exit 1.
+FR_CENSUS=3
+BATT_LOG="${BATTERY_CENSUS_LOG:-$PROJ/.tmp/battery-census.$$.log}"
+mkdir -p "$PROJ/.tmp"
+battery_body | tee "$BATT_LOG"
+BODY_CODE=${PIPESTATUS[0]}
+if [ "$BODY_CODE" -ne 0 ]; then
+  echo "RUNTIME_INTEGRATION_TEST: census skipped (battery body exited $BODY_CODE) — partial log $BATT_LOG" >&2
+  exit "$BODY_CODE"
+fi
+FR_HITS=$(grep -c 'FALL_RECOVERED from=' "$BATT_LOG" || true)
+[ "$FR_HITS" -eq "$FR_CENSUS" ] \
+  || fail "battery-wide census: 'FALL_RECOVERED from=' printed $FR_HITS time(s), expected EXACTLY $FR_CENSUS (1 fall_recovered own-leg + 2 calm_use wild-id-24 drift x=66.69 — tighten to 1 when card 10026.29 lands; census log $BATT_LOG)"
+echo "RUNTIME_INTEGRATION_TEST: FALL_RECOVERED_CENSUS $FR_HITS/$FR_CENSUS OK (own-leg 1 + calm_use 2, pre-10026.29)"
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; mode vocabulary drift gate green; non-blank render)"
 exit 0

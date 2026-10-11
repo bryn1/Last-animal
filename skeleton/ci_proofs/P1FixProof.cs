@@ -34,6 +34,10 @@ using System.Collections.Generic;
 //                   terrain death on v0.4.0 Windows) must be restored by the
 //                   director's fall guarantee: back at the zone-entry XZ,
 //                   Life untouched, no re-fall loop over the settle window.
+//                   MC 10026.31 (DA wall): the drop is at an OFFSET
+//                   (+40,-30,+40) from the entry column — dropping at the
+//                   player's OWN home X/Z had made the byte-exact XZ
+//                   recovery a home-vs-home tautology.
 //                   Markers: FALL_RECOVERED (the product line), FALL_RECOVERED_EXACT.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
@@ -45,6 +49,13 @@ public partial class P1FixProof : SceneTree
     private const int BookBudget = 600;      // book stage: press cycles + settle
     private const int TravelSettleFrames = 15; // zone travel: let QueueFree land
     private const float BelowPlaneY = -30f;    // fall_recovered drop depth: far under every zone's floor min
+    // MC 10026.31 (DA wall): the drop lands AWAY from the home column. Dropped
+    // at the player's own home X/Z, the guarantee's byte-exact "restore to
+    // entry" returned the very XZ it was called with — the recovery assert was
+    // vacuous. +40/+40 stays inside every shipped zone (meadow +/-48 m):
+    // recovery now traverses ~57 m of XZ before it can satisfy the check.
+    private const float DropOffsetX = 40f;
+    private const float DropOffsetZ = 40f;
 
     private EventBus? _bus;
     private WorldDirector? _director;
@@ -79,7 +90,9 @@ public partial class P1FixProof : SceneTree
         // MC 10404 fall_recovered: capture the PRISTINE scene spawn — the same
         // un-moved transform the director reads as _spawnOrigin in its _Ready
         // (physics has not ticked yet: this runs between Instantiate and
-        // AddChild). The recovery target must match it byte-exact in XZ.
+        // AddChild). The recovery target must match it byte-exact in XZ — and
+        // the drop is at an OFFSET from this column (MC 10026.31, stage 50),
+        // so matching it is the traversal, not the input.
         _homePos = _main.GetNodeOrNull<Node3D>("Player")?.GlobalPosition ?? Vector3.Zero;
         Root.AddChild(_main);
     }
@@ -325,9 +338,13 @@ public partial class P1FixProof : SceneTree
                     // Force y BELOW the plane on the live scene (the owner's
                     // fall-through state, deterministic, no terrain hole
                     // needed): the director's guarantee must fire next frame.
+                    // MC 10026.31 (DA wall): drop at an OFFSET from the home
+                    // column — the old home-X/Z drop made the byte-exact XZ
+                    // recovery below a tautology (restore returned what it was
+                    // given). From here, recovery is ~57 m of real traversal.
                     _healthBeforeFall = _director!.PlayerModel.Health;
-                    _playerBody!.GlobalPosition = new Vector3(_homePos.X, BelowPlaneY, _homePos.Z);
-                    GD.Print($"LA_GATE: fall_recovered — player forced below the world (y={BelowPlaneY:0})");
+                    _playerBody!.GlobalPosition = new Vector3(_homePos.X + DropOffsetX, BelowPlaneY, _homePos.Z + DropOffsetZ);
+                    GD.Print($"LA_GATE: fall_recovered — player forced below the world at home+({DropOffsetX:0},0,{DropOffsetZ:0}) (y={BelowPlaneY:0})");
                     break;
                 }
                 if (_playerBody!.GlobalPosition.Y > BelowPlaneY + 20f)
