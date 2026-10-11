@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SIZE reason (file hygiene law, past the 600 test ceiling at 620 l): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count.
 # runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
 # grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
 # full battery below).
@@ -17,7 +18,6 @@
 #     the live scene after PASS so 15s lands on real scene content).
 #
 # Battery at this HEAD: 40 run_mode legs = 30 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; count = grep -cE '^run_mode ' here).
-# SIZE reason (file hygiene law, past the 600 test ceiling at 620 l): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count.
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
