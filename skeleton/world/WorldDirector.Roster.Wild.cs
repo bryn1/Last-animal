@@ -1,7 +1,7 @@
 // SIZE: 171 l measured by wc AT this head (MC 10420 c3 F-E: the c2 "169/+5" stamp was
 // delta-summed off pre-c2 164; real growth was +7 — WireFollowClamp call + note; delta
-// arithmetic dies here, MC 3895 idiom) — WILD-side half of the stage 2g roster wiring (
-// MC 10080 split of WorldDirector.Roster.cs: every member below moved VERBATIM, pure move).
+// arithmetic dies here, MC 3895 idiom) — WILD-side half of the stage 2g roster
+// wiring (MC 10080 split of WorldDirector.Roster.cs: every member below moved VERBATIM, pure move).
 using Godot;
 using LastAnimal.Companion;
 
@@ -119,10 +119,10 @@ public partial class WorldDirector
         // reason line names). The SAME ClampToGround bound that owns enemy
         // MOTION bounds this placement — one mechanism.
         body.GlobalPosition = ClampToGround(p + new Vector3(2.5f, 0f, 0f));
-        // MC 10420 c2 F-DA1: from the RECRUIT the body follows the player, and
-        // its follow target resolves through the SAME ClampToGround (wired at
-        // the spawn; inert while wild — Target is null until the pay_wage
-        // join moves the body into _bodies).
+        // MC 10420 c2 F-DA1: WireFollowClamp is UNGATED at every body spawn
+        // site (boot, restored, this wild one), so the GroundClamp delegate is
+        // LIVE here from the spawn — a wild body merely lacks a Target, and
+        // _Process returns before it is read (pay_wage sets Target + _bodies).
         WireFollowClamp(body);
         _wild.Add(body);
         GD.Print($"ROSTER: wild creature spawned id={eid} (interact to offer, pay_wage to recruit)");

@@ -1,3 +1,4 @@
+// SIZE: 341 l measured by wc AT this head (MC 10509 TF-1 — the stamp this partial never carried: 201 l at f640a87, 340 l at 6f33cd4, both by wc AT those commits; this header is the +1). CI proof partial past the 250 l target, UNDER the 400 l class ceiling (test-class ceiling 600): every GROUND_CLAMP check is a gate DRIVEN by this one live composed scene, so a split would orphan a check from the scene that drives it. Restamp by wc AT HEAD, never delta-sum (MC 3895 idiom).
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.World;
