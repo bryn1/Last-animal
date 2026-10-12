@@ -1,4 +1,7 @@
-// SIZE: 389 l measured (MC 10255 restamp, S24 TEST wall P3-1 carry — the 382 stamp already lagged the S24 head, where this file measured 389) — roster-core half of the stage 2g roster wiring (MC 10080 split:
+// SIZE: 391 l measured (MC 10420 c2: +2 truthfully counted — the two
+// WireFollowClamp calls; MC 10255 restamp, S24 TEST wall P3-1 carry — the 382
+// stamp already lagged the S24 head, where this file measured 389) —
+// roster-core half of the stage 2g roster wiring (MC 10080 split:
 // the WILD-side members moved VERBATIM to WorldDirector.Roster.Wild.cs — pure
 // move, no logic edits). What lives HERE: the roster/bodies/wild state and its
 // read-only surfaces, Init/Tick, the cycle/break polls, the visible-body spawns
@@ -257,6 +260,7 @@ public partial class WorldDirector
             EntityId = _companionCore.CompanionEntityId,
             BoundFollower = _roster[0],
         };
+        WireFollowClamp(body);   // MC 10420 c2 F-DA1: follow MOTION ends at the ground
         AddChild(body);
         _bodies.Add(body);
     }
@@ -296,6 +300,7 @@ public partial class WorldDirector
             EntityId = eid,
             BoundFollower = follower,
         };
+        WireFollowClamp(body);   // MC 10420 c2 F-DA1: follow MOTION ends at the ground
         AddChild(body);
         _bodies.Add(body);
     }

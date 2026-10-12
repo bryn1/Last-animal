@@ -1,4 +1,6 @@
-// SIZE: 162 l — MC 10420 split of the ground guarantee out of WorldDirector.cs
+// SIZE: 177 l measured (MC 10420 c2: +15 truthfully counted — WireFollowClamp,
+// the follow-clamp injection of the ONE clamp) — MC 10420 split of the ground
+// guarantee out of WorldDirector.cs
 // (floor-plane half moved VERBATIM from the composition root, the extent half
 // new): one concern per file — the loaded ground's Y plane + XZ extent, resolved
 // from the terrain_builder meta channel, are the composition root's smallest
@@ -71,6 +73,21 @@ public partial class WorldDirector
         p.X = Mathf.Clamp(p.X, _groundExtentMin.X, _groundExtentMax.X);
         p.Z = Mathf.Clamp(p.Z, _groundExtentMin.Y, _groundExtentMax.Y);
         return p;
+    }
+
+    /// <summary>MC 10420 cycle 2 (F-DA1): wire the follow clamp into a visible
+    /// companion body — the same ownership line as the EnemyActor
+    /// SetGroundBounds injection (the shell steers, the bounds say where
+    /// steering ends), and literally the SAME clamp function: the body's
+    /// follow target resolves through ClampToGround itself, so no second
+    /// clamp arithmetic exists. Ungated on purpose (the enemy injection
+    /// carries VALUES, stale across a zone travel; this carries the method —
+    /// it reads the live armed state per call): a disarmed scene keeps the
+    /// body unbounded as before, warned LOUD once (the MC 10404 never-silent
+    /// idiom). Called at every body spawn site.</summary>
+    private void WireFollowClamp(CompanionFollowBody body)
+    {
+        body.GroundClamp = ClampToGround;
     }
 
     /// <summary>Resolve the loaded ground's guarantees from the terrain meta

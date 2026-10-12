@@ -1,6 +1,8 @@
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.World;
+using System.Collections.Generic;
+using System.Linq;
 
 // Last Animal — MC 10420 / 10026.29 ground-extent clamp proof (code, 2026-10-12).
 //
@@ -24,19 +26,34 @@ using LastAnimal.World;
 //      from the (far -X) player at full speed, every tick, until world motion
 //      hits the bound — the body must PIN at the extent (never beyond, and it
 //      must actually REACH it: no vacuous green);
-//   2. every enemy/wild body position is swept against the extent EVERY frame
-//      — a beyond-extent position FAILS the leg naming its coordinates
-//      (the planted-bad +100 m clamp widening walks straight into this);
+//   2. every live enemy/wild/FOLLOWER body position is swept against the
+//      extent EVERY frame — a beyond-extent position FAILS the leg naming
+//      its coordinates (the planted-bad +100 m clamp widening walks straight
+//      into this); cycle 2 (DA wall F-DA1) extends the ONE sweep to
+//      _bodies/FollowerBodies — recruited followers are structurally outside
+//      the Enemies+WildBodies lists cycle 1 walked;
 //   3. the wild-spawn co-location (the calm choreography's mechanism) must
-//      land ON the ground even when requested past the edge.
+//      land ON the ground even when requested past the edge;
+//   4. RECRUIT-THEN-EDGE-HOVER (cycle 2, the F-DA1 lure): the wild of step 3
+//      is recruited through the PRODUCTION wire (interact offer + pay_wage
+//      first wage), the player holds 2 m inside the +X edge so the recruited
+//      follower's arrival point is TARGET + FollowDistance = edge + 1.5 — it
+//      must PIN at the extent (30 frames under the follow lerp's continued
+//      pressure; without the injected follow clamp it settles beyond-extent
+//      and the sweep names it), and the PLAYER itself must stand PAST the
+//      extent untouched for 30 frames (rescue-not-prevention: the clamp binds
+//      companions, never the player).
 //
 // Markers: GROUND_CLAMP_AABB, ENEMY_GROUNDPIN, WILD_SPAWN_CLAMPED,
-// GROUND_CLAMP_SWEEP, GROUND_CLAMP_CLEAR. Zero FALL_RECOVERED inside this leg
-// is asserted battery-side (the leg never places an actor below the plane).
+// FOLLOWER_EDGEHOVER, PLAYER_UNCLAMPED, GROUND_CLAMP_SWEEP, GROUND_CLAMP_CLEAR.
+// Zero FALL_RECOVERED inside this leg is asserted battery-side (the leg never
+// places an actor below the plane).
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private int _gPhase, _gFrames, _gPin, _gSwept;
     private EnemyActor? _gTarget;
+    private CompanionFollowBody? _gWild;      // the phase-2 wild, RECRUITED in phase 3 (F-DA1)
+    private int _gHoverSub, _gPayBefore, _gPin2, _gInteractToggle;
     private Vector2 _gMin, _gMax;          // ground extent XZ (meta-resolved)
     private const float SweepEps = 0.05f;  // float-noise tolerance on the bound
 
@@ -50,7 +67,8 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 0: GSetup(); break;
             case 1: GPin(); break;
             case 2: GWildCoLocate(); break;
-            case 3: GFinish(); break;
+            case 3: GRecruitEdge(); break;   // MC 10420 c2 (F-DA1)
+            case 4: GFinish(); break;
         }
     }
 
@@ -137,11 +155,117 @@ public partial class RuntimeIntegrationProof : SceneTree
             w.GlobalPosition.X >= _gMax.X - 0.05f && Mathf.Abs(w.GlobalPosition.Z - zx) < 0.05f,
             $"wild landed ({w.GlobalPosition.X:0.###},{w.GlobalPosition.Z:0.###}) vs edge ({_gMax.X:0.#},{zx:0.#})");
         GD.Print($"LA_GATE: WILD_SPAWN_CLAMPED x={w.GlobalPosition.X:0.###} (requested {_gMax.X + 2.5f:0.#}) y={w.GlobalPosition.Y:0.##}");
-        // Co-locate the player onto it — the calm idiom verbatim — and finish
-        // sweeping: nothing on this scene may be off the ground, least of all
-        // the player whose falls the census counts.
+        // Co-locate the player onto it — the calm idiom verbatim — and carry the
+        // wild into the RECRUIT case below: it stands PINNED at the +X edge, the
+        // exact spawn placement F-DA1's lure starts from.
         _playerBody.GlobalPosition = w.GlobalPosition;
-        _gPhase = 3; _gFrames = 0;
+        _gWild = w;
+        _gPhase = 3; _gFrames = 0; _gHoverSub = 0;
+    }
+
+    /// <summary>MC 10420 cycle 2 (DA wall F-DA1): the RECRUIT-THEN-EDGE-HOVER
+    /// case — the body class the cycle-1 sweep was STRUCTURALLY blind to (a
+    /// recruited follower leaves Enemies/WildBodies for _bodies/FollowerBodies
+    /// while remaining the ONE position-writing motion path outside the two
+    /// swept lists). Drives the PRODUCTION wire end-to-end (interact offer +
+    /// pay_wage FIRST wage), then holds the player 2 m inside the +X edge: the
+    /// follow lerp's arrival point is TARGET + FollowDistance along the live
+    /// offset = edge + 1.5 — without the director-injected follow clamp
+    /// (WireFollowClamp) the body settles past the extent on the floorless
+    /// ring, floating, luring the player (the x=66.69 fall-lure class, DA's
+    /// 51.5 figure) and the every-frame sweep FAILS naming the FOLLOWER
+    /// position (the plant-red walks into it); with the clamp it PINS at the
+    /// edge (30 frames under continued lerp pressure). Ends with the DoD-1
+    /// player probe: the clamp binds companions, NEVER the player.</summary>
+    private void GRecruitEdge()
+    {
+        SweepInside("recruit-hover");
+        if (_gWild == null) { Fail("GROUND_CLAMP: phase 2 lost its wild body"); return; }
+        var roster = _director!.RosterView;
+        float mid = (_gMin.Y + _gMax.Y) * 0.5f;
+        switch (_gHoverSub)
+        {
+            case 0:   // speak to the edge wild: the interact scan marks the offer
+                SPress("interact", ref _gInteractToggle);
+                if (_gWild.RecruitOffered)
+                {
+                    Input.ActionRelease("interact");
+                    _gPayBefore = roster.Count;
+                    Input.ActionPress("pay_wage");
+                    _gHoverSub = 1; _gFrames = 0;
+                }
+                else if (_gFrames > 300)
+                {
+                    Input.ActionRelease("interact");
+                    Fail("GROUND_CLAMP: the interact offer never opened on the edge wild (recruit case cannot drive)");
+                }
+                break;
+
+            case 1:   // the FIRST wage: the production join moves the body to _bodies
+                if (roster.Count == _gPayBefore + 1)
+                {
+                    Input.ActionRelease("pay_wage");
+                    Check("recruited body moved into FollowerBodies (the cycle-1 sweep could never see it)",
+                        _director!.FollowerBodies.Contains(_gWild) && !_director.WildBodies.Contains(_gWild),
+                        $"followers={_director.FollowerBodies.Count} wilds={_director.WildBodies.Count}");
+                    GD.Print($"LA_GATE: GROUND_CLAMP recruit: {_gWild.Name} RECRUITED at the edge via pay_wage (followers={roster.Count}) — follow MOTION now live");
+                    // The lure geometry, seeded ON the production placement (the
+                    // wild stands CLAMPED at the edge; a test placement is not
+                    // motion): the player 2 m inside, follower EAST of it, so the
+                    // follow arrival point wants edge + 1.5 every frame.
+                    _gWild.GlobalPosition = new Vector3(_gMax.X, _gWild.GlobalPosition.Y, mid);
+                    _playerBody!.GlobalPosition = new Vector3(_gMax.X - 2f, 3f, mid);
+                    _gHoverSub = 2; _gFrames = 0; _gPin2 = 0;
+                }
+                else if (_gFrames > 600)
+                {
+                    Input.ActionRelease("pay_wage");
+                    Fail("GROUND_CLAMP: the pay press at the edge recruited nobody (offer/wage wire broken in this choreography)");
+                }
+                break;
+
+            case 2:   // edge hover: the player holds 2 m inside, the lerp pressure
+                      // east stays on — the body must PIN at the extent.
+                {
+                    float fx = _gWild!.GlobalPosition.X;
+                    if (fx >= _gMax.X - 0.3f) _gPin2++;
+                    if (_gPin2 >= 30)
+                    {
+                        Check("recruited follower pinned AT the extent (the follow clamp BIT — arrival point edge+1.5 unclamped)",
+                            fx <= _gMax.X + SweepEps,
+                            $"follower x={fx:0.###} vs edge {_gMax.X:0.###}");
+                        if (_failed) return;
+                        GD.Print($"LA_GATE: FOLLOWER_EDGEHOVER body={_gWild!.Name} x={fx:0.###} edge={_gMax.X:0.###} player x={_playerBody!.GlobalPosition.X:0.###} (follow target wants edge+1.5 — pinned under 30 frames of lerp pressure)");
+                        // DoD-1 player probe, raw write (the production write
+                        // style): 0.5 m PAST the meta extent — still ON the
+                        // collider overshoot (mw = ceil+2, ~1 m/side), so the
+                        // probe STANDS, it never falls, the census stays 1/1.
+                        _playerBody.GlobalPosition = new Vector3(_gMax.X + 0.5f, 3f, mid);
+                        _gHoverSub = 3; _gFrames = 0;
+                    }
+                    else if (_gFrames > 900)
+                    {
+                        Fail($"GROUND_CLAMP: the recruited follower never pinned at the edge — reached only x={fx:0.###} of {_gMax.X:0.###} in 900 frames");
+                    }
+                }
+                break;
+
+            case 3:   // the player itself stays UNCLAMPED: past the extent for 30
+                      // frames while the swept companions stay inside it (any
+                      // accidental player clamp pulls x back — RED here).
+                if (_gFrames >= 30)
+                {
+                    var p = _playerBody!.GlobalPosition;
+                    Check("player itself stays UNCLAMPED past the extent (rescue-not-prevention)",
+                        p.X >= _gMax.X + 0.4f,
+                        $"player x={p.X:0.###} requested {_gMax.X + 0.5f:0.#} held past edge {_gMax.X:0.###} for {_gFrames} frames — must NOT be pulled back");
+                    if (_failed) return;
+                    GD.Print($"LA_GATE: PLAYER_UNCLAMPED player x={p.X:0.###} past edge {_gMax.X:0.###} for {_gFrames} frames — the follow clamp binds companions only, the player stays rescue-governed");
+                    _playerBody.GlobalPosition = _director!.ClampToGround(new Vector3(_gMax.X - 3f, 3f, mid));
+                    _gPhase = 4; _gFrames = 0;
+                }
+                break;
+        }
     }
 
     private void GFinish()
@@ -153,16 +277,20 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (_gFrames < 60) return;
         GD.Print($"LA_GATE: GROUND_CLAMP_SWEEP frames={_gFrames} position-checks={_gSwept} zero beyond-extent");
         GD.Print("GROUND_CLAMP_CLEAR");
-        GD.Print("LA_GATE: PASS — ground-extent clamp: enemy MOTION pins at the loaded edge under live flee pressure, wild co-locations land on the ground, every enemy/wild position stayed inside the extent");
+        GD.Print("LA_GATE: PASS — ground-extent clamp: enemy MOTION pins at the loaded edge under live flee pressure, wild co-locations land on the ground, a recruited follower edge-hovers PINNED at the edge under follow pressure while the player stands unclamped past it, every enemy/wild/follower position stayed inside the extent");
         _asserted = true;
         ReleaseHeldRefsBeforeQuit();
         Quit(0);
     }
 
-    /// <summary>The DoD-1 probe assertion: EVERY live enemy + wild body, EVERY
-    /// physics frame of the leg, inside the ground extent — a violation names
-    /// the exact beyond-extent position and exits 1 (the plant-red walks into
-    /// this line the frame the widened clamp lets it past the edge).</summary>
+    /// <summary>The DoD-1 probe assertion: EVERY live enemy + wild + FOLLOWER
+    /// body, EVERY physics frame of the leg, inside the ground extent — a
+    /// violation names the exact beyond-extent position and exits 1 (the
+    /// plant-red walks into this line the frame the widened clamp lets it past
+    /// the edge). MC 10420 cycle 2 (F-DA1): the FOLLOWER list joined the sweep
+    /// — the RECRUITED bodies live in _bodies/FollowerBodies, structurally
+    /// OUTSIDE the two lists cycle 1 swept, which is exactly why the DA wall
+    /// pinned the follow lerp as the one live unswept position writer.</summary>
     private void SweepInside(string when)
     {
         foreach (var e in _director!.Enemies)
@@ -184,6 +312,17 @@ public partial class RuntimeIntegrationProof : SceneTree
                 q.Z < _gMin.Y - SweepEps || q.Z > _gMax.Y + SweepEps)
             {
                 Fail($"WILD_OUTSIDE_EXTENT {w.Name} at ({q.X:0.###},{q.Y:0.##},{q.Z:0.###}) beyond ground x[{_gMin.X:0.##}..{_gMax.X:0.##}] z[{_gMin.Y:0.##}..{_gMax.Y:0.##}] ({when}) — a co-location landed off the ground");
+                return;
+            }
+        }
+        foreach (var f in _director.FollowerBodies)
+        {
+            var q = f.GlobalPosition;
+            _gSwept++;
+            if (q.X < _gMin.X - SweepEps || q.X > _gMax.X + SweepEps ||
+                q.Z < _gMin.Y - SweepEps || q.Z > _gMax.Y + SweepEps)
+            {
+                Fail($"FOLLOWER_OUTSIDE_EXTENT {f.Name} at ({q.X:0.###},{q.Y:0.##},{q.Z:0.###}) beyond ground x[{_gMin.X:0.##}..{_gMax.X:0.##}] z[{_gMin.Y:0.##}..{_gMax.Y:0.##}] ({when}) — follow MOTION escaped the loaded ground (the F-DA1 lure: a floating companion past the edge)");
                 return;
             }
         }

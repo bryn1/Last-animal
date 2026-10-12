@@ -59,7 +59,7 @@ the composition root (see §3).
 - **Composition root**: `world/WorldDirector.cs` on `main.tscn` — the ONLY
   production site that constructs gameplay systems and binds them into
   `GameBootstrap` (design 1256.2). Also in `world/`: `Player.cs`-adjacent actors
-  (`EnemyActor.cs` (MC 10420: the ground-bounded motion tick — the director injects the ground XZ bounds with the AI at spawn; the shell re-anchors the AI PLAN to the extent every tick before steering and belts the BODY after `MoveAndSlide` — chase/patrol/flee motion ends AT the loaded ground edge, unbounded diffusion retired), `CompanionFollowBody.cs`, `CompanionVisual.cs`,
+  (`EnemyActor.cs` (MC 10420: the ground-bounded motion tick — the director injects the ground XZ bounds with the AI at spawn; the shell re-anchors the AI PLAN to the extent every tick before steering and belts the BODY after `MoveAndSlide` — chase/patrol/flee motion ends AT the loaded ground edge, unbounded diffusion retired), `CompanionFollowBody.cs` (MC 10420 c2 F-DA1: the follow TARGET resolves through the director-injected `GroundClamp` delegate — literally the same `ClampToGround`, wired at every body spawn by `WireFollowClamp`, so follow MOTION ends at the extent too; the PLAYER stays unclamped — rescue-governed), `CompanionVisual.cs`,
   `ActorVisual.cs` — MC 3895 composed per-type enemy silhouettes, boss scaled;
   spawned zone enemies parent under the director's `Visuals` Node3D on
   `main.tscn`), `WorldDirector.Story.cs` (partial: the quest root seam —
@@ -105,7 +105,7 @@ the composition root (see §3).
 S15/MC 10199 day-night driver — INTEGER frame clock on the 60 Hz world tick + the
 per-zone const keyframe tables on the shipped `Environment` + `DirectionalLight3D`,
 280 l), `WorldDirector.Motion.cs` (partial: the S14/MC 10198 character-life driver —
-integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.Ground.cs` (partial, MC 10420 split of the ground guarantee — the MC 10404 fall plane MOVED VERBATIM + the NEW XZ ground-extent clamp, both resolved per zone-entry from the terrain_builder meta channel `floor_min_y` + `ground_extent` (ONE channel, one mechanism); `ClampToGround` is the ONE point world motion + co-locations bound to the loaded ground, missing meta DISARMS LOUD (never-silent), 162 l), `VisualJuice.cs`
+integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.Ground.cs` (partial, MC 10420 split of the ground guarantee — the MC 10404 fall plane MOVED VERBATIM + the NEW XZ ground-extent clamp, both resolved per zone-entry from the terrain_builder meta channel `floor_min_y` + `ground_extent` (ONE channel, one mechanism); `ClampToGround` is the ONE point world motion + co-locations bound to the loaded ground, missing meta DISARMS LOUD (never-silent); MC 10420 c2 F-DA1 adds `WireFollowClamp` — the same method injected into every visible companion body at spawn, 177 l), `VisualJuice.cs`
 (the S1/MC 10120 juice node: hit-flash + offset-punch presentation, split out of
 `ActorVisual.cs` at MC 10183, 186 l), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
@@ -259,7 +259,7 @@ the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
 10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
-ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; measured 574 l at this head)
+ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; +9 l MC 10420 c2 F-DA1 (mode-doc row growth + the c2 SIZE restamp); measured 583 l at this head)
 Proof.cs
 (== was 557 l at MC 10255 head; +25 l over the S24-head truth 529 l — the S19 ACT_THREE mode-doc row, KnownModes
 entry, case 103 arm and the SIZE restamp — then +3 l S19 fix-cycle attribution; the older
@@ -277,8 +277,9 @@ comment budget was owed elsewhere), Juice.cs 126 l, Shake.cs 121 l (+2 l since
 W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 283 l (S19/MC 10273, act-three proof; +2 l fix-cycle attribution),
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
-GroundClamp.cs 201 l (MC 10420/10026.29 ground-extent motion-clamp proof — mode
-`GROUND_CLAMP`, stage 104), P1FixProof.cs 443 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
+GroundClamp.cs 340 l (MC 10420/10026.29 ground-extent motion-clamp proof — mode
+`GROUND_CLAMP`, stage 104; MC 10420 c2 +139: the RECRUIT-THEN-EDGE-HOVER phase,
+the FOLLOWER list in the ONE sweep, the PLAYER_UNCLAMPED probe), P1FixProof.cs 443 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
 `fall_recovered` stages 50/51; MC 10026.31(a): +17 l — the drop moves +40/+40
 OFF the entry column so byte-exact recovery-to-entry is a traversal, not a
 tautology), FloorCoverageProof.cs 314 l (MC 10404: the standalone zone-boot
@@ -290,7 +291,7 @@ zones WITHOUT main.tscn, class-local like RosterIntegrationProof so the
 stage-pairing gate's family rule exempts it), Quests.cs 559 l (ARCH 49162d57: added — the second-largest
 file and the next ceiling watch), Compose.cs 299 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head; +14 l MC 10420 GROUND_CLAMP compose route), Harness.cs 70 l —
 **every proof file now sits under the 600-l ceiling
-(max entry Proof.cs 574, then Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
+(max entry Proof.cs 583, then Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
 mode router moved: the entry file's stage switch stays the only mode router,
 and the pairing gate makes a dropped or orphaned stage arm a RED gate);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
@@ -489,7 +490,7 @@ ground, and calm_use carries a ZERO-FALL_RECOVERED in-leg grep.
 1. **Stage body lives in a partial** per concern: `ci_proofs/RuntimeIntegrationProof.<Concern>.cs` (house ceiling 600 l/file). A partial NEVER registers a mode into another proof's dispatcher — the ENTRY's `switch (_stage)` is the only mode router this class has (MC 3943 F-A).
 2. **csproj registration is required**: `skeleton/LastAnimalPreflight.csproj` sets `EnableDefaultCompileItems=false` and carries exactly ONE `<ItemGroup>` (measured at this tip), so every new `.cs` — proof partials included — needs an explicit `<Compile Include>`, appended at the ItemGroup END with the sibling comment idiom (S2 `Shake.cs` precedent) so parallel cards merge collision-free. (Should a second ItemGroup ever appear, mirror the sibling's placement in BOTH.)
 3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 31 ci_proofs sidecars are tracked since MC 10404's `FloorCoverageProof.cs.uid`).
-4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 201 l at this tip by that very awk (+16 MC 10420 `GROUND_CLAMP` doc row)), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof/FloorCoverageProof carry none and are gated doc == arms — 5 dispatching proofs since MC 10404). Header == allow-list == dispatch arms, or the gate names the drift RED.
+4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 208 l at this tip by that very awk (+16 MC 10420 `GROUND_CLAMP` doc row, +7 MC 10420 c2 F-DA1)), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof/FloorCoverageProof carry none and are gated doc == arms — 5 dispatching proofs since MC 10404). Header == allow-list == dispatch arms, or the gate names the drift RED.
 5. **Unknown-mode fail-safe**: the entry rejects an off-list `LA_GATE_MODE` with `LA_GATE: FAIL: unknown mode <x>` + exit 1 at dispatch top, BEFORE any stage side-effect — a set-but-empty value fails closed too (`GetEnvironmentVariable` returns `""`, the `??` default never fires). Standalone proofs keep one named arm per documented mode plus `default: Fail(…unknown mode…)`. Never let an unknown mode fall through to a PASS leg (MC 10204 F1, the vacuous-green class).
 6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **103** (`ACT_THREE`); **NEXT FREE = 104** (measured: zero `case 104` / `_stage = 104` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
 

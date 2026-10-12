@@ -1,8 +1,10 @@
-// SIZE: 557 l measured (reason; +3 l S19 fix-cycle RULING-8 attribution): the
+// SIZE: 583 l measured by wc AT this head (MC 10420 c2 F-D restamp — the "one-line
+// restamp next touch" the ARCH wall ruled; the 557 stamp lagged even cycle 1's own
+// +17; the numbers below are re-measured the same way, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 185-l mode
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 208-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 29-mode dispatch ride together here. W4 SPLIT,
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 30-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -223,12 +225,19 @@ using System.Linq;
 //                    drives a REAL spawned enemy's own flee state at full speed
 //                    into the +X bound and asserts it PINS at the extent (never
 //                    beyond, never vacuously short of it, plan re-anchored with
-//                    the body), sweeps EVERY enemy/wild position against the
-//                    extent every frame (a beyond-extent position fails the leg
-//                    naming its coordinates), and lands a wild co-location
-//                    requested 2.5 m past the edge ON the ground (stage 104,
+//                    the body), sweeps EVERY enemy/wild/FOLLOWER position
+//                    against the extent every frame (a beyond-extent position
+//                    fails the leg naming its coordinates), lands a wild
+//                    co-location requested 2.5 m past the edge ON the ground,
+//                    and (cycle 2, DA wall F-DA1) RECRUITS that edge wild on
+//                    the production wire (interact offer + pay_wage first
+//                    wage), holds the player 2 m inside the edge so the follow
+//                    lerp's arrival point wants edge + 1.5 — the companion
+//                    PINS at the extent — while the PLAYER stands unclamped
+//                    PAST it (rescue-not-prevention) (stage 104,
 //                    RuntimeIntegrationProof.GroundClamp.cs). Markers
 //                    GROUND_CLAMP_AABB / ENEMY_GROUNDPIN / WILD_SPAWN_CLAMPED /
+//                    FOLLOWER_EDGEHOVER / PLAYER_UNCLAMPED /
 //                    GROUND_CLAMP_SWEEP / GROUND_CLAMP_CLEAR.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs

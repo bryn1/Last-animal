@@ -35,6 +35,16 @@ public partial class CompanionFollowBody : Node3D
     /// <summary>Height the companion sits above the terrain baseline.</summary>
     [Export] public float Y { get; set; } = 0.55f;
 
+    /// <summary>MC 10420 cycle 2 (card 10420 F-DA1): the director-injected
+    /// ground clamp — the follow TARGET below resolves through the ONE
+    /// WorldDirector.ClampToGround that already owns enemy motion and the
+    /// wild co-locations (the SetGroundBounds injection precedent at the
+    /// body's spawns, the same function, no second clamp authored here).
+    /// Null only in a disarmed scene / a body composed outside the director:
+    /// the body then steers unbounded as before, never silently (the director
+    /// warned LOUD at resolve).</summary>
+    public System.Func<Vector3, Vector3>? GroundClamp { get; set; }
+
     /// <summary>The machine-wired entity (rig + animation), ticked by the director.</summary>
     public CompanionEntity Entity { get; }
 
@@ -143,6 +153,17 @@ public partial class CompanionFollowBody : Node3D
             want += d / len * FollowDistance;
         }
         want.Y = Y;
+
+        // MC 10420 cycle 2 (F-DA1, the DA wall's one live unclamped MOTION
+        // writer): the follow target ends AT the loaded ground — the clamp is
+        // the director's own ClampToGround, injected at this body's spawn
+        // (WireFollowClamp). The lerp below can never pass its target, so the
+        // follow MOTION stays inside the extent (the DA case: an east-side
+        // follower of a player hovering at the +X edge used to settle 3.5 m
+        // past it, floating, luring the player off-edge). The PLAYER itself
+        // stays unclamped everywhere — the MC 10404 rescue keeps its
+        // owner-fall-through purpose (the GROUND_CLAMP leg probes this).
+        if (GroundClamp != null) want = GroundClamp(want);
 
         float t = 1f - Mathf.Exp(-LerpSpeed * (float)delta);
         GlobalPosition = GlobalPosition.Lerp(want, t);
