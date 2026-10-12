@@ -25,6 +25,16 @@ public partial class EnemyActor : CharacterBody3D
     private const float Gravity = 9.8f;
 
     public EnemyAI Ai { get; private set; } = null!;
+
+    // MC 10420 / 10026.29: the ground bounds the DIRECTOR injects at spawn
+    // (world/WorldDirector.Ground.cs resolves them from the terrain meta — one
+    // channel with MC 10404's floor_min_y). The pure AI plans UNBOUNDED
+    // (patrol re-targets 2-5 m per cycle without limit, flee runs full speed
+    // away — the x=66.69 drift class); the clamp lives in this shell, the one
+    // place where the plan becomes world position, so the engine-free EnemyAI
+    // stays untouched (C11 verbatim) and there is exactly ONE clamp site.
+    private Vector2 _groundMin, _groundMax;
+    private bool _groundBounded;
     public EnemyAI.Type Kind { get; private set; }
     public bool IsDead => Ai.IsDead;
 
@@ -58,6 +68,18 @@ public partial class EnemyActor : CharacterBody3D
         AddChild(shape);
     }
 
+    /// <summary>MC 10420: inject the ground XZ bounds (min/max) at spawn —
+    /// director-owned like the AI itself (design 1256.2 §2). Absent = the
+    /// scene's ground published no extent meta (the director warned LOUD; the
+    /// GROUND_CLAMP battery leg goes RED), the shell then steers unbounded as
+    /// before rather than silently inventing a wall.</summary>
+    public void SetGroundBounds(Vector2 min, Vector2 max)
+    {
+        _groundMin = min;
+        _groundMax = max;
+        _groundBounded = true;
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         if (Ai == null || Ai.IsDead) return;
@@ -66,6 +88,19 @@ public partial class EnemyActor : CharacterBody3D
         // Tick the pure AI toward the player and read the resulting position.
         int dealt = Ai.SetBehavior(new CombatVec3(PlayerTargetX, 0f, PlayerTargetZ), dt);
         DamageDealt = dealt;
+
+        // MC 10420 (10026.29): bound the PLAN before it becomes steering, so
+        // the body walks TO the ground edge and stops there instead of
+        // stepping onto the floorless ring; the plan and the body stay ONE
+        // position (design 1256.2 §2) because the clamp below re-anchors the
+        // plan to the body every tick.
+        if (_groundBounded)
+        {
+            float px = Mathf.Clamp(Ai.Position.X, _groundMin.X, _groundMax.X);
+            float pz = Mathf.Clamp(Ai.Position.Z, _groundMin.Y, _groundMax.Y);
+            if (px != Ai.Position.X || pz != Ai.Position.Z)
+                Ai.Position = new CombatVec3(px, Ai.Position.Y, pz);
+        }
 
         // Steer the physics body toward the AI's planned XZ position.
         float dx = Ai.Position.X - GlobalPosition.X;
@@ -88,6 +123,17 @@ public partial class EnemyActor : CharacterBody3D
         }
         Velocity = vel;
         MoveAndSlide();
+
+        // MC 10420 belt: the WORLD position ends at the extent even when
+        // physics itself displaces the body (collision push, a spawn placed
+        // past the edge). One clamp site, one channel — see SetGroundBounds.
+        if (_groundBounded)
+        {
+            Vector3 g = GlobalPosition;
+            float x = Mathf.Clamp(g.X, _groundMin.X, _groundMax.X);
+            float z = Mathf.Clamp(g.Z, _groundMin.Y, _groundMax.Y);
+            if (x != g.X || z != g.Z) GlobalPosition = new Vector3(x, g.Y, z);
+        }
     }
 
     /// <summary>The player's XZ position, set by WorldDirector each frame.</summary>

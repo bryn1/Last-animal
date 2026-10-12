@@ -214,6 +214,22 @@ using System.Linq;
 //                     order behind the finale reward (ACT3_CLOSED).
 //                     Runtime-only, zero save delta, zero new signal (stage
 //                     103, RuntimeIntegrationProof.Story3.cs).
+//   GROUND_CLAMP    — MC 10420 / 10026.29: the ground-extent clamp on the LIVE
+//                    scene. The calm_use census pair (2 FALL_RECOVERED at
+//                    x=66.69 behind state-only asserts) named the class:
+//                    unbounded enemy MOTION + off-edge co-locations. Proves the
+//                    extent meta == the visible ground's AABB (FloorCoverage-
+//                    Proof's world<->extent knowledge, reused not re-authored),
+//                    drives a REAL spawned enemy's own flee state at full speed
+//                    into the +X bound and asserts it PINS at the extent (never
+//                    beyond, never vacuously short of it, plan re-anchored with
+//                    the body), sweeps EVERY enemy/wild position against the
+//                    extent every frame (a beyond-extent position fails the leg
+//                    naming its coordinates), and lands a wild co-location
+//                    requested 2.5 m past the edge ON the ground (stage 104,
+//                    RuntimeIntegrationProof.GroundClamp.cs). Markers
+//                    GROUND_CLAMP_AABB / ENEMY_GROUNDPIN / WILD_SPAWN_CLAMPED /
+//                    GROUND_CLAMP_SWEEP / GROUND_CLAMP_CLEAR.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -294,7 +310,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
-        "ZONE4", "BARK", "ACT_THREE",
+        "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -535,6 +551,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- ACT_THREE (MC 10273 S19): stage body lives in
             // RuntimeIntegrationProof.Story3.cs (partial).
             case 103: RunActThreeStage(); break;
+            case 104: RunGroundClampStage(); break;
         }
         return false;
     }

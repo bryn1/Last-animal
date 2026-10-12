@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIZE reason (file hygiene law, past the 600 test ceiling at 620 l): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count.
+# SIZE reason (file hygiene law, past the 600 test ceiling at 655 l): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps).
 # runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
 # grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
 # full battery below).
@@ -17,11 +17,11 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 40 run_mode legs = 30 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; count = grep -cE '^run_mode ' here).
+# Battery at this HEAD: 41 run_mode legs = 31 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; MC 10420: +GROUND_CLAMP; count = grep -cE '^run_mode ' here).
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
-# skill/calm/juice/dissolve/day-night legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
+# skill/calm/juice/dissolve/day-night/ground-clamp legs), ZoneBossProof.cs (zone_travel/boss_phase/death_load),
 # P1FixProof.cs (corpse_damage/wage_betrayal/empathy_book/zone_travel_boot/
 # fall_recovered), RosterIntegrationProof.cs (roster_follow/roster_neg)
 # and FloorCoverageProof.cs (floor_coverage — the standalone dense grid probe,
@@ -587,23 +587,58 @@ LOGFR="$(LA_GATE_MODE=fall_recovered timeout 300 "$GODOT" --headless --path "$PR
 [[ "$LOGFR" == *'FALL_RECOVERED from'* ]] \
   || fail "fall_recovered: the product FALL_RECOVERED guarantee line never printed (clamp missing or below-plane never detected)"
 
+# (W) MC 10420 / 10026.29 GROUND-EXTENT MOTION CLAMP: unbounded enemy MOTION is
+# the x=66.69 fall class — EnemyAI chase/patrol/flee planned WITHOUT a ground
+# bound and the calm_use choreography co-located the player onto such a position
+# (the census pair: 2 FALL_RECOVERED behind state-only asserts). The clamp
+# resolves from the terrain "ground_extent" meta (ONE channel with MC 10404's
+# floor_min_y) and binds enemy motion + wild co-locations to the loaded ground.
+# This leg drives a REAL spawned enemy's own flee state at the meadow edge,
+# asserts it PINS there (30 frames under continued pressure — never vacuously
+# short), sweeps EVERY enemy/wild position against the extent every frame (a
+# beyond-extent position fails the leg NAMING its coordinates — the planted
+# +100 m clamp widening walks into it, pair logs .tmp/close-10420/), and lands
+# a wild co-location requested 2.5 m past the edge ON the ground.
+run_mode GROUND_CLAMP pass "GROUND_CLAMP_CLEAR"
+LOGGC="$(LA_GATE_MODE=GROUND_CLAMP timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+[[ "$LOGGC" == *'GROUND_CLAMP_AABB'* ]] \
+  || fail "GROUND_CLAMP: the meta<->visible-AABB cross-check missing (the clamp box must BE the visible ground — FloorCoverageProof's world<->extent knowledge, reused)"
+[[ "$LOGGC" == *'ENEMY_GROUNDPIN'* ]] \
+  || fail "GROUND_CLAMP: the driven enemy never pinned at the ground edge (clamp not biting, or the drive bypassed it)"
+[[ "$LOGGC" == *'WILD_SPAWN_CLAMPED'* ]] \
+  || fail "GROUND_CLAMP: the off-edge wild co-location did not land ON the ground (the calm choreography's mechanism is unclamped)"
+[[ "$LOGGC" == *'GROUND_CLAMP_SWEEP'* ]] \
+  || fail "GROUND_CLAMP: the every-frame beyond-extent sweep never completed"
+[[ "$LOGGC" != *'FALL_RECOVERED from='* ]] \
+  || fail "GROUND_CLAMP: someone went below the plane INSIDE the clamp leg — the bound leaked (the census tail would also red)"
+
+# MC 10420 DoD 2 (reviewer R5 P2, the calm_use masking): with the clamp in, the
+# calm leg can no longer place anyone off the ground — ZERO FALL_RECOVERED
+# inside calm_use (baseline 575679e: 2 at from=(66.66,-2.01,-0.26)). Re-grep
+# the leg-carrying log from (E-clm) above; the census tail keeps the battery-
+# wide EXACT count.
+[[ "$LOGCLM" != *'FALL_RECOVERED from='* ]] \
+  || fail "calm_use: FALL_RECOVERED inside the calm leg — the guarantee rescued someone BELOW the plane behind this leg's state-only asserts (the R5 P2 masking; MC 10420 must keep every calm co-location ON the ground)"
+
 }   # ---- end battery_body ----
 
 # MC 10026.31(b): battery-wide FALL_RECOVERED census — the product guarantee
 # line 'FALL_RECOVERED from=' must appear EXACTLY FR_CENSUS times in the WHOLE
-# battery log (the tee'd stdout above), not just in its own leg. Today the
-# count is 3, and NOT all of it is its own leg:
-#   1  section V (fall_recovered, run_mode echo)
-#   2  section J2 (calm_use): the leg's choreography co-locates the player
-#      with wild id 24, whose spawn sits beyond the meadow ground edge
-#      (x=66.69); the wild agent's UNBOUNDED drift drags the player below the
-#      plane and the MC 10404 guarantee RESCUES twice (disclosed: LEDGER
-#      MC 10404 row, calm_use interaction).
-# Card 10026.29 (bound the wild-agent drift) retires those 2 calm_use lines —
-# when it lands, TIGHTEN FR_CENSUS to 1 (own-leg only) IN THAT COMMIT.
-# Red-capability (logs .tmp/close-10422/): a planted extra 'FALL_RECOVERED
-# from=' echo takes the census 3->4 and this tail goes RED, exit 1.
-FR_CENSUS=3
+# battery log (the tee'd stdout above), not just in its own leg. SINCE
+# MC 10420 / 10026.29 the count is 1: the fall_recovered own leg ALONE.
+# (History the tightening was written for: at the 10423 head the count was 3 —
+# the 2 extras were section J2 (calm_use), whose choreography co-located the
+# player with a wild agent past the meadow edge (x=66.69) and the guarantee
+# rescued the player twice BEHIND that leg's state-only asserts (reviewer
+# R5 P2). Card 10026.29 landed the ground-extent MOTION clamp (terrain
+# "ground_extent" meta, one channel with floor_min_y): enemy motion pins at
+# the edge and every calm co-location lands ON the ground — the calm pair
+# retired, own-leg only from here. The calm_use in-leg grep above keeps the
+# ZERO assertion local; this tail keeps it battery-wide.)
+# Red-capability (logs .tmp/close-10422/, pair re-logged .tmp/close-10420/):
+# a planted extra 'FALL_RECOVERED from=' echo takes the census 1->2 and this
+# tail goes RED, exit 1.
+FR_CENSUS=1
 BATT_LOG="${BATTERY_CENSUS_LOG:-$PROJ/.tmp/battery-census.$$.log}"
 mkdir -p "$PROJ/.tmp"
 battery_body | tee "$BATT_LOG"
@@ -614,7 +649,7 @@ if [ "$BODY_CODE" -ne 0 ]; then
 fi
 FR_HITS=$(grep -c 'FALL_RECOVERED from=' "$BATT_LOG" || true)
 [ "$FR_HITS" -eq "$FR_CENSUS" ] \
-  || fail "battery-wide census: 'FALL_RECOVERED from=' printed $FR_HITS time(s), expected EXACTLY $FR_CENSUS (1 fall_recovered own-leg + 2 calm_use wild-id-24 drift x=66.69 — tighten to 1 when card 10026.29 lands; census log $BATT_LOG)"
-echo "RUNTIME_INTEGRATION_TEST: FALL_RECOVERED_CENSUS $FR_HITS/$FR_CENSUS OK (own-leg 1 + calm_use 2, pre-10026.29)"
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; mode vocabulary drift gate green; non-blank render)"
+  || fail "battery-wide census: 'FALL_RECOVERED from=' printed $FR_HITS time(s), expected EXACTLY $FR_CENSUS (fall_recovered own-leg only — MC 10420/10026.29 clamped the calm_use off-edge drift to the ground extent; any extra line means motion or a co-location got off the ground again; census log $BATT_LOG)"
+echo "RUNTIME_INTEGRATION_TEST: FALL_RECOVERED_CENSUS $FR_HITS/$FR_CENSUS OK (own-leg only — calm_use drift clamped by MC 10420)"
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; MC 10420 ground-extent motion clamp green — meta box == visible AABB, live FLEE-driven enemy MOTION pins at the loaded edge under 30-frame continued pressure with the plan re-anchored, off-edge wild co-locations land ON the ground, every enemy/wild position swept inside the extent every frame, calm_use carries ZERO FALL_RECOVERED (the R5 P2 masking pair retired); the battery-wide FALL_RECOVERED census tightened to EXACTLY 1 (own-leg only, per the 10026.29 note); mode vocabulary drift gate green; non-blank render)"
 exit 0

@@ -213,7 +213,15 @@ public partial class RuntimeIntegrationProof : SceneTree
                 break;
 
             case 6:   // CALM_WINDOW_EXPIRES — fresh cast, 602 frames, pay joins NOBODY
-                if (_cSub == 0) { _playerBody!.GlobalPosition += new Vector3(60f, 0f, 0f); _cSub = 1; break; }   // far from every standing wild
+                // MC 10420 (10026.29): the +60 resolves through the director's ground
+                // clamp — the leg's intent is "far from every standing wild" (kept: the
+                // clamped landing stands ~39 m from the entry-side wilds); the bare +60
+                // landed 18 m PAST the meadow edge and sank the player twice behind this
+                // leg's state-only asserts (the census masking, reviewer R5 P2). The
+                // wild this phase co-locates onto is bounded by the SAME clamp at its
+                // spawn seam (WorldDirector.Roster.Wild), so every re-co-locate below
+                // stays on the ground too.
+                if (_cSub == 0) { _playerBody!.GlobalPosition = _director!.ClampToGround(_playerBody.GlobalPosition + new Vector3(60f, 0f, 0f)); _cSub = 1; break; }   // far from every standing wild — ON the ground (MC 10420)
                 if (_cSub == 1)
                 {
                     if (_cFrames < 30) break;   // let the followers settle

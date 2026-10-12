@@ -249,6 +249,14 @@
          floor_coverage mode only (standalone scene-tree probe, no composition
          boot). Appended at the ItemGroup END (S2 Shake.cs precedent). -->
     <Compile Include="ci_proofs/FloorCoverageProof.cs" />
+    <!-- Compile MC 10420 / 10026.29 (ground-extent motion clamp): the ground
+         guarantee partial (floor plane moved VERBATIM from the composition
+         root, + the XZ clamp resolved off the terrain "ground_extent" meta on
+         that same channel) and the GROUND_CLAMP proof partial (mode
+         GROUND_CLAMP, stage 104 — UNIQUE number). Appended at the ItemGroup
+         END (S2 Shake.cs precedent). -->
+    <Compile Include="world/WorldDirector.Ground.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.GroundClamp.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,10 @@
-// SIZE: inherited >400 (573 l by wc at the MC 10404 wall-fix head; the prior
-// stamp's delta chain 506@MC10167 W4 -> 501@3943 2g -> 539 pre-2g -> +4 S1
-// a6704d0 -> +1 W1 87ba446 -> +63 MC 10404 summed 569 — the §6.1-7 arithmetic-
-// off-a-prior-stamp class, ARCH wall F-1) — reasons per 3895 DA P2-1; block below.
+// SIZE: inherited >400 (553 l by wc at the MC 10420 head = 573@MC10404 − 48
+// lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
+// clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
+// bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
+// 506@MC10167 W4 -> 501@3943 2g -> 539 pre-2g -> +4 S1 a6704d0 -> +1 W1 87ba446
+// -> +63 MC 10404 summed 569 — the §6.1-7 arithmetic-off-a-prior-stamp class,
+// ARCH wall F-1) — reasons per 3895 DA P2-1; SIZE REASON block below.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Companion;
@@ -89,18 +92,11 @@ public partial class WorldDirector : Node3D
     private EnemyActor? _boss;
     private BossPhaseState _bossPhase;
 
-    // MC 10404 (owner playtest P1: fell through a ground-collision gap and
-    // DIED below the world — there is no kill-plane and no respawn, so any
-    // future seam is an unrecoverable death). The guarantee: once the player
-    // is below the LOWEST loaded ground's floor_min by this margin, no
-    // surface can be under them any more — return them to the zone-entry
-    // spawn (the byte-same point zone travel repositions to), zero the fall
-    // velocity, Life untouched. This is a rescue, never a punishment.
-    // The plane resolves from the terrain_builder "floor_min_y" meta.
-    private float _floorMinY = float.PositiveInfinity;
-    private bool _fallRecoveryArmed;
-    private bool _fallWarnedMissingFloor;
-    private const float FallRecoverMargin = 2.0f;
+    // MC 10404 fall plane + MC 10420 ground-extent clamp: the fields, the
+    // per-entry resolve and the ONE clamp moved to world/WorldDirector.Ground.cs
+    // (partial) — _Process below keeps the rescue's USE of the plane, the
+    // ApplySpawnSet spawn keeps the injection of the bounds, both read the
+    // partial's members as one class.
 
     // Gate seams (design §4.2): one-line bool guards, default true, no gameplay behavior.
     private bool _spawningEnabled = true;
@@ -239,9 +235,10 @@ public partial class WorldDirector : Node3D
         // unrecoverable death below the world. One rescue, zero punishment:
         // back to the zone-entry spawn (the byte-same point zone travel uses),
         // fall velocity cleared, Life/model untouched. Armed at boot from the
-        // terrain "floor_min_y" meta (ResolveFallPlane); a scene with no
-        // ground meta leaves the guarantee DISARMED and the fall_recovered
-        // battery leg RED, so disarm can never pass silently.
+        // terrain "floor_min_y" meta (ResolveGround, world/WorldDirector.
+        // Ground.cs); a scene with no ground meta leaves the guarantee
+        // DISARMED and the fall_recovered battery leg RED, so disarm can
+        // never pass silently.
         if (_fallRecoveryArmed && ppos.Y < _floorMinY - FallRecoverMargin)
         {
             GD.Print($"FALL_RECOVERED from=({ppos.X:0.##},{ppos.Y:0.##},{ppos.Z:0.##}) " +
@@ -357,6 +354,12 @@ public partial class WorldDirector : Node3D
             // child) hangs under the scene's Visuals container.
             actor.Configure(ai, origin.X + spawned.Position.X, origin.Z + spawned.Position.Z,
                 spawned.IsBoss);
+            // MC 10420: the director injects the ground bounds WITH the AI (same
+            // ownership line: the shell steers, the bounds say where steering
+            // ends). Resolved by EnterZone BEFORE this point, so every actor is
+            // bounded from its first tick; disarmed scene = unbounded, warned
+            // loud once.
+            if (_groundExtentArmed) actor.SetGroundBounds(_groundExtentMin, _groundExtentMax);
             _visuals.AddChild(actor);
             _enemies.Add(actor);
             _zoneEnemies.Add(actor);
@@ -511,39 +514,16 @@ public partial class WorldDirector : Node3D
     private void EnterZone(string zoneId)
     {
         var profile = EcosystemAdaptation.ModelPlayerDna(_spokenDna);
-        _ecosystem.OnZoneEnter(zoneId, profile);
         // MC 10404: the fall plane belongs to the ground the player will walk
         // in THIS zone — re-resolve it on every entry (boot included).
-        ResolveFallPlane();
-    }
-
-    private void ResolveFallPlane()
-    {
-        float mn = float.PositiveInfinity;
-        CollectFloorMin(this, ref mn);
-        if (!float.IsFinite(mn))
-        {
-            if (!_fallWarnedMissingFloor)
-            {
-                _fallWarnedMissingFloor = true;
-                GD.PushWarning("MC 10404: no ground floor_min_y meta in scene — fall recovery DISARMED (the fall_recovered battery leg goes RED on this, never silently)");
-            }
-            _fallRecoveryArmed = false;
-            return;
-        }
-        _floorMinY = mn;
-        _fallRecoveryArmed = true;
-        GD.Print($"W3: fall-recovery plane floorMin={mn:0.##} (triggers below y<{mn - FallRecoverMargin:0.##})");
-    }
-
-    private static void CollectFloorMin(Node from, ref float mn)
-    {
-        if (from.HasMeta("floor_min_y"))
-        {
-            float v = (float)from.GetMeta("floor_min_y").AsDouble();
-            if (v < mn) mn = v;
-        }
-        foreach (var c in from.GetChildren()) CollectFloorMin(c, ref mn);
+        // MC 10420: the call MOVES ahead of OnZoneEnter for the SAME reason on
+        // the SAME meta channel: the ZoneEntered event below fields the zone's
+        // SpawnSet SYNCHRONOUSLY, and ApplySpawnSet injects the ground bounds
+        // into every actor at spawn — the bounds must exist before the actors
+        // they bound (at boot the first set used to be fielded before the
+        // first resolve ever ran).
+        ResolveGround();
+        _ecosystem.OnZoneEnter(zoneId, profile);
     }
 
     // ---- save/load (design §4.4): delegated to SaveLoadController (MC 1344) -

@@ -110,7 +110,13 @@ public partial class WorldDirector
         };
         Vector3 p = Player?.GlobalPosition ?? Vector3.Zero;
         AddChild(body);                              // enters the tree FIRST (Godot 4.7: GlobalPosition requires it)
-        body.GlobalPosition = p + new Vector3(2.5f, 0f, 0f);
+        // MC 10420 (10026.29): the co-location lands ON the ground — this seam
+        // placed wild id 24 18 m past the meadow edge during calm_use's off-
+        // edge choreography, and every later co-location onto that body dragged
+        // the player below the plane (the 2 census FALL_RECOVERED the MC 10423
+        // reason line names). The SAME ClampToGround bound that owns enemy
+        // MOTION bounds this placement — one mechanism.
+        body.GlobalPosition = ClampToGround(p + new Vector3(2.5f, 0f, 0f));
         _wild.Add(body);
         GD.Print($"ROSTER: wild creature spawned id={eid} (interact to offer, pay_wage to recruit)");
     }

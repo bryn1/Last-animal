@@ -56,6 +56,15 @@ func _ready() -> void:
     # director's below-plane fall-recovery guarantee (WorldDirector._Process;
     # the FLOOR_RECOVERED battery leg). Meta, not a new signal: read lazily.
     set_meta("floor_min_y", mn)
+    # MC 10420 (10026.29): the ground's XZ EXTENT — the visible span
+    # build_visual_mesh lays (_w*h_scale x _d*h_scale metres, centred on this
+    # node) — published on the SAME meta channel as floor_min_y. The director
+    # resolves it per zone entry (ResolveGround, world/WorldDirector.Ground.cs)
+    # and bounds enemy MOTION + wild co-locations inside it (ClampToGround,
+    # world/EnemyActor.cs): the
+    # x=66.69 drift class walked 18 m past the meadow edge onto floorless
+    # ground. Full metres, not half — the reader owns the centring.
+    set_meta("ground_extent", Vector2(_w * h_scale, _d * h_scale))
 
 func build_collision() -> void:
     # MC 10404 (owner playtest P1 — fell THROUGH the visible ground and died):

@@ -274,6 +274,20 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // GROUND_CLAMP (MC 10420 / 10026.29): the motion-clamp leg NEEDS the
+        // live spawn set (it drives a REAL spawned enemy's flee into the ground
+        // edge) — routes after the enemy guard like DISSOLVE/CHAR_MOTION, and
+        // BEFORE the move_right baseline press: the leg teleports every actor
+        // itself and must observe unperturbed motion. Stage body lives in
+        // RuntimeIntegrationProof.GroundClamp.cs.
+        if (_mode == "GROUND_CLAMP")
+        {
+            _stage = 104;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (ground-clamp mode) — enemies={_enemies.Count}");
+            return;
+        }
+
         // Capture the movement baseline BEFORE pressing the input (MC 1344.1):
         // stage 0 ran after the press, by which time the player had already moved.
         _playerStart = _playerBody.GlobalPosition;
