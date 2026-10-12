@@ -1,5 +1,5 @@
-// SIZE: 391 l measured (MC 10420 c2: +2 truthfully counted — the two
-// WireFollowClamp calls; MC 10255 restamp, S24 TEST wall P3-1 carry — the 382
+// SIZE: 394 l measured by wc AT this head (MC 10420 c3: the c2 "391/+2" stamp was delta-summed
+// off pre-c2 389, real +5 (WireFollowClamp calls + header); MC 10255 / S24 P3-1 — the 382
 // stamp already lagged the S24 head, where this file measured 389) —
 // roster-core half of the stage 2g roster wiring (MC 10080 split:
 // the WILD-side members moved VERBATIM to WorldDirector.Roster.Wild.cs — pure

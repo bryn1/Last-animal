@@ -1,7 +1,7 @@
-// SIZE: 169 l measured (MC 10420 c2: +5 truthfully counted — the WireFollowClamp
-// call + note; the 158 stamp lagged the head at 164 and dies here, MC 3895
-// idiom) — WILD-side half of the stage 2g roster wiring (MC 10080 split of
-// WorldDirector.Roster.cs: every member below moved VERBATIM, pure move).
+// SIZE: 171 l measured by wc AT this head (MC 10420 c3 F-E: the c2 "169/+5" stamp was
+// delta-summed off pre-c2 164; real growth was +7 — WireFollowClamp call + note; delta
+// arithmetic dies here, MC 3895 idiom) — WILD-side half of the stage 2g roster wiring (
+// MC 10080 split of WorldDirector.Roster.cs: every member below moved VERBATIM, pure move).
 using Godot;
 using LastAnimal.Companion;
 

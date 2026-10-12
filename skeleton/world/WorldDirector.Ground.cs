@@ -1,5 +1,5 @@
-// SIZE: 177 l measured (MC 10420 c2: +15 truthfully counted — WireFollowClamp,
-// the follow-clamp injection of the ONE clamp) — MC 10420 split of the ground
+// SIZE: 179 l measured by wc AT this head (MC 10420 c3: the c2 "177/+15" stamp was delta
+// arithmetic off pre-c2 162; real +17 — the WireFollowClamp injection) — MC 10420 split of the ground
 // guarantee out of WorldDirector.cs
 // (floor-plane half moved VERBATIM from the composition root, the extent half
 // new): one concern per file — the loaded ground's Y plane + XZ extent, resolved
