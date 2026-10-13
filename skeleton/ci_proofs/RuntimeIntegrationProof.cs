@@ -1,6 +1,6 @@
-// SIZE: 583 l measured by wc AT this head (MC 10420 c2 F-D restamp — the "one-line
-// restamp next touch" the ARCH wall ruled; the 557 stamp lagged even cycle 1's own
-// +17; the numbers below are re-measured the same way, never delta-summed): the
+// SIZE: 599 l measured by wc AT this head (MC 10516 S38 restamp: +16 over the 583 at
+// MC 10420 c2 — the S38 FLOOR_TRUST mode-doc row, KnownModes, spawn-off guard, case-105 arm;
+// that 583 read: the 557 stamp lagged cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list, shared fields and dispatch — >400 because the 208-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
@@ -239,6 +239,15 @@ using System.Linq;
 //                    GROUND_CLAMP_AABB / ENEMY_GROUNDPIN / WILD_SPAWN_CLAMPED /
 //                    FOLLOWER_EDGEHOVER / PLAYER_UNCLAMPED /
 //                    GROUND_CLAMP_SWEEP / GROUND_CLAMP_CLEAR.
+//   FLOOR_TRUST     — MC 10516 / 10026.33 card S38: floor trust + kill plane
+//                    on the LIVE scene, quiet boot. Scripted map-edge WALK (
+//                    capsule-footprint ray set; FloorCoverageProof's mapping
+//                    REUSED) requires ZERO visible-ground-without-collision
+//                    points; 8 real-gravity border waypoints stand; past-edge
+//                    motion BINDS at the extent (FLOOR_TRUST_BLOCKED); an off-
+//                    edge drop is RESCUED byte-exact to the zone entry, Life
+//                    intact, behind the product KILL_PLANE_RESCUE zone+reason
+//                    marker (never silent). Stage 105, .FloorTrust.cs.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -319,7 +328,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
-        "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP",
+        "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -403,6 +412,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // the roster shapes are built IN the leg through the product rebuild
         // (planted saves, MC 3910 OWNED).
         if (_mode == "BARK" && main is WorldDirector dbg) dbg.SetSpawningEnabled(false);
+        // FLOOR_TRUST (MC 10516 S38): the edge-walk/clamp/kill-plane leg parks
+        // the player on bare borders and drops them off the map — quiet boot
+        // (bus_emit idiom), no whittling, no interference with the fall.
+        if (_mode == "FLOOR_TRUST" && main is WorldDirector dft) dft.SetSpawningEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -561,6 +574,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // RuntimeIntegrationProof.Story3.cs (partial).
             case 103: RunActThreeStage(); break;
             case 104: RunGroundClampStage(); break;
+            // ---- FLOOR_TRUST (MC 10516 S38): stage body lives in
+            // RuntimeIntegrationProof.FloorTrust.cs (partial).
+            case 105: RunFloorTrustStage(); break;
         }
         return false;
     }

@@ -38,7 +38,10 @@ using System.Collections.Generic;
 //                   (+40,-30,+40) from the entry column — dropping at the
 //                   player's OWN home X/Z had made the byte-exact XZ
 //                   recovery a home-vs-home tautology.
-//                   Markers: FALL_RECOVERED (the product line), FALL_RECOVERED_EXACT.
+//                   Markers: FALL_RECOVERED (the product line — from MC 10516
+//                   it prints PAIRED with the named KILL_PLANE_RESCUE
+//                   zone=+reason= marker at the same guarantee site,
+//                   WorldDirector._Process), FALL_RECOVERED_EXACT.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/P1FixProof.cs
 public partial class P1FixProof : SceneTree

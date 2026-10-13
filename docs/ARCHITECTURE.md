@@ -227,7 +227,7 @@ Proof harnesses live in `skeleton/ci_proofs/` (`RuntimeIntegrationProof.cs` (+ p
 `RuntimeIntegrationProof.Shake.cs` / `RuntimeIntegrationProof.Story2.cs` /
 `RuntimeIntegrationProof.Story3.cs` /
 `RuntimeIntegrationProof.Dissolve.cs` / `RuntimeIntegrationProof.DayNight.cs` /
-`RuntimeIntegrationProof.Motion.cs` / `RuntimeIntegrationProof.Passives.cs` / `RuntimeIntegrationProof.GroundClamp.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
+`RuntimeIntegrationProof.Motion.cs` / `RuntimeIntegrationProof.Passives.cs` / `RuntimeIntegrationProof.GroundClamp.cs` / `RuntimeIntegrationProof.FloorTrust.cs` — quest modes `quest_arc`/`quest_persist`/`quest_neg`
 (MC 3915: quest_arc also carries the reward-beat view Checks — its legs assert
 `intro`/`wage_duty`/`counters`/`boss_fallen` on screen flagged reward-shown
 (every completion as its own observation, so no two beats share a pass in the
@@ -259,7 +259,7 @@ the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
 10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
-ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; +9 l MC 10420 c2 F-DA1 (mode-doc row growth + the c2 SIZE restamp); measured 583 l at this head)
+ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; +9 l MC 10420 c2 F-DA1 (mode-doc row growth + the c2 SIZE restamp); +16 l MC 10516 S38 FLOOR_TRUST (measured 599 l at this head)
 Proof.cs
 (== was 557 l at MC 10255 head; +25 l over the S24-head truth 529 l — the S19 ACT_THREE mode-doc row, KnownModes
 entry, case 103 arm and the SIZE restamp — then +3 l S19 fix-cycle attribution; the older
@@ -279,19 +279,19 @@ W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
 GroundClamp.cs 340 l (MC 10420/10026.29 ground-extent motion-clamp proof — mode
 `GROUND_CLAMP`, stage 104; MC 10420 c2 +139: the RECRUIT-THEN-EDGE-HOVER phase,
-the FOLLOWER list in the ONE sweep, the PLAYER_UNCLAMPED probe), P1FixProof.cs 443 l (MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
+the FOLLOWER list in the ONE sweep, the PLAYER_UNCLAMPED probe), FloorTrust.cs 254 l (MC 10516/S38: the LIVE floor-trust leg — capsule-footprint map-edge walk, 8 gravity waypoints, the BLOCKED demo, the off-edge kill-plane rescue; stage 105), P1FixProof.cs 446 l (MC 10516 +3: the KILL_PLANE_RESCUE pair noted at the FALL_RECOVERED marker doc; MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
 `fall_recovered` stages 50/51; MC 10026.31(a): +17 l — the drop moves +40/+40
 OFF the entry column so byte-exact recovery-to-entry is a traversal, not a
-tautology), FloorCoverageProof.cs 314 l (MC 10404: the standalone zone-boot
+tautology), FloorCoverageProof.cs 528 l (MC 10516/S38: +214 over the 314 at the MC 10404 head — the FLOOR_TRUST mode: capsule-footprint support probe, the per-zone 256-probe RECORD, the named inside-span violation class; MC 10404: the standalone zone-boot
 2 m grid probe; MC 10026.30: shared query Dispose; MC 10026.31(c): +height-
 match leg — every 8th point |hit_y - visual_y| < 0.5 m vs the heightmap
 recomputed through terrain_builder's own world<->pixel mapping, markers
 `FLOOR_HEIGHT_DIAG`/`FLOOR_HEIGHT_CLEAR`) — owns ONLY mode `FLOOR_COVERAGE`, boots
 zones WITHOUT main.tscn, class-local like RosterIntegrationProof so the
 stage-pairing gate's family rule exempts it), Quests.cs 559 l (ARCH 49162d57: added — the second-largest
-file and the next ceiling watch), Compose.cs 299 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head; +14 l MC 10420 GROUND_CLAMP compose route), Harness.cs 70 l —
+file and the next ceiling watch), Compose.cs 312 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head; +14 l MC 10420 GROUND_CLAMP compose route; +13 l MC 10516 FLOOR_TRUST compose route), Harness.cs 70 l —
 **every proof file now sits under the 600-l ceiling
-(max entry Proof.cs 583, then Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
+(max entry Proof.cs 599, then Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
 mode router moved: the entry file's stage switch stays the only mode router,
 and the pairing gate makes a dropped or orphaned stage arm a RED gate);
 `RuntimeIntegrationProof.Bus.cs` — stage 80, mode `bus_emit`: the four S0
@@ -456,15 +456,19 @@ closed through its `default: Fail(…unknown mode…)` arm. `P1FixProof.cs` and
 `ZoneBossProof.cs` gained the same fail-safe at MC 10210 (commit 46aa55f —
 shipped): one named arm per documented mode plus `default: Fail(…unknown
 mode…)`, proven red on `LA_GATE_MODE=bogus` and empty; `FloorCoverageProof.cs`
-ships born of that law (MC 10404) — one `FLOOR_COVERAGE` arm + a `default:
+ships born of that law (MC 10404) — one `FLOOR_COVERAGE` arm + one `FLOOR_TRUST`
+arm (MC 10516/S38) + a `default:
 Fail(unknown mode …)`. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**41 `run_mode` legs = 31 positive + 10 negative** (W2 close added `passives`
+**43 `run_mode` legs = 33 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
 `CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; S19/MC 10273
-added `ACT_THREE`; MC 10420/10026.29 added `GROUND_CLAMP` (motion clamp to the ground extent — see the census note below); MC 10404 added `FLOOR_COVERAGE` (FloorCoverageProof — every
+added `ACT_THREE`; MC 10420/10026.29 added `GROUND_CLAMP` (motion clamp to the ground extent — see the census note below); MC 10516/10026.33 S38 added `FLOOR_TRUST` TWICE — the mode
+runs on BOTH FloorCoverageProof (zones alone: 256-probe record + scripted edge
+WALK shape-casts) and RuntimeIntegrationProof (live edge-walk + off-edge kill-
+plane rescue); MC 10404 added `FLOOR_COVERAGE` (FloorCoverageProof — every
 visible zone ground has collision EVERYWHERE: 110,475-ray grid, zero uncovered
 walkable points; MC 10026.31(c) adds the every-8th-point HEIGHT assert vs the
 visual surface — `FLOOR_HEIGHT_CLEAR` grepped in-leg too) and `fall_recovered` (P1FixProof stages 50/51 — a below-plane
@@ -476,14 +480,19 @@ FAIL with its named marker — so an unknown mode that slipped a proof's own gua
 trips the gate. MC 10026.31(b) additionally wraps the legs in `battery_body()` whose
 whole stdout is tee'd to a census log: the tail asserts the product line
 `FALL_RECOVERED from=` appears EXACTLY `FR_CENSUS` times battery-wide — **since
-MC 10420/10026.29 that count is 1 (own-leg only)**: the ground-extent MOTION clamp
+MC 10420/10026.29 that count was 1 (own-leg only); MC 10516/10026.33 S38 restamped
+it to 2 as a deliberate OWN-LEG PAIR** (fall_recovered's mid-map below-plane drop +
+FLOOR_TRUST live's DELIBERATE off-edge drop — the card's walk-off-the-map scenario,
+rescued at the same single guarantee site and logged `KILL_PLANE_RESCUE zone=…
+reason=below-floor-plane` beside the census line): the ground-extent MOTION clamp
 (`ClampToGround`, resolved off the terrain `ground_extent` meta on the same channel
 as MC 10404's `floor_min_y`) bounds enemy motion + wild co-locations to the loaded
 ground, so the calm_use off-edge drift that the guarantee used to rescue twice is
 gone; the `GROUND_CLAMP` leg (stage 104) drives a real flee-driven enemy into the
 edge and asserts it PINS (never vacuously short), sweeps every enemy/wild position
 against the extent every frame, and lands an off-edge wild co-location ON the
-ground, and calm_use carries a ZERO-FALL_RECOVERED in-leg grep.
+ground, and calm_use carries a ZERO-FALL_RECOVERED in-leg grep (every leg OTHER
+than the own-leg pair keeps its zero).
 
 ### 6.1 Recipe — adding a proof-mode leg (MC 10255; every fact measured at this tip; shipped exemplars: S8 `BARK`, S19 `ACT_THREE`)
 
@@ -492,7 +501,7 @@ ground, and calm_use carries a ZERO-FALL_RECOVERED in-leg grep.
 3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 31 ci_proofs sidecars are tracked since MC 10404's `FloorCoverageProof.cs.uid`).
 4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 208 l at this tip by that very awk (+16 MC 10420 `GROUND_CLAMP` doc row, +7 MC 10420 c2 F-DA1)), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof/FloorCoverageProof carry none and are gated doc == arms — 5 dispatching proofs since MC 10404). Header == allow-list == dispatch arms, or the gate names the drift RED.
 5. **Unknown-mode fail-safe**: the entry rejects an off-list `LA_GATE_MODE` with `LA_GATE: FAIL: unknown mode <x>` + exit 1 at dispatch top, BEFORE any stage side-effect — a set-but-empty value fails closed too (`GetEnvironmentVariable` returns `""`, the `??` default never fires). Standalone proofs keep one named arm per documented mode plus `default: Fail(…unknown mode…)`. Never let an unknown mode fall through to a PASS leg (MC 10204 F1, the vacuous-green class).
-6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **104** (`GROUND_CLAMP` — `case 104` live in the entry dispatch + `_stage = 104` in Compose since MC 10420); **NEXT FREE = 105** (measured at this tip: zero `case 105` / `_stage = 105` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
+6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **105** (`FLOOR_TRUST` — `case 105` live in the entry dispatch + `_stage = 105` in Compose since MC 10516); **NEXT FREE = 106** (measured at this tip: zero `case 106` / `_stage = 106` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
 
    | stage | mode(s) | stage body |
    |---|---|---|
@@ -514,10 +523,11 @@ ground, and calm_use carries a ZERO-FALL_RECOVERED in-leg grep.
    | 102 | `BARK` | `.Bark.cs` |
    | 103 | `ACT_THREE` | `.Story3.cs` |
    | 104 | `GROUND_CLAMP` | `.GroundClamp.cs` |
+   | 105 | `FLOOR_TRUST` | `.FloorTrust.cs` |
 
    The sibling proofs (ZoneBossProof, P1FixProof, RosterIntegrationProof) run class-local stage machines behind their own `run_mode` proof paths — they share no numbers with this map.
-7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **41 legs = 31 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
-8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 26 stage bodies == 26 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
+7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **43 legs = 33 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. One mode may run on TWO proof classes as TWO legs distinguished by the 4th arg — S38's `FLOOR_TRUST` does exactly that (`$PROOF_FLOOR` zones-alone sweep + the entry proof's live edge-walk). The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
+8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 27 stage bodies == 27 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
 
 **NOTE — battery leg letters (MC 10255, NOTE only; NO re-lettering).** The banner letters (A)-(T) are decorative and DO collide at this tip: **(P) marks four legs** (S16 passives, S17 trait_effects, S15 DAYNIGHT_STATE, S14 CHAR_MOTION) and **(Q) marks three** (MC 10210 sets-gate, S20 CAMERA_KILL_PULSE, S18 ZONE4) — measured by `grep -oE '\([A-Z]\)' ci/runtime_integration_test.sh | sort | uniq -c`. Consumers grep the letters, so they stay untouched; the STABLE identifier of a leg is its MODE name plus its LEDGER row. Docs/evidence must name the mode and treat the letter as decoration.
 

@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (553 l by wc at the MC 10420 head = 573@MC10404 − 48
+// SIZE: inherited >400 (562 l by wc AT this head = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
 // lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
 // clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
 // bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
@@ -239,8 +239,17 @@ public partial class WorldDirector : Node3D
         // Ground.cs); a scene with no ground meta leaves the guarantee
         // DISARMED and the fall_recovered battery leg RED, so disarm can
         // never pass silently.
+        // MC 10516/S38: the guarantee IS this card's kill plane — SAME site, one
+        // mechanism, never a second below-plane check beside it. The named
+        // kill-plane event (zone + reason, never silent) prints with the
+        // guarantee line; the MC 10404 "FALL_RECOVERED from=" line stays
+        // byte-identical because the battery-wide census and the
+        // fall_recovered/GROUND_CLAMP/calm greps all key on that substring.
         if (_fallRecoveryArmed && ppos.Y < _floorMinY - FallRecoverMargin)
         {
+            GD.Print($"KILL_PLANE_RESCUE zone={CurrentZone} reason=below-floor-plane " +
+                     $"plane={_floorMinY - FallRecoverMargin:0.##} fell-to=({ppos.X:0.##},{ppos.Y:0.##},{ppos.Z:0.##}) " +
+                     $"respawn=zone-entry({_spawnOrigin.X:0.##},{_spawnOrigin.Y:0.##},{_spawnOrigin.Z:0.##})");
             GD.Print($"FALL_RECOVERED from=({ppos.X:0.##},{ppos.Y:0.##},{ppos.Z:0.##}) " +
                      $"floorMin={_floorMinY:0.##} margin={FallRecoverMargin:0.#} " +
                      $"-> zone-entry=({_spawnOrigin.X:0.##},{_spawnOrigin.Y:0.##},{_spawnOrigin.Z:0.##})");
