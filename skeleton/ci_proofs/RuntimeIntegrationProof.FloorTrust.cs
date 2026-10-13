@@ -1,5 +1,5 @@
-// SIZE: 254 l by wc AT this head (created MC 10516; the sphere→ray mechanism pivot and the
-// settle-reference fix grew it past the 176 first-draft stamp. CI proof partial, ONE concern — the S38 LIVE leg: the
+// SIZE: 267 l by wc AT this head (created MC 10516; +13 the DA-wall F1+F2 fix-forward (F1
+// settle-comment, F2 gate-comment) on top of the merge-head 254. CI proof partial, ONE concern:
 // scripted map-edge walk, the clamp-boundary demo and the edge-fall kill-plane
 // rescue, all DRIVEN by the one composed scene (a split would orphan a check
 // from the scene that drives it — GROUND_CLAMP precedent).
@@ -63,7 +63,15 @@ public partial class RuntimeIntegrationProof : SceneTree
     private const float TrustCastRadiusM = 0.4f;   // player capsule radius
     private const float TrustInteriorStepM = 4.0f; // composed-scene interior cross-check
     private const float TrustHeightTolM = 0.5f;    // == FloorCoverageProof's height tol
-    private const float WalkSettleF = 10f;         // frames to settle a walk waypoint
+    // WalkSettleF — the DA wall F1 (P2): at gravity 9.8 (Player.cs:34) a body
+    // placed at surface+0.35 with zero velocity and NO support needs t:
+    // 4.9t^2 > 1.15 m (placement height + the 0.8 band) => t > 0.485 s => 30
+    // frames MINIMUM before the y > surface-0.8 assert can fire; the shipped
+    // 10(+1) let it drop ~0.17 m — the assert could NEVER fail (vacuous by
+    // arithmetic; the next waypoint's teleport reset the fall). 40 frames
+    // (t=0.667 s, drop 2.18 m) keeps ~1 m margin; a SUPPORTED body is long
+    // settled by frame 40 (measured standing at ~+0.17 over surface at 11).
+    private const float WalkSettleF = 40f;         // frames to settle a walk waypoint (F1 fix-forward)
     private const float DropPastEdgeM = 6.0f;      // past collider overshoot (0.5) -> free fall
 
     private void RunFloorTrustStage()
@@ -137,7 +145,12 @@ public partial class RuntimeIntegrationProof : SceneTree
                 else _ftPastExtent++;
                 return;
             }
-            if (!edgePoint) return;   // height mirror asserted on the edge lines (S38 item-2 class on the LIVE scene)
+            // F2 fix-forward: SAME gate as FloorCoverageProof's height assert
+            // ("!edgePoint || !insideSpan") — OUTSET points sit past the visual
+            // border, where the mapping CLAMPS to the border pixel; asserting a
+            // clamped value is the same check run two ways (false-RED
+            // fragility: a wall will trip it).
+            if (!edgePoint || !inside) return;   // height mirror asserted on INSIDE-edge points only (S38 item-2 class on the LIVE scene)
             float off = hitY - FloorCoverageProof.VisualHeight(_ftField!, _ftW, _ftD, _ftHSc, x, z);
             if (System.MathF.Abs(off) > _ftMaxOff) _ftMaxOff = System.MathF.Abs(off);
             if (System.MathF.Abs(off) >= TrustHeightTolM) FtViolate($"({x:0.##},{z:0.##}) floor {off:0.###} m OFF the visible surface (tol {TrustHeightTolM:0.##}) — the y-offset class");
