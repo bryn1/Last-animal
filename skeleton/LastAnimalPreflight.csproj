@@ -257,6 +257,17 @@
          END (S2 Shake.cs precedent). -->
     <Compile Include="world/WorldDirector.Ground.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.GroundClamp.cs" />
+    <!-- Compile MC 10516 / 10026.33 S38 (floor trust + kill plane): the LIVE
+         floor-trust proof partial (mode FLOOR_TRUST, stage 105 — UNIQUE
+         number): scripted map-edge walk with the capsule-footprint ray set
+         (this build's shape/point queries answer zero on HeightMapShape3D —
+         probe recorded), the clamp-bound demo and the off-edge kill-plane
+         rescue. The kill-
+         plane marker (KILL_PLANE_RESCUE, zone + reason) extends the ONE
+         existing guarantee site in WorldDirector._Process — no second
+         below-plane mechanism. Appended at the ItemGroup END (S2 Shake.cs
+         precedent). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.FloorTrust.cs" />
   </ItemGroup>
 
 </Project>

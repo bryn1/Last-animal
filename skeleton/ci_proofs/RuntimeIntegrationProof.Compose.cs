@@ -110,6 +110,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // FLOOR_TRUST (MC 10516 S38): routes BEFORE the live-enemy guard — quiet
+        // boot (bus_emit idiom): the leg parks the player on bare map borders
+        // and drops them OFF the edge; an active spawn set would whittle the
+        // standing player (bus_emit's lesson) and interfere with the fall.
+        // Stage body lives in RuntimeIntegrationProof.FloorTrust.cs.
+        if (_mode == "FLOOR_TRUST")
+        {
+            _stage = 105;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (floor-trust mode) — zone={_director.CurrentZone} (spawning off at boot)");
+            return;
+        }
+
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
 
         _dnaBefore = _hud.DnaMeter;
