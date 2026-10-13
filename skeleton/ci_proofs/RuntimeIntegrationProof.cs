@@ -2,7 +2,7 @@
 // MC 10420 c2 — the S38 FLOOR_TRUST mode-doc row, KnownModes, spawn-off guard, case-105 arm;
 // that 583 read: the 557 stamp lagged cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 208-l mode
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 217-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
 // head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 30-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
