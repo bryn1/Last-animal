@@ -1,0 +1,13 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. TILEABLE SEAMLESS GAME ROCK WALL TEXTURE PLATE, dead-on flat elevation view of a vertical natural rock face filling the entire frame, no perspective, no ground, no sky: wind-carved dark-fantasy canyon sandstone cliff face with horizontal strata bands, pitted erosion pockets, fine cracks and dust, a few dark moisture streaks, detail evenly distributed across the whole plate. The pattern must wrap perfectly on both horizontal and vertical axis: every strata band and crack touching an edge continues exactly at the opposite edge, absolutely no visible seam, no lighting gradient toward the edges, no vignette, no cast shadows, completely flat even ambient light. Hand-painted painterly thick-brush game art with visible brush character, NOT photorealistic. Low-saturation palette anchored on deep shadow #0f0f1a, dusk rock #ce7a5f muted to the background, warm mid #d9946f sparingly, haze #d9ba9c, pale top #d9caae on worn ledges only. Moody desaturated baked-clay tones. No characters, no creatures, no vegetation as subjects, no user interface, no text, no watermark, no border, no frame.",
+  "seed": 4751,
+  "size": "1024x1024",
+  "mode": "edit",
+  "quality": "fast",
+  "refs": [
+    "/home/claudecode/design-lab/s47/refs/target-canyon-1.png"
+  ],
+  "generator": "/opt/imagegen Qwen-Image via harness imagegen MCP",
+  "ts_utc": "2026-10-15T21:59:24Z",
+  "target_for": "canyon/rock-wall-texture: S47 (MC 10523)"
+}

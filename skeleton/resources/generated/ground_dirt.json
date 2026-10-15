@@ -1,0 +1,13 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. TILEABLE SEAMLESS GAME GROUND TEXTURE PLATE, straight top-down orthographic view filling the entire frame: dry cracked ochre clay dirt of a shadowed dark-fantasy meadow floor, fine dust, small pebbles and grit, hairline cracks, tiny root fibers, a few crumbs of dark moss, detail evenly distributed across the whole plate. The pattern must wrap perfectly on both horizontal and vertical axis: every feature touching an edge continues exactly at the opposite edge, absolutely no visible seam, no lighting gradient toward the edges, no vignette, no cast shadows, completely flat even ambient light. Hand-painted painterly thick-brush game art with visible brush character, NOT photorealistic. Low-saturation palette anchored on dry ochre #62582d, olive mid #343624, dark moss #1d2117, near-black olive #0c100c, a sparse pale sage highlight #c0c4b1. Moody desaturated earthy tones. No characters, no creatures, no plants as subjects, no user interface, no text, no watermark, no border, no frame.",
+  "seed": 4711,
+  "size": "1024x1024",
+  "mode": "edit",
+  "quality": "fast",
+  "refs": [
+    "/home/claudecode/design-lab/s47/refs/target-meadow-1.png"
+  ],
+  "generator": "/opt/imagegen Qwen-Image via harness imagegen MCP",
+  "ts_utc": "2026-10-15T21:53:44Z",
+  "target_for": "meadow/ground-texture: S47 (MC 10523)"
+}
