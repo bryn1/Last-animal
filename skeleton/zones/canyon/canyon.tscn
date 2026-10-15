@@ -103,7 +103,12 @@ surface_material_override/0 = SubResource("StdMat_rock")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.85, 0.52, 0, -0.52, 0.85, 35, 40, 45)
-current = true
+; MC 10519 / 10026.35 S27 (W5-DA F-1): this scene now MOUNTS on travel, so the
+; shipped static camera is live — current = true here stole the active camera
+; from the composition root's FollowCamera (S20 framing + S23c kill-pulse
+; class). Data-fix rides the shipped meadow W3-fix pattern (meadow.tscn,
+; MC 1123.10): a zone-internal camera must NOT be current.
+current = false
 
 [node name="Decor" type="Node3D" parent="."]
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp).
+# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10519/S27 grew it +48 to 777 l by wc AT this head (section Q2: the ZONE_VISUAL_MOUNT leg + per-zone census greps + hollow.png evidence check); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp).
 # runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
 # grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
 # full battery below).
@@ -17,7 +17,7 @@
 #   - graphical-test-helper render bar at --wait 15 (positive-mode legs hold
 #     the live scene after PASS so 15s lands on real scene content).
 #
-# Battery at this HEAD: 43 run_mode legs = 33 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; MC 10420: +GROUND_CLAMP; MC 10516: +FLOOR_TRUST x2 — the S38 mode runs on BOTH FloorCoverageProof (zones alone) and RuntimeIntegrationProof (live edge-walk); count = grep -cE '^run_mode ' here).
+# Battery at this HEAD: 44 run_mode legs = 34 positive modes + 10 negative (W2 close restamp: +passives S16 +trait_effects S17 +DAYNIGHT_STATE S15 +CHAR_MOTION S14; S20: +CAMERA_KILL_PULSE +BOSS_FRAME; S18: +ZONE4; W3: +BARK S8; S19: +ACT_THREE; MC 10404: +FLOOR_COVERAGE +FALL_RECOVERED; MC 10420: +GROUND_CLAMP; MC 10516: +FLOOR_TRUST x2 — the S38 mode runs on BOTH FloorCoverageProof (zones alone) and RuntimeIntegrationProof (live edge-walk); MC 10519: +ZONE_VISUAL_MOUNT — the S27 zone-scene mount leg, section Q2; count = grep -cE '^run_mode ' here).
 # controls (no_bus, no_spawn, no_controller, no_dna, save_bad_version,
 # no_interact, quest_neg, skill_neg, calm_neg, roster_neg), over four proof
 # classes: RuntimeIntegrationProof.cs (positive/save/dna_speak/quest/story/
@@ -486,6 +486,54 @@ for m in ZONE4_TRANSIT_CANYON ZONE4_TRANSIT_RUINS ZONE4_TRAVEL ZONE4_TABLE ZONE4
   [[ "$LOGZ4" == *"$m"* ]] || fail "ZONE4: expected $m (S18 zone/enemy/keyframe/gait leg)"
 done
 
+# (Q2) MC 10519 / 10026.35 S27 ZONE-SCENE MOUNTING: travel changes what you SEE,
+# not only what spawns. Boot ENTERZONE now mounts the zone's own scene (main.tscn
+# ships NO static zone instance any more) and every real travel press swaps the
+# mount — so the ENV identity under World/<Zone>/Environment is a per-zone node
+# set, and the day-night driver's one-shot binding to World/Meadow/* cannot be
+# allowed to outlive the node it bound. Leg (quiet boot, bus_emit idiom; it
+# re-arms spawning before its first press so each entered zone fields its own
+# SpawnSet): the mounted root IS World/<Zone> and the previous root is GONE
+# (ZONE_MOUNT_MOUNTED); the SpawnSet survives every swap (ZONE_MOUNT_SPAWNSET);
+# EXACTLY ONE current camera and it is the FollowCamera after every mount
+# (ZONE_MOUNT_CAMERA_ONE — canyon/ruins shipped Camera3D current=true, the
+# W5-DA F-1 dual-current class, data-fixed to false in this same commit); the
+# NODE-IDENTITY CENSUS of World/<Zone>/Environment prints BEFORE and AFTER every
+# travel with counts + Name#instance-id ids (ZONE_MOUNT_CENSUS), the id sets are
+# DISJOINT across the swap — nothing survives the unmount (ZONE_MOUNT_CENSUS_
+# DISJOINT) — and hollow's census is DISTINCT from the other three zones by
+# node count (ZONE_MOUNT_HOLLOW_DISTINCT: hollow.tscn is new in this commit and
+# its Environment subtree carries its own identity, not meadow's). The stale-
+# binding hazard closes RE-BIND ON MOUNT: across every mount boundary the leg
+# PARKS (>= the 0.5 s decor-cull ride + the deferred navmesh bake) then pauses
+# the clock and READS the mounted light + Environment BIT-EXACT against
+# DayNightClock at the applied frame (ZONE_MOUNT_DRIVER_*; the S15 read idiom).
+# A save-in-hollow -> travel-to-meadow -> LOAD walk must re-mount the SAVED zone
+# (ZONE_MOUNT_LOAD_HOLLOW, zero save delta — ZoneId already rides v3). Finally
+# the leg RENDERS the hollow.png per-zone census plate and asserts its ambient +
+# fog rows pairwise-distinct before saving (ZONE_MOUNT_CAPTURE; the PNG is
+# checked non-trivial BELOW, an evidence row — not a pixel gate).
+run_mode ZONE_VISUAL_MOUNT pass "ZONE_MOUNT_LOAD_HOLLOW"
+LOGZM="$(LA_MOUNT_CAPTURE_PATH="$PROJ/.tmp/s39/hollow.png" LA_GATE_MODE=ZONE_VISUAL_MOUNT timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+for m in ZONE_MOUNT_MOUNTED ZONE_MOUNT_SPAWNSET ZONE_MOUNT_CAMERA_ONE ZONE_MOUNT_CENSUS_DISJOINT ZONE_MOUNT_HOLLOW_DISTINCT ZONE_MOUNT_DRIVER_MEADOW ZONE_MOUNT_DRIVER_CANYON ZONE_MOUNT_DRIVER_RUINS ZONE_MOUNT_DRIVER_HOLLOW ZONE_MOUNT_PRELOAD_MEADOW ZONE_MOUNT_CAPTURE; do
+  [[ "$LOGZM" == *"$m"* ]] || fail "ZONE_VISUAL_MOUNT: expected $m (S27 mount/census/camera/driver/load leg)"
+done
+# per-zone ENV identity census MUST print for all four zones (travel VISIBLY
+# changes ENV identity — a meadow-only log means the mount never moved).
+for z in meadow canyon ruins hollow; do
+  [[ "$LOGZM" == *"ZONE_MOUNT_CENSUS zone=$z "* ]] \
+    || fail "ZONE_VISUAL_MOUNT: no ENV census for zone=$z (mounted Environment never seen)"
+done
+# hollow's census must NOT be meadow's: counts differ per zone (ids differ
+# per MOUNT — the DISJOINT marker above owns that half).
+MCOUNT="$(sed -n 's/.*ZONE_MOUNT_CENSUS zone=meadow .*nodes=\([0-9]*\).*/\1/p' <<<"$LOGZM" | head -1)"
+HCOUNT="$(sed -n 's/.*ZONE_MOUNT_CENSUS zone=hollow .*nodes=\([0-9]*\).*/\1/p' <<<"$LOGZM" | head -1)"
+[[ -n "$MCOUNT" && -n "$HCOUNT" ]] || fail "ZONE_VISUAL_MOUNT: census node counts unparsable (meadow='$MCOUNT' hollow='$HCOUNT')"
+[[ "$MCOUNT" != "$HCOUNT" ]] || fail "ZONE_VISUAL_MOUNT: hollow Environment census count ($HCOUNT) == meadow's ($MCOUNT) — zone ENV identity not visibly distinct"
+# the plate is an evidence row: present + non-trivial on disk (no pixel gate).
+[[ -s "$PROJ/.tmp/s39/hollow.png" ]] \
+  || fail "ZONE_VISUAL_MOUNT: hollow.png census plate missing/empty at $PROJ/.tmp/s39/hollow.png"
+
 # (S) MC 10131 / 10026.x Inc-4 S8 COMMAND BARK: the bark command PURELY as
 # presentation on the live scene — ONE real ActionPress("bark") per roster shape
 # (the one input-map change, key G). Roster 1 (boot seed) and 3 (planted OWNED
@@ -725,5 +773,5 @@ FR_HITS=$(grep -c 'FALL_RECOVERED from=' "$BATT_LOG" || true)
 [ "$FR_HITS" -eq "$FR_CENSUS" ] \
   || fail "battery-wide census: 'FALL_RECOVERED from=' printed $FR_HITS time(s), expected EXACTLY $FR_CENSUS (the MC 10516 own-leg PAIR: fall_recovered's mid-map drop + FLOOR_TRUST's deliberate off-edge drop; any extra line means motion or a co-location got off the ground again — MC 10420/10026.29 discipline holds; census log $BATT_LOG)"
 echo "RUNTIME_INTEGRATION_TEST: FALL_RECOVERED_CENSUS $FR_HITS/$FR_CENSUS OK (own-leg pair: fall_recovered + S38 FLOOR_TRUST edge-fall; every other leg zero — calm drift clamped by MC 10420/10026.29)"
-echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; MC 10420 ground-extent motion clamp green — meta box == visible AABB, live FLEE-driven enemy MOTION pins at the loaded edge under 30-frame continued pressure with the plan re-anchored, off-edge wild co-locations land ON the ground, every enemy/wild/FOLLOWER position swept inside the extent every frame, a recruited follower edge-hovers PINNED at the edge under follow pressure while the player stands unclamped past it (MC 10420 c2, F-DA1), calm_use carries ZERO FALL_RECOVERED (the R5 P2 masking pair retired); the battery-wide FALL_RECOVERED census restamped to EXACTLY 2 (the MC 10516 own-leg pair, per the 10026.29 discipline — every other leg still zero); MC 10516 S38 floor trust + kill plane green — the 256-probe RECORDS physics' acceptance of the resampled height maps per zone (514x514 canyon / 412x412 ruins verdicts printed), the scripted map-edge walk finds ZERO visible-ground-without-collision points on every shipped zone (border + 0.75 m inset shape-sweeps, contacts filtered to the terrain body; past-extent points accounted as clamp-BLOCKED/kill-planed, never silent), the composed-scene walk stands on 8 real-gravity border waypoints, ClampToGround past the edge BINDS, and a deliberate off-edge drop is RESCUED to the zone entry byte-exact with Life intact behind the named KILL_PLANE_RESCUE zone+reason marker at the ONE guarantee site; mode vocabulary drift gate green; non-blank render)"
+echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; dissolve suppress green; story act-two arc green; S14 character life green; S20 camera language green — DnaExtracted-consumer kill pulse with BIT-EXACT rest, READ-only boss framing with BIT-EXACT base return; S18 zone four + enemy four green — 4-zone travel cycle + wrap, wraith denizens, 9-part composed enemy four, integer gait tick, 4 EXACT Hollow anchors + fog pin; S8 command bark green — real press, EXACT walked bubble counts roster 1/3, integer -1-step window with EXACT end frame, EMPTY roster zero ghosts on every walked frame (F1), bark-press + LoadGame inside the window carries zero bubbles (F2), zero gameplay delta, census 15 re-grepped in-leg; S19 story act three green — the close: restore-sync-chain FreshOpen at the act-two finale (ACT3_OPENED + guarded open card), four zone-4 completions each off its OWN fact (arrival/tongue/wage/reckoning, W6), mid-quest save round-trip on the shipped v3 wire with no card replay (ACT3_PERSIST, zero save fields), the named ACT_THREE_COMPLETE act-completion marker and the close card drained in order (ACT3_CLOSED), census unchanged; MC 10404 floor coverage green — dense 2 m grid probe: zero uncovered walkable points on every shipped zone ground, decor-only scenes named-skipped; MC 10404 fall recovery green — below-plane fall restores to the zone entry with Life intact and the product FALL_RECOVERED line grepped; MC 10420 ground-extent motion clamp green — meta box == visible AABB, live FLEE-driven enemy MOTION pins at the loaded edge under 30-frame continued pressure with the plan re-anchored, off-edge wild co-locations land ON the ground, every enemy/wild/FOLLOWER position swept inside the extent every frame, a recruited follower edge-hovers PINNED at the edge under follow pressure while the player stands unclamped past it (MC 10420 c2, F-DA1), calm_use carries ZERO FALL_RECOVERED (the R5 P2 masking pair retired); the battery-wide FALL_RECOVERED census restamped to EXACTLY 2 (the MC 10516 own-leg pair, per the 10026.29 discipline — every other leg still zero); MC 10516 S38 floor trust + kill plane green — the 256-probe RECORDS physics' acceptance of the resampled height maps per zone (514x514 canyon / 412x412 ruins verdicts printed), the scripted map-edge walk finds ZERO visible-ground-without-collision points on every shipped zone (border + 0.75 m inset shape-sweeps, contacts filtered to the terrain body; past-extent points accounted as clamp-BLOCKED/kill-planed, never silent), the composed-scene walk stands on 8 real-gravity border waypoints, ClampToGround past the edge BINDS, and a deliberate off-edge drop is RESCUED to the zone entry byte-exact with Life intact behind the named KILL_PLANE_RESCUE zone+reason marker at the ONE guarantee site; MC 10519 S27 zone-scene mounting green — boot + travel + LOAD all mount the zone's OWN scene under World (main.tscn ships no static zone instance), the per-zone Environment node-identity census prints before/after every travel with DISJOINT ids and hollow distinct by count, the SpawnSet survives every swap, EXACTLY ONE current camera (the FollowCamera) after every mount, the day-night driver drives the MOUNTED env behind a park at every boundary (re-bind at the swap — the S15 stale-binding hazard closed), and the hollow.png census plate renders from the leg; mode vocabulary drift gate green; non-blank render)"
 exit 0
