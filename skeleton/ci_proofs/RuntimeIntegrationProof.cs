@@ -8,9 +8,9 @@
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list, shared fields and dispatch — >400 because the 243-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 31-mode dispatch ride together here. W4 SPLIT,
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 32-mode dispatch (re-measured MC 10731: mode_sets_check at this head = 32; 31-mode at the S27 head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
-// _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
+// _ComposeDeferred moved VERBATIM to the 323-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 10731)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
 // ReleaseHeldRefsBeforeQuit to the 70-l RuntimeIntegrationProof.Harness.cs — zero
 // behaviour change, marker-log-diff across 8 modes in evidence .audits/*-proofsplit.
