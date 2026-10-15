@@ -105,7 +105,7 @@ the composition root (see §3).
 S15/MC 10199 day-night driver — INTEGER frame clock on the 60 Hz world tick + the
 per-zone const keyframe tables on the shipped `Environment` + `DirectionalLight3D`,
 280 l), `WorldDirector.Motion.cs` (partial: the S14/MC 10198 character-life driver —
-integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.Ground.cs` (partial, MC 10420 split of the ground guarantee — the MC 10404 fall plane MOVED VERBATIM + the NEW XZ ground-extent clamp, both resolved per zone-entry from the terrain_builder meta channel `floor_min_y` + `ground_extent` (ONE channel, one mechanism); `ClampToGround` is the ONE point world motion + co-locations bound to the loaded ground, missing meta DISARMS LOUD (never-silent); MC 10420 c2 F-DA1 adds `WireFollowClamp` — the same method injected into every visible companion body at spawn, 179 l), `VisualJuice.cs`
+integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.Ground.cs` (partial, MC 10420 split of the ground guarantee — the MC 10404 fall plane MOVED VERBATIM + the NEW XZ ground-extent clamp, both resolved per zone-entry from the terrain_builder meta channel `floor_min_y` + `ground_extent` (ONE channel, one mechanism); `ClampToGround` is the ONE point world motion + co-locations bound to the loaded ground, missing meta DISARMS LOUD (never-silent); MC 10420 c2 F-DA1 adds `WireFollowClamp` — the same method injected into every visible companion body at spawn, 179 l), `WorldDirector.Mount.cs` (partial, MC 10519/S27 — the zone-scene MOUNT route: `MountZoneScene(zoneId)` instantiates `res://zones/<id>/<id>.tscn` under `World`, unmounts + frees the previous root synchronously so the per-zone ground walk never sees a stale zone, and re-pins the day-night bindings through `InvalidateDayNightBindings` (the stale-binding close: the driver re-resolves the MOUNTED `Environment/*` on its next tick); same-zone re-entry is a no-op; a missing zone scene PushError-s LOUD and keeps the current mount rather than dropping the world to no-ground, 104 l), `VisualJuice.cs`
 (the S1/MC 10120 juice node: hit-flash + offset-punch presentation, split out of
 `ActorVisual.cs` at MC 10183, 186 l), `FollowCamera.cs`, `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
@@ -115,8 +115,13 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
   (`TIME_PROCESS` + `RENDER_TOTAL_DRAW_CALLS_IN_FRAME` + wall interval, flushed
   `PERF_LOG`, `MIN_LIFE_MS` keep-alive); measurement-only, the M07 PNG path stays
   byte-identical with the flag unset.
-- **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `bluetest/`,
-  `redtest/`). `zone.gd` (GDScript) carries the decor-cull, MC 10165 S11 + MC 10184
+- **Zones**: `zones/` (`zone.gd` + `meadow/`, `canyon/`, `ruins/`, `hollow/`,
+  `bluetest/`, `redtest/`). Zones are **mounted by the composition root**, not
+  instantiated in `main.tscn` (MC 10519/S27): `EnterZone` instantiates
+  `zones/<id>/<id>.tscn` under `World` and unmounts the previous one, so the
+  `Environment` subtree a zone ships IS its visual identity, and any driver
+  binding into a zone subtree must re-bind on the swap (see the DayNight
+  re-bind note below). `zone.gd` (GDScript) carries the decor-cull, MC 10165 S11 + MC 10184
   S13 soft fade as SHIPPED: a throttled (0.5 s) zone-root distance test hides
   `Decor` roots across THREE staggered bands — root i hides beyond 45/42/39 m by
   `i % 3` and re-shows only with 2 m hysteresis (no band-edge flicker) — replacing
@@ -259,7 +264,7 @@ the stage PAIRING gate inside mode_sets_check (24 bodies == 24 arms; planted
 unpaired body AND dead arm go RED by name).] Current per-file sizes (restamped
 at 4134d67; was 6ad4007 W3 close; S24/MC 10238 carry restamped below; S19/MC
 10273 restamp: Proof.cs 554 l — mode doc 183 l + the 29-mode dispatch, the
-ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; +9 l MC 10420 c2 F-DA1 (mode-doc row growth + the c2 SIZE restamp); +16 l MC 10516 S38 FLOOR_TRUST (measured 599 l at this head)
+ACT_THREE mode-doc row + KnownModes pair + case 103 arm added): +17 l MC 10420 GROUND_CLAMP mode-doc row/KnownModes/case-104 arm; +9 l MC 10420 c2 F-DA1 (mode-doc row growth + the c2 SIZE restamp); +16 l MC 10516 S38 FLOOR_TRUST; +38 l MC 10519/S27 ZONE_VISUAL_MOUNT (+29 compose-arm set + 7 late final-pass quiet-boot spawn-off guard + 2 header restamp lines; measured 637 l at this head)
 Proof.cs
 (== was 557 l at MC 10255 head; +25 l over the S24-head truth 529 l — the S19 ACT_THREE mode-doc row, KnownModes
 entry, case 103 arm and the SIZE restamp — then +3 l S19 fix-cycle attribution; the older
@@ -279,7 +284,7 @@ W1 at 95f65cd, the rooted-fields PASS-exit idiom), Story2.cs 288 l, Story3.cs
 Dissolve.cs 209 l, DayNight.cs 138 l, Motion.cs 307 l, Passives.cs 138 l,
 GroundClamp.cs 341 l (the +1 PRE-EXISTING at ca3bff2, restamped opportunistically by the MC 10516 fix-forward — not S38 growth; MC 10420/10026.29 ground-extent motion-clamp proof — mode
 `GROUND_CLAMP`, stage 104; MC 10420 c2 +139: the RECRUIT-THEN-EDGE-HOVER phase,
-the FOLLOWER list in the ONE sweep, the PLAYER_UNCLAMPED probe), FloorTrust.cs 254 l (MC 10516/S38: the LIVE floor-trust leg — capsule-footprint map-edge walk, 8 gravity waypoints, the BLOCKED demo, the off-edge kill-plane rescue; stage 105), P1FixProof.cs 446 l (MC 10516 +3: the KILL_PLANE_RESCUE pair noted at the FALL_RECOVERED marker doc; MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
+the FOLLOWER list in the ONE sweep, the PLAYER_UNCLAMPED probe), FloorTrust.cs 254 l (MC 10516/S38: the LIVE floor-trust leg — capsule-footprint map-edge walk, 8 gravity waypoints, the BLOCKED demo, the off-edge kill-plane rescue; stage 105), ZoneMount.cs 450 l (MC 10519/S27: the zone-SCENE-mount leg — per-zone Environment node-identity censuses before/after every travel with disjoint ids + hollow distinct, exactly-one-current-camera, driver-writes-the-mounted-env reads behind a park at every mount boundary, LOAD mounts the saved zone, the hollow.png census plate rendered by the leg; mode `ZONE_VISUAL_MOUNT`, stage 106), P1FixProof.cs 446 l (MC 10516 +3: the KILL_PLANE_RESCUE pair noted at the FALL_RECOVERED marker doc; MC 10404: +58 l — mode-doc row, fields, dispatch arm, the
 `fall_recovered` stages 50/51; MC 10026.31(a): +17 l — the drop moves +40/+40
 OFF the entry column so byte-exact recovery-to-entry is a traversal, not a
 tautology), FloorCoverageProof.cs 528 l (MC 10516/S38: +214 over the 314 at the MC 10404 head — the FLOOR_TRUST mode: capsule-footprint support probe, the per-zone 256-probe RECORD, the named inside-span violation class; MC 10404: the standalone zone-boot
@@ -289,7 +294,7 @@ recomputed through terrain_builder's own world<->pixel mapping, markers
 `FLOOR_HEIGHT_DIAG`/`FLOOR_HEIGHT_CLEAR`) — owns ONLY mode `FLOOR_COVERAGE`, boots
 zones WITHOUT main.tscn, class-local like RosterIntegrationProof so the
 stage-pairing gate's family rule exempts it), Quests.cs 559 l (ARCH 49162d57: added — the second-largest
-file and the next ceiling watch), Compose.cs 312 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head; +14 l MC 10420 GROUND_CLAMP compose route; +13 l MC 10516 FLOOR_TRUST compose route), Harness.cs 70 l —
+file and the next ceiling watch), Compose.cs 323 l (270 l at the split; +15 l = the S19 ACT_THREE compose route, wc at MC 10255 head; +14 l MC 10420 GROUND_CLAMP compose route; +13 l MC 10516 FLOOR_TRUST compose route; +11 l MC 10519/S27 zone-mount compose route, measured at this head), Harness.cs 70 l —
 **every proof file now sits under the 600-l ceiling
 (max entry Proof.cs 599, then Bus.cs 566, then Quests.cs 559), entry included since the MC 10218 split.** No
 mode router moved: the entry file's stage switch stays the only mode router,
@@ -368,11 +373,25 @@ arm in the entry switch; unpaired body OR dead arm = named VIOLATION + exit 1;
 plants go RED in --selftest.
 `RuntimeIntegrationProof.Zone4.cs` — stage 100 (mode-gated), mode `ZONE4`:
 MC 10216 S18 zone four — the 4th zone `hollow` is TABLES-ONLY (ZoneIds +
-Tables + DayNight Hollow const; no new .tscn): travel cycle + wrap on the
-shipped seam, 6 live Wraiths, 4 EXACT anchors + fog pin re-read, pairwise
-distinct noon rows, gait +1 mod 14 integer tick; markers `ZONE4_TRAVEL` /
-`ZONE4_TABLE` / `ZONE4_ENEMY4` / `ZONE4_GAIT_INT` / `ZONE4_ANCHOR_*` /
-`ZONE4_FOGPIN_0` / `ZONE4_KEY4_DISTINCT` / `ZONE4_WRAP`; rides the battery.
+Tables + DayNight Hollow const; MC 10519/S27 UPDATE: hollow now ALSO owns
+`zones/hollow/hollow.tscn`, mounted on the ONE route like every zone — the
+S18 "no new .tscn" clause held until scene mounting landed): travel cycle +
+wrap on the shipped seam, 6 live Wraiths, 4 EXACT anchors + fog pin re-read,
+pairwise distinct noon rows, gait +1 mod 14 integer tick; markers
+`ZONE4_TRAVEL` / `ZONE4_TABLE` / `ZONE4_ENEMY4` / `ZONE4_GAIT_INT` /
+`ZONE4_ANCHOR_*` / `ZONE4_FOGPIN_0` / `ZONE4_KEY4_DISTINCT` / `ZONE4_WRAP`;
+MC 10519/S27 EXPECTATION SWEEP (timing): the travel-reposition assert was ONE
+3-D DistanceTo<1.0 m read at arrival; with the zone scene mount its terrain
+build + navmesh bake run ON the travel frame, physics catch-up advances tens
+of ticks before the leg's next read and FREE-FALL ALONE ate the budget
+(measured d 0.893–1.054 over 8 solo runs, X/Z EXACT (0,0) in all — battery-2
+went RED here; a peak-Y sampler attempt proved the write moment UNOBSERVABLE
+behind the bake). Re-instrumented NON-VACUOUS: the leg walks the witness OFF
+the entry column (`ZONE4_OFFCOLUMN`, 20f of the shipped move feed, structural
+floor 0.583 m) and asserts the arrival returns it to the column (horizontal
+error <0.1 m); planted-RED (reposition write unhooked) FAILS by name at
+err=0.558 m, restored GREEN at err=0 (`.tmp/s39/zone4-planted-{RED,GREEN}.log`,
+stability 10/10 `z4v1..10.log`); rides the battery.
 `RuntimeIntegrationProof.Bark.cs` — stage 102 (mode-scoped to `BARK`,
 single-owner — no dispatch gate needed, unlike the two-owner stage 100), mode
 `BARK`: MC 10131 S8 command bark — ONE `bark` press opens a 16f INTEGER bubble
@@ -462,7 +481,7 @@ Fail(unknown mode …)`. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**43 `run_mode` legs = 33 positive + 10 negative** (W2 close added `passives`
+**44 `run_mode` legs = 34 positive + 10 negative** (W2 close added `passives`
 S16, `trait_effects` S17, `DAYNIGHT_STATE` S15, `CHAR_MOTION` S14; S20 added
 `CAMERA_KILL_PULSE` and `BOSS_FRAME`; S18 added `ZONE4`; W3 S8 added `BARK`; S19/MC 10273
 added `ACT_THREE`; MC 10420/10026.29 added `GROUND_CLAMP` (motion clamp to the ground extent — see the census note below); MC 10516/10026.33 S38 added `FLOOR_TRUST` TWICE — the mode
@@ -474,7 +493,11 @@ walkable points; MC 10026.31(c) adds the every-8th-point HEIGHT assert vs the
 visual surface — `FLOOR_HEIGHT_CLEAR` grepped in-leg too) and `fall_recovered` (P1FixProof stages 50/51 — a below-plane
 fall restores to the zone entry with Life intact; the product
 `FALL_RECOVERED from=` guarantee line is grepped in-leg; MC 10026.31(a) drops
-the player +40/+40 OFF the entry column so the assert is a traversal); count = `grep -cE '^run_mode '`
+the player +40/+40 OFF the entry column so the assert is a traversal); MC 10519/10026.35 S27
+added `ZONE_VISUAL_MOUNT` (entry proof stage 106 — travel re-MOUNTS the zone
+scene, so what you SEE changes per zone: printed node-identity censuses with
+disjoint ids across every swap, exactly one current camera, the day-night driver
+writing the MOUNTED env behind a park, LOAD mounting the saved zone); count = `grep -cE '^run_mode '`
 at this commit), and every negative control is asserted to
 FAIL with its named marker — so an unknown mode that slipped a proof's own guard still
 trips the gate. MC 10026.31(b) additionally wraps the legs in `battery_body()` whose
@@ -501,7 +524,7 @@ than the own-leg pair keeps its zero).
 3. **`.cs.uid` sidecar**: the engine mints `<file>.cs.uid` (`uid://…`) on `godot --headless --import` — never hand-edit one, and commit it in the SAME commit as the file (all 32 ci_proofs sidecars are tracked since MC 10404's `FloorCoverageProof.cs.uid` — the 32nd is MC 10516's `RuntimeIntegrationProof.FloorTrust.cs.uid`).
 4. **Name the mode in the vocabulary**: add the mode-doc row in the ENTRY header under `Modes (env LA_GATE_MODE ...)` (the block mode_sets_check parses — `Modes (env` .. `// Run:`, 217 l at this tip by that very awk (+16 MC 10420 `GROUND_CLAMP` doc row, +7 MC 10420 c2 F-DA1, +9 MC 10516 S38 FLOOR_TRUST doc row; 208 was true AT ca3bff2 — the S38 commit grew the block but restamped every neighbour except this number, the §6.1-7 arith-off-a-prior-stamp class named by the ARCH wall)), and name the same string in the `KnownModes` allow-list in the ENTRY file — the ONLY allow-list in the tree (mode_sets_check's PROOFS table: RosterIntegrationProof/ZoneBossProof/P1FixProof/FloorCoverageProof carry none and are gated doc == arms — 5 dispatching proofs since MC 10404). Header == allow-list == dispatch arms, or the gate names the drift RED.
 5. **Unknown-mode fail-safe**: the entry rejects an off-list `LA_GATE_MODE` with `LA_GATE: FAIL: unknown mode <x>` + exit 1 at dispatch top, BEFORE any stage side-effect — a set-but-empty value fails closed too (`GetEnvironmentVariable` returns `""`, the `??` default never fires). Standalone proofs keep one named arm per documented mode plus `default: Fail(…unknown mode…)`. Never let an unknown mode fall through to a PASS leg (MC 10204 F1, the vacuous-green class).
-6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **105** (`FLOOR_TRUST` — `case 105` live in the entry dispatch + `_stage = 105` in Compose since MC 10516); **NEXT FREE = 106** (measured at this tip: zero `case 106` / `_stage = 106` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
+6. **Stage number — take the NEXT FREE, keep it unique.** Allocate in `_ComposeDeferred` (the Compose partial), handle it in the entry's `switch (_stage)`. Max allocated NOW = **106** (`ZONE_VISUAL_MOUNT` — `case 106` live in the entry dispatch + `_stage = 106` in Compose since MC 10519/S27); **NEXT FREE = 107** (measured at this tip: zero `case 107` / `_stage = 107` in the tree). Stage 100 is the only shared number — the mode-scoped exception: `CAMERA_KILL_PULSE` and `ZONE4` both open there under an explicit `if (_mode == "ZONE4") … else …` arm (merge 781ea66 fused that block away silently — P0; a re-used number WITHOUT the gate drops one leg in silence). The map at this tip (entry dispatch + Compose routes):
 
    | stage | mode(s) | stage body |
    |---|---|---|
@@ -524,10 +547,11 @@ than the own-leg pair keeps its zero).
    | 103 | `ACT_THREE` | `.Story3.cs` |
    | 104 | `GROUND_CLAMP` | `.GroundClamp.cs` |
    | 105 | `FLOOR_TRUST` | `.FloorTrust.cs` |
+   | 106 | `ZONE_VISUAL_MOUNT` (MC 10519/S27, UNIQUE) | `.ZoneMount.cs` |
 
    The sibling proofs (ZoneBossProof, P1FixProof, RosterIntegrationProof) run class-local stage machines behind their own `run_mode` proof paths — they share no numbers with this map.
-7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **43 legs = 33 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. One mode may run on TWO proof classes as TWO legs distinguished by the 4th arg — S38's `FLOOR_TRUST` does exactly that (`$PROOF_FLOOR` zones-alone sweep + the entry proof's live edge-walk). The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
-8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 27 stage bodies == 27 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
+7. **Battery leg + the counts-restamp duty**: append `run_mode <mode> <pass|fail> "<first marker>" ["res://ci_proofs/<Proof>.cs"]` to `ci/runtime_integration_test.sh` (omitted 4th arg = the entry proof); a negative leg asserts NON-zero exit AND its named `NEG_*` marker. At this tip: **44 legs = 34 pass + 10 fail**, each by anchored grep — total `grep -cE '^run_mode ' ci/runtime_integration_test.sh`, fails `grep -cE '^run_mode [a-zA-Z0-9_]+[[:space:]]+fail' …`. One mode may run on TWO proof classes as TWO legs distinguished by the 4th arg — S38's `FLOOR_TRUST` does exactly that (`$PROOF_FLOOR` zones-alone sweep + the entry proof's live edge-walk). The script's header banner and this §6 restate those numbers, so **EVERY leg commit restamps them from the grep** — the recurring failure is arithmetic off a prior stamp (W2 close carried 29 vs a true 33; W3 close carried 36 vs 37). Same duty on every `// SIZE:` header in ci_proofs: restamp to `wc -l` AT YOUR HEAD at merge time, never to a delta sum.
+8. **Pairing-gate practice** (defs↔calls is GATED, not just an invariant — plants go RED): after touching the entry or any partial run `python3 ci/mode_sets_check.py` (GREEN + `PAIRING OK — 28 stage bodies == 28 entry arms` at this tip) and `python3 ci/mode_sets_check.py --selftest` (EXIT 0; an unpaired stage body AND a dead entry arm both go RED by name); the battery runs the gate itself as its leg before the final echo. The vocabulary plants (`planted_no_doc`, `planted_allow_only`) go RED the same way — teach the check, don't just trust the green.
 
 **NOTE — battery leg letters (MC 10255, NOTE only; NO re-lettering).** The banner letters (A)-(T) are decorative and DO collide at this tip: **(P) marks four legs** (S16 passives, S17 trait_effects, S15 DAYNIGHT_STATE, S14 CHAR_MOTION) and **(Q) marks three** (MC 10210 sets-gate, S20 CAMERA_KILL_PULSE, S18 ZONE4) — measured by `grep -oE '\([A-Z]\)' ci/runtime_integration_test.sh | sort | uniq -c`. Consumers grep the letters, so they stay untouched; the STABLE identifier of a leg is its MODE name plus its LEDGER row. Docs/evidence must name the mode and treat the letter as decoration.
 

@@ -228,8 +228,29 @@ public partial class WorldDirector
 
     // Resolve the SHIPPED zone nodes (S15: nothing new in scenes — the tscn
     // path first, a name search fallback so any zone-installed layout works).
+    // MC 10519 / 10026.35 S27: the MOUNTED zone root resolves FIRST — after a
+    // mount swap the light + WorldEnvironment live under World/<Zone>/
+    // Environment/, not under the boot meadow path; the stale-binding close
+    // is RE-BIND ON MOUNT (not resolve-at-use): InvalidateDayNightBindings
+    // below drops the cached refs AT the swap and the one-shot null-guard in
+    // _PhysicsProcess (:219-220) re-binds the mounted Environment on the
+    // driver's next tick. The ZONE_MOUNT_DRIVER_* markers READ the mounted
+    // scene's nodes against DayNightClock — a missing invalidation leaves the
+    // driver bound to freed nodes and the leg RED.
     private void ResolveDayNightNodes()
     {
+        var mount = _zoneMount;
+        if (mount != null && GodotObject.IsInstanceValid(mount))
+        {
+            var mLight = mount.GetNodeOrNull<DirectionalLight3D>("Environment/DirectionalLight3D");
+            var mEnv = mount.GetNodeOrNull<WorldEnvironment>("Environment/WorldEnvironment");
+            if (mLight != null && mEnv != null)
+            {
+                _dayNightLight = mLight;
+                _dayNightWorldEnv = mEnv;
+                return;
+            }
+        }
         _dayNightLight = GetNodeOrNull<DirectionalLight3D>(
             "World/Meadow/Environment/DirectionalLight3D")
             ?? FindChildOfType<DirectionalLight3D>();
@@ -244,6 +265,19 @@ public partial class WorldDirector
             GD.PushError("LA_GATE: S15 day-night driver found no shipped Environment/DirectionalLight3D in the scene");
             _dayNightNodesMissing = true;
         }
+    }
+
+    /// <summary>MC 10519 S27: the NAMED re-resolve step the mount swap calls
+    /// (world/WorldDirector.Mount.cs). Unmounting a zone scene FREES the light
+    /// + Environment this driver bound; the cached refs drop here and the
+    /// null-guard path re-binds the mounted zone's Environment. Clearing
+    /// _dayNightNodesMissing too lets a driver stood down by an earlier
+    /// empty scene stand back up when the mounted zone ships its nodes.</summary>
+    private void InvalidateDayNightBindings()
+    {
+        _dayNightLight = null;
+        _dayNightWorldEnv = null;
+        _dayNightNodesMissing = false;
     }
 
     private T? FindChildOfType<T>() where T : Node =>

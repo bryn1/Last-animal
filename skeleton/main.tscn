@@ -1,7 +1,6 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://Player.cs" id="1_player"]
-[ext_resource type="PackedScene" path="res://zones/meadow/meadow.tscn" id="2_meadow"]
 [ext_resource type="Script" path="res://world/WorldDirector.cs" id="3_director"]
 [ext_resource type="Script" path="res://world/FollowCamera.cs" id="4_camera"]
 [ext_resource type="Script" path="res://world/VisualJuice.cs" id="5_juice"]
@@ -42,7 +41,11 @@ UICanvas = NodePath("UI")
 
 [node name="World" type="Node3D" parent="."]
 
-[node name="Meadow" parent="World" instance=ExtResource("2_meadow")]
+; MC 10519 / 10026.35 S27: the zone scene is no longer instantiated here. The
+; composition root mounts the CURRENT zone's own scene under World at every
+; EnterZone (world/WorldDirector.Mount.cs), so travel changes what you SEE.
+; Boot meadow is mounted by the boot EnterZone, byte-same node path
+; World/Meadow as this line used to give.
 
 [node name="Player" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

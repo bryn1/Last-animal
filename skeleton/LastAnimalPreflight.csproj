@@ -268,6 +268,18 @@
          below-plane mechanism. Appended at the ItemGroup END (S2 Shake.cs
          precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.FloorTrust.cs" />
+    <!-- Compile MC 10519 / 10026.35 S27 (zone-scene mounting on travel): the
+         mount route partial (EnterZone mounts/unmounts zones/<id>/<id>.tscn
+         under World; the named day-night re-bind hook rides the swap; the
+         hollow.tscn scene + canyon/ruins camera current=false data-fix ride
+         the same commit) and the ZONE_VISUAL_MOUNT proof partial (mode
+         ZONE_VISUAL_MOUNT, stage 106 — UNIQUE number): per-zone node-identity
+         censuses before/after travel, exactly-one-current-camera, driver-
+         writes-the-mounted-env markers behind a park, the LOAD mount and the
+         hollow.png census plate. Appended at the ItemGroup END (S2 Shake.cs
+         precedent). -->
+    <Compile Include="world/WorldDirector.Mount.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.ZoneMount.cs" />
   </ItemGroup>
 
 </Project>

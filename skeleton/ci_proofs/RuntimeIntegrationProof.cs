@@ -1,10 +1,14 @@
-// SIZE: 599 l measured by wc AT this head (MC 10516 S38 restamp: +16 over the 583 at
-// MC 10420 c2 — the S38 FLOOR_TRUST mode-doc row, KnownModes, spawn-off guard, case-105 arm;
+// SIZE: 637 l measured by wc AT this head (MC 10519 S27 restamp: +38 over the 599 at
+// MC 10516 — +29 (the ZONE_VISUAL_MOUNT mode-doc row (+24), KnownModes entry, case-106
+// arm + its comment) + 7 (the ZONE_VISUAL_MOUNT quiet-boot spawn-off guard + comment,
+// added on the final pass so the leg never farms kills at boot) + 2 this header's own
+// restamp lines); prior 599 read: the S38 +16 over the 583 at MC 10420 c2 — the S38 FLOOR_TRUST
+// mode-doc row, KnownModes, spawn-off guard, case-105 arm;
 // that 583 read: the 557 stamp lagged cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 217-l mode
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 243-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 30-mode dispatch ride together here. W4 SPLIT,
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 31-mode dispatch ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 270-l RuntimeIntegrationProof.Compose.cs
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -248,6 +252,32 @@ using System.Linq;
 //                    edge drop is RESCUED byte-exact to the zone entry, Life
 //                    intact, behind the product KILL_PLANE_RESCUE zone+reason
 //                    marker (never silent). Stage 105, .FloorTrust.cs.
+//   ZONE_VISUAL_MOUNT — MC 10519 / 10026.35 S27: zone-SCENE mounting on travel,
+//                    quiet boot (bus_emit idiom; the leg re-arms spawning
+//                    before its first travel). Boot ENTERZONE mounts the zone's
+//                    own scene (main.tscn ships no static zone instance any
+//                    more); every real travel press re-mounts — the leg asserts
+//                    the mounted root IS World/<Zone>, the previous root is
+//                    GONE, the SpawnSet still applied (ZONE_MOUNT_MOUNTED /
+//                    _SPAWNSET), EXACTLY ONE current camera after every mount
+//                    and it is the FollowCamera (ZONE_MOUNT_CAMERA_ONE — the
+//                    W5-DA F-1 dual-current class), and prints the node-
+//                    identity CENSUS (count + Name#instance-id) of World/<
+//                    Zone>/Environment before/after every travel — id sets
+//                    disjoint across swaps (ZONE_MOUNT_CENSUS / _DISJOINT) with
+//                    hollow's census DISTINCT from the other three (
+//                    ZONE_MOUNT_HOLLOW_DISTINCT). The day-night driver drives
+//                    the MOUNTED env: across every mount boundary the leg PARKS
+//                    (>= the 0.5 s decor-cull ride) then READS the mounted
+//                    light/Environment bit-exact against DayNightClock at the
+//                    applied frame (ZONE_MOUNT_DRIVER_* — the stale-binding
+//                    close, S15 read idiom). LOAD mounts the SAVED zone behind
+//                    a save-in-hollow -> travel -> load walk (ZONE_MOUNT_LOAD_
+//                    HOLLOW; zero save delta — ZoneId already rides v3). The
+//                    leg RENDERS the hollow.png per-zone census plate and
+//                    asserts its identity rows pairwise-distinct before
+//                    saving (ZONE_MOUNT_CAPTURE; path env LA_MOUNT_CAPTURE_
+//                    PATH). Stage 106, RuntimeIntegrationProof.ZoneMount.cs.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -328,7 +358,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
-        "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST",
+        "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -416,6 +446,11 @@ public partial class RuntimeIntegrationProof : SceneTree
         // the player on bare borders and drops them off the map — quiet boot
         // (bus_emit idiom), no whittling, no interference with the fall.
         if (_mode == "FLOOR_TRUST" && main is WorldDirector dft) dft.SetSpawningEnabled(false);
+        // ZONE_VISUAL_MOUNT (MC 10519 S27): quiet boot so the boot census +
+        // first park stand in a calm scene; the leg RE-ARMS the same public
+        // seam before its first travel press — every zone it ENTERS then
+        // fields its SpawnSet for real (the mount-vs-spawn assert needs it).
+        if (_mode == "ZONE_VISUAL_MOUNT" && main is WorldDirector dzm) dzm.SetSpawningEnabled(false);
         Root.AddChild(main);
 
         _main = main;
@@ -577,6 +612,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // ---- FLOOR_TRUST (MC 10516 S38): stage body lives in
             // RuntimeIntegrationProof.FloorTrust.cs (partial).
             case 105: RunFloorTrustStage(); break;
+            // MC 10519 S27: zone-scene mounting (stage 106 — UNIQUE number;
+            // stage body lives in RuntimeIntegrationProof.ZoneMount.cs).
+            case 106: RunZoneMountStage(); break;
         }
         return false;
     }

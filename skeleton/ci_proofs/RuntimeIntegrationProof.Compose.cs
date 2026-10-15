@@ -123,6 +123,17 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // ZONE_VISUAL_MOUNT (MC 10519 S27): routes BEFORE the live-enemy guard —
+        // quiet boot (bus_emit idiom); the leg arms spawning itself before its
+        // first travel. Stage body lives in RuntimeIntegrationProof.ZoneMount.cs.
+        if (_mode == "ZONE_VISUAL_MOUNT")
+        {
+            _stage = 106;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (zone-mount mode) — zone={_director.CurrentZone} mounted={_director.MountedZoneRoot?.Name ?? "<none>"} (spawning off at boot)");
+            return;
+        }
+
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
 
         _dnaBefore = _hud.DnaMeter;

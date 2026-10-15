@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (562 l by wc AT this head = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
+// SIZE: inherited >400 (572 l by wc AT this head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
 // lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
 // clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
 // bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
@@ -523,6 +523,16 @@ public partial class WorldDirector : Node3D
     private void EnterZone(string zoneId)
     {
         var profile = EcosystemAdaptation.ModelPlayerDna(_spokenDna);
+        // MC 10519 / 10026.35 S27: the zone's OWN scene is mounted (previous
+        // unmounted) at the TOP of every entry — boot, travel, load and the
+        // boss re-field all funnel through this ONE route, so "what you SEE"
+        // follows "what spawns" with no second seam. The route + the
+        // never-silent missing-scene fallback live in the Mount partial
+        // (world/WorldDirector.Mount.cs); same-zone re-entry no-ops there.
+        // The swap removes the PREVIOUS zone's ground from the subtree
+        // synchronously, so the meta walk below sees ONLY the mounted zone
+        // (bounds-before-actors, MC 10420, order unchanged).
+        MountZoneScene(zoneId);
         // MC 10404: the fall plane belongs to the ground the player will walk
         // in THIS zone — re-resolve it on every entry (boot included).
         // MC 10420: the call MOVES ahead of OnZoneEnter for the SAME reason on

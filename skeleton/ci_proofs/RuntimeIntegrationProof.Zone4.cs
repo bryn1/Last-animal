@@ -34,6 +34,8 @@ public partial class RuntimeIntegrationProof : SceneTree
     private WorldEnvironment? _z4Env;
     private EnemyActor? _z4Witness;
     private Vector3 _z4SpawnOrigin;       // zone-entry baseline, captured at compose (the director repositions the player HERE on every travel)
+    private float _z4DisplacedBy;         // S27: metres walked OFF the entry column before the final (hollow) travel — the column-return assert's non-vacuity precondition
+    private int _z4MoveFrames;            // off-column displacement sub-phase counter
     private int _z4TravelToggle;          // PressTravel-style press cycle (ZoneBossProof idiom)
     private int _z4Leg;                   // 0..2 travel legs, 3 = gait window, 4 = wrap leg
     private int _z4GaitCycle;             // the Wraith gait cycle the proof reads FROM the table
@@ -61,6 +63,25 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (_z4Leg <= 2)
         {
             // ---- travel: meadow -> canyon -> ruins -> hollow on the real seam ----
+            // S27 displacement sub-phase (the FINAL leg only, before its press):
+            // the witness walks ~1.6 m off the entry column (12 m/s·ticks of the
+            // shipped 5 m/s direct feed, PlayerController.cs:34/89 — no inertia,
+            // release stops dead), so the hollow-arrival column-return assert
+            // below is a REAL test of the reposition instead of a witness that
+            // never left the column. An unhooked reposition lands the arrival
+            // error at the displacement; a hooked one zeroes it.
+            if (_z4Leg == 2 && _z4DisplacedBy == 0f)
+            {
+                if (_z4MoveFrames == 0) Input.ActionPress("move_right");
+                _z4MoveFrames++;
+                if (_z4MoveFrames >= 20)
+                {
+                    Input.ActionRelease("move_right");
+                    _z4DisplacedBy = System.Math.Abs(_playerBody!.GlobalPosition.X - _z4SpawnOrigin.X);
+                    GD.Print($"LA_GATE: ZONE4_OFFCOLUMN displaced-by={_z4DisplacedBy:0.###} m — the column-return assert below tests a return, not a stand");
+                }
+                return;
+            }
             if (PressZ4Travel() && _director!.CurrentZone == Z4Order[_z4Leg])
             {
                 if (_z4Leg < 2)
@@ -69,10 +90,29 @@ public partial class RuntimeIntegrationProof : SceneTree
                     _z4Leg++; _z4LegFrames = 0; _z4TravelToggle = 0;
                     return;
                 }
-                // hollow arrived: the 4-zone cycle + the table + the enemy four
-                Check("player repositioned at the zone entry on travel",
-                      _playerBody!.GlobalPosition.DistanceTo(_z4SpawnOrigin) < 1.0f,
-                      "pos rides the (ii) numeric stream");
+                // hollow arrived: the 4-zone cycle + the table + the enemy four.
+                // S27 EXPECTATION SWEEP, second site (the first: the anchor read
+                // in AssertZone4Anchors): "player repositioned at the zone entry"
+                // was ONE 3-D DistanceTo < 1.0 m budget read at the arrival frame.
+                // The zone mount now runs its terrain build + navmesh bake ON the
+                // travel frame; physics catch-up advances tens of ticks before the
+                // proof's first READ, and free-fall ALONE ate the vertical half of
+                // that budget: VERIFIED over 8 solo runs — d=0.893/0.915 GREEN,
+                // d=1.054/1.029 RED, X/Z EXACT (0,0) in ALL eight. The budget sat
+                // on a timing artifact (an earlier peak-Y sampler attempt: the
+                // write moment is UNOBSERVABLE behind the bake — maxY read 2.4-2.5,
+                // never the written 3.0, .tmp/s39/zone4-s*.log). Re-instrumented
+                // to what the guarantee actually is, made NON-VACUOUS by the
+                // OFFCOLUMN sub-phase above: the witness displaced ~1.6 m, and
+                // travel must bring it back to the entry COLUMN — horizontal error
+                // < 0.1 m, X/Z-exact class. The old budget could not fail for a
+                // witness that never left the column; the new one fails LOUDLY if
+                // the reposition is unhooked (error == the displacement).
+                var p4 = _playerBody!.GlobalPosition;
+                float dXZ4 = new Vector2(p4.X - _z4SpawnOrigin.X, p4.Z - _z4SpawnOrigin.Z).Length();
+                Check("travel returned the displaced player to the zone entry COLUMN (off-column by >=0.5 m BEFORE, arrival error <0.1 m AFTER)",
+                      _z4DisplacedBy >= 0.5f && dXZ4 < 0.1f,
+                      $"offColumnBy={_z4DisplacedBy:0.###} m arrival-err={dXZ4:0.####} m pos=({p4.X:0.###},{p4.Y:0.###},{p4.Z:0.###}) origin=({_z4SpawnOrigin.X:0.###},{_z4SpawnOrigin.Y:0.###},{_z4SpawnOrigin.Z:0.###})");
                 if (_failed) return;
                 Check("hollow SpawnSet re-applied: 6 denizens through the existing wire",
                       _director.Enemies.Count == 6, $"enemies={_director.Enemies.Count}");
@@ -170,11 +210,19 @@ public partial class RuntimeIntegrationProof : SceneTree
     /// noon rows across all FOUR zone tables.</summary>
     private void AssertZone4Anchors()
     {
-        var main = _main!;
-        _z4Light = main.GetNodeOrNull<DirectionalLight3D>("World/Meadow/Environment/DirectionalLight3D");
-        _z4Env = main.GetNodeOrNull<WorldEnvironment>("World/Meadow/Environment/WorldEnvironment");
+        // S27 expectation sweep (MC 10519, the S14 same-commit precedent): with
+        // zone-SCENE mounting, the driven Environment + light live UNDER THE
+        // MOUNTED ZONE ROOT — this leg stands in hollow at this point, and
+        // "World/Meadow" is exactly the stale-binding path this card closes
+        // (reading it here would read FREED nodes). The assert itself is
+        // UNCHANGED: the Hollow row must read bit-exact on the live driven
+        // nodes — those nodes are now the mounted scene's own (the driver
+        // re-binds at the swap, WorldDirector.DayNight.cs).
+        var mounted = _director!.MountedZoneRoot;
+        _z4Light = mounted?.GetNodeOrNull<DirectionalLight3D>("Environment/DirectionalLight3D");
+        _z4Env = mounted?.GetNodeOrNull<WorldEnvironment>("Environment/WorldEnvironment");
         if (_z4Light == null || _z4Env == null)
-        { Zone4Fail("shipped Environment/DirectionalLight3D not found under World/Meadow"); return; }
+        { Zone4Fail($"no Environment/DirectionalLight3D under the MOUNTED zone root ({mounted?.Name ?? "<none>"}) — the day-night driver has nothing to drive"); return; }
         _director!.SetDayNightPaused(true);
         AssertZone4Anchor("DAWN", DayNightClock.DawnFrame);
         if (_failed) return;
