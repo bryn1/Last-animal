@@ -1,0 +1,22 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. TILEABLE SEAMLESS GAME GROUND TEXTURE PLATE, straight top-down orthographic view filling the entire frame: dense dark mossy grass floor of a shadowed wild meadow, short thick moss carpets broken by fine grass-blade tufts and small damp hollows, tiny bits of leaf litter, detail evenly distributed across the whole plate. The pattern must wrap perfectly on both horizontal and vertical axis: every feature touching an edge continues exactly at the opposite edge, absolutely no visible seam, no lighting gradient toward the edges, no vignette, no cast shadows, completely flat even ambient light. Hand-painted painterly thick-brush game art with visible brush character, NOT photorealistic. Low-saturation palette anchored on near-black olive #0c100c, dark moss #1d2117, olive mid #343624, slate-sage #636e61, lit sage highlight #869081 used sparingly, pale sage #c0c4b1 only on a few grass tips. Moody desaturated cold-green tones. No characters, no creatures, no flowers as subjects, no user interface, no text, no watermark, no border, no frame.",
+  "seed": 4721,
+  "size": "1024x1024",
+  "mode": "edit",
+  "quality": "fast",
+  "refs": [
+    "/home/claudecode/design-lab/s47/refs/target-meadow-1.png"
+  ],
+  "generator": "/opt/imagegen Qwen-Image via harness imagegen MCP",
+  "ts_utc": "2026-10-15T21:55:15Z",
+  "target_for": "meadow/ground-texture: S47 (MC 10523)",
+  "postprocess": {
+    "method": "edge-offset blend: wrap-aware isotropic gaussian (3x3 period tiling) under a periodic raised-cosine weight, 1 on the wrap lines, 0 at `band` px inside",
+    "sigma": 10,
+    "band_px": 40,
+    "tool": "skeleton/ci/seam_fix.py",
+    "card": "MC 10759",
+    "ts_utc": "2026-10-16T03:56:58Z",
+    "note": "generation prompt/seed/mode/quality/refs above are the render as shipped by skeleton/ci/asset_finalize.py; this block is the CPU post-process only"
+  }
+}
