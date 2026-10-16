@@ -50,4 +50,4 @@ band is 77 px tall, far wider than the 40-px seam band, so it needs crop or repa
 leaves 947, and restoring Po2 1024 means an 8.1% vertical stretch: a composition call, not a seam fix). (2) Generator-baked edge lighting, seen as a
 low-frequency mean-luma step across the wrap (60-px strips, before → after): ground_stone vertical +34.2 → +29.9,
 wall_stone vertical +22.8 → +19.7 and horizontal +28.3 → +23.7, ground_dirt +10.3/+10.2 → +9.1/+9.9 — tiling now
-has no hard line but still shows that lighting swing. Both measured per-plate in SEAMFIX.md.
+has no hard line but still shows that lighting swing. Both measured per-plate in SEAMFIX.md. Removing that swing (a low-frequency wrap-equalization) is a **DECISION OWED** — named for an S41 ruling, never applied unilaterally: removal repaints each plate's whole luminance field, and the wrap steps it would have to remove measure +19.7..+29.9 after the seam fix (per-plate values in SEAMFIX.md) — the same standing as the crop/repaint ruling owed on (1).
