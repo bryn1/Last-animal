@@ -204,7 +204,7 @@ gradient (`seam_max`) against the plate's own interior 95th-percentile gradient;
 one JSON row per file (verdict PASS/FAIL) plus a `_2x2.png` composite land in
 `SEAM_OUT` (default cwd). **LIMITATION (P3, named at MC 10759 ARCH): the verdict
 is BY PRINT ONLY — the script exits 0 UNCONDITIONALLY, even on FAIL; a caller
-must read the verdict row, never trust the exit code.**
+must read the verdict row, never trust the exit code.** Certificate scope (MC 10759 DA wall): the 1-px seam metric only — the low-frequency wrap-lighting report is owed via MC 10776.
 `seam_fix.py` — the CPU wrap-fix (MC 10759): edge-offset blend on the plate
 torus (wrap-aware isotropic gaussian under a periodic raised-cosine weight,
 ±`SEAM_BAND` px frame, default 40) rewrites the plate IN PLACE and records a

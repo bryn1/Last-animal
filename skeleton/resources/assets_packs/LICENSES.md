@@ -40,7 +40,7 @@ wall_stone 149/42 → 3/41, wall_rock 224/54 → 7/53; margin 4.5x to 13.7x, int
 They shipped as FAILING palette/mood candidates on 2026-10-15 (per-attempt table in
 `last-animal/.audits/202610151912-s47/out/attempts.json`); the CPU wrap-fix closed the boundary step, and the
 gate itself was proven RED again on a planted bad variant at this commit. Table + red-proof + 2x2 composites:
-`last-animal/.audits/202610151912-s47/out/SEAMFIX.md` and `out/fixed/`.
+`last-animal/.audits/202610151912-s47/out/SEAMFIX.md` and `out/fixed/`. Honest framing (per the DA wall on MC 10759): this gate's certificate is the 1-px seam metric only (`seam_max` vs `interior_p95`) — the recorded low-frequency wrap lighting (+19.7..+29.9, item (2) below) is NOT certified by it and stays a named S41 ruling; gate hardening is tracked as MC 10776.
 
 CARRIED FOR S41 (measured, NOT fixed by a wrap-fix — content, not seams): (1) `wall_rock.png` pale sky band
 along the top edge: rows 0-76 each have a majority of pixels above luma 150 (77 rows), rows 0-31 mean luma 202.3
