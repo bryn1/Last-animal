@@ -9,5 +9,14 @@
   ],
   "generator": "/opt/imagegen Qwen-Image via harness imagegen MCP",
   "ts_utc": "2026-10-15T21:53:44Z",
-  "target_for": "meadow/ground-texture: S47 (MC 10523)"
+  "target_for": "meadow/ground-texture: S47 (MC 10523)",
+  "postprocess": {
+    "method": "edge-offset blend: wrap-aware isotropic gaussian (3x3 period tiling) under a periodic raised-cosine weight, 1 on the wrap lines, 0 at `band` px inside",
+    "sigma": 10,
+    "band_px": 40,
+    "tool": "skeleton/ci/seam_fix.py",
+    "card": "MC 10759",
+    "ts_utc": "2026-10-16T03:56:57Z",
+    "note": "generation prompt/seed/mode/quality/refs above are the render as shipped by skeleton/ci/asset_finalize.py; this block is the CPU post-process only"
+  }
 }
