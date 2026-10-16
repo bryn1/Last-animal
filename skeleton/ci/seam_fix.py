@@ -73,7 +73,8 @@ def fix_file(path):
                          % side_path)
     im = Image.open(path).convert("RGB")
     w, h = im.size
-    # Po2 >= 512 rule OWNER: skeleton/ci/asset_finalize.py:17-18; accepted copy self-guarding in-place work — mirror if that bar moves.
+    # Po2 >= 512 rule OWNER: skeleton/ci/asset_finalize.py:17-18; accepted copy
+    # self-guarding in-place work — mirror if that bar moves.
     if w < 512 or h < 512 or (w & (w - 1)) or (h & (h - 1)):
         raise SystemExit("%s: size %dx%d is not power-of-two >= 512" % (path, w, h))
     src = np.asarray(im, dtype=np.uint8)

@@ -6,7 +6,7 @@ Repo root: `/srv/workspace/last-animal/` (git tree at root). The game project
 lives in `skeleton/`; `engine/` holds the pinned engine binaries; `animation_pipeline/`
 is a separate bake project. This document describes the tree AS IT IS; the
 Architect updates it whenever reality moves.
-Length note (file-hygiene, MC 10255): this is ONE architecture statement by design — the sections mirror the tree and a proof-mode fan must get §6 whole; a split needs an owner ruling, not a silent slice.
+Length note (file-hygiene, MC 10255): this is ONE architecture statement by design — the sections mirror the tree and a proof-mode fan must get §6 whole; a split needs an owner ruling, not a silent slice (603 l at this head, MC 10759).
 
 ## 1. Top-level layout
 
