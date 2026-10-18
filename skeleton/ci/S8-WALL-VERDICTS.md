@@ -1,0 +1,11 @@
+# S8-WALL-VERDICTS — MC 10131 full-wall verdict lines (knut row 9), mirrored verbatim
+
+Wall run dir: .audits/202610070903-1afbf15b/out/ (TEST/DA/ARCH), producer dir: .audits/20261007-1020-s8/.
+Subject of all three: merged tip 6ad4007 (merge of 825ad5e onto 618d843; S8 inc commits d81b6bd, 74046be, 887865a; effective diff 618d843..6ad4007 = 11 files).
+
+- TEST wall: TEST-verdict.md — last line "# VERDICT: PASS", judged-hash line "# JUDGED: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a". Content (from DONE.md row T-TEST): pairing 24/24, BARK x2 green, A/A byte-identical under savegate, 5 named re-greens (DAYNIGHT_STATE, CHAR_MOTION, ZONE4, CAMERA_KILL_PULSE, BOSS_FRAME), MODE_SETS_CHECK 28 + --selftest RED-capable, 37-leg battery, 0 conflict markers, census 15, zero src/save hunks.
+- DA wall: DA-verdict.md — last line "# VERDICT: SHIP", same "# JUDGED: 44136fa3…" hash. 6/6 claims HELD incl. the stale-index attack FAILED to break it; own planted double-step RED named + re-greened; ghost-plant RED too. Two P3s (F1 EMPTY-leg 1-frame walk; F2 bark load-seam carry) filed as follow-up card MC 10238 — shipped F2 half = BARK_LOAD_CLEAR (in the current battery leg).
+- ARCH wall: ARCH-verdict.md — last line "# VERDICT: PASS", same "# JUDGED: 44136fa3…" hash. 5 shape answers CLEAN, no P0/P1; F1 P2 = the 6-spot ARCHITECTURE restamp carried by the W3 wave-close commit 27137f9 (in master).
+- Wall completeness: DONE.md rows T-TEST/T-DA/T-ARCH all PASS (writer attribution per the run-5d3729b5 T8 ruling: each verdict file's writer IS the dispatched phase verifier).
+- Producer gates (20261007-1020-s8/EVIDENCE.md, last line VERIFY_EXIT=0): BARK x2 green + trio 3-way equal; rosters 1/3 EXACT walked counts; integer -1/frame; EMPTY zero-ghosts; BARK_NO_GAMEPLAY_DELTA x3 bit-still; A/A byte-IDENTICAL under savegate; planted RED pair named then reverted+re-greened; 5 neighbor re-greens; FULL battery 37 legs EXIT=0; smoke PASS colors=3915.
+- Round-2 re-derivation (this session, close-evidence battery log): 44-leg battery EXIT=0 with the BARK leg fully green — BARK_ROSTER_ONE/OPEN_1/STEP/GONE/NO_GAMEPLAY_DELTA/ROSTER_THREE/OPEN_3/STEP_3/GONE_3/LOAD_CLEAR/ROSTER_EMPTY/EMPTY_ZERO/NO_GAMEPLAY_DELTA_0/SAVE_OWNED/CENSUS_15 + SKILL_TEST GATE PASS (named F-acts) + MODE_SETS_CHECK: GREEN (RuntimeIntegrationProof=32) + zero GATE FAIL lines.
