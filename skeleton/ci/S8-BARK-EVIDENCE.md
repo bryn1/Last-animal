@@ -14,3 +14,12 @@ Knut round-2 rerun of the prior FAIL (rows 1-13). Code = branch vm350/s8-bark (d
 - row 10 (merge LAST intra-W2/W3): git log --first-parent 0dd5f65..71d001b = [570996e, 618d843, 6ad4007(S8 merge), 27137f9, 71d001b] — 6ad4007 is the LAST stage merge; only comment-only restamps and the wave close follow (LEDGER.md:1247-1248 "merged LAST per ratified plan").
 - row 12: sealed rerun exit 0 was already MET in round 1; the same battery (44 run_mode legs here) is green again in the close-evidence log.
 - row 13 (RULING-3 rec artifact): board card 10026, append id 895 (2026-10-06 18:03:26) — OWNER RATIFICATION verbatim "Rec on all. Before continuing, push everything you got to git repo default"; per-item ledger item 3: "R3 skill_4 Command Bark APPROVED -> S8 unblocked (10131); G-key add sanctioned". Readable via `board-read 10026` (PROBE line in the close evidence).
+
+## Cited files (absolute paths on VM350, inlined into the knut CLAIM by the dispatcher)
+/srv/workspace/last-animal/skeleton/project.godot
+/srv/workspace/last-animal/skeleton/world/CompanionFollowBody.cs
+/srv/workspace/last-animal/skeleton/world/WorldDirector.Roster.Bark.cs
+/srv/workspace/last-animal/skeleton/src/dna/PlayerMutations.cs
+/srv/workspace/last-animal/skeleton/ci/skill_test.sh
+/srv/workspace/last-animal/skeleton/ci/runtime_integration_test.sh
+/srv/workspace/last-animal/LEDGER.md
