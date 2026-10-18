@@ -18,3 +18,11 @@ row 10 (planted-bad RED, never-release: _releaseFramesLeft = DuckReleaseFrames e
 MIX_DUCK_OFF_CLOSE: FAIL … (bus=-8.000dB after 32f); MIX_BOSS_STANCE: FAIL (released=False bus=-12.000dB after 32f) -> M06_AUDIO_TEST: GATE FAIL: AudioTest exited 1 (exit 1). Mutation reverted; the row-9 log is the post-revert re-green.
 row 11 (boot_test green): BOOT_TEST: GATE PASS — signal received, DI round-trip, boot order = registration order
 row 13 (full project verify): same verify_cmd battery (9 dotnet gates + runtime battery, 44 run_mode legs) run 2026-10-18: 15 "GATE PASS" echoes, 0 "GATE FAIL", tail: …BARK stage green… + "VERIFY_ALL_GREEN", process exit 0. Close evidence carries the tail + VERIFY_EXIT=0. (Prior-round NU1301: the restore must run in the SAME session before the gates — done: fetch-style restore then gates, all green.)
+
+## Cited files (absolute paths on VM350, inlined into the knut CLAIM by the dispatcher)
+/srv/workspace/last-animal/skeleton/autoload/MusicManager.cs
+/srv/workspace/last-animal/skeleton/ci/audio_test.sh
+/srv/workspace/last-animal/skeleton/tests/AudioTest.cs
+/srv/workspace/last-animal/skeleton/ci/boot_test.sh
+/srv/workspace/last-animal/skeleton/autoload/DialogueSystem.cs
+/srv/workspace/last-animal/LEDGER.md
