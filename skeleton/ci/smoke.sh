@@ -75,4 +75,11 @@ graphical-test-helper.sh --cmd "$GODOT --path $PROJ" --wait 10 --min-colors 1200
 mv -f "$OUT" "${TMPDIR:-/tmp}/last-animal-smoke.png" 2>/dev/null || true
 rm -f "$OUT"
 
-echo "SMOKE: PASS (headless quit + framebuffer) — capture at /tmp/last-animal-smoke.png"
+# (c) MC 10776 — the S47 seam gate WIRED as a real caller (DA-10759 §"before this
+# gate is trusted": no tracked file called it). Pure numpy/PIL, no engine. The
+# gate owns mkdir of SEAM_OUT and its exit code IS the leg: 0 all PASS, 1 any
+# FAIL, 2 usage/plumbing — no green-on-FAIL, no traceback-on-plumbing.
+SEAM_OUT="$PROJ/.tmp/seam" python3 "$HERE/seam_check.py" "$PROJ"/resources/generated/*.png \
+  || fail "seam gate exited nonzero (see JSON rows above)"
+
+echo "SMOKE: PASS (headless quit + framebuffer + seam gate) — capture at /tmp/last-animal-smoke.png"

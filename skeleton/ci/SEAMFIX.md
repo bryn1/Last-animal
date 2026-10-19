@@ -49,11 +49,16 @@ that keeps ≥ 4.5x margin on every plate (ground_stone 6 vs p95 27 is the bindi
 
 | plate | max abs diff OUTSIDE the ±40 px frame | % of band pixels changed | mean 1-px gradient in the 16 px at the edge (x / y) before → after | PNG bytes before → after | metadata chunks after |
 |---|---|---|---|---|---|
-| ground_dirt  | **0** | 76.6% | 3.39 / 4.81 → 0.55 / 0.73 | 1684211 → 1642895 | 0 |
-| ground_moss  | **0** | 77.3% | 4.27 / 4.38 → 0.66 / 0.68 | 1703938 → 1652737 | 0 |
-| ground_stone | **0** | 71.0% | 3.56 / 4.40 → 0.61 / 0.79 | 1521120 → 1486190 | 0 |
-| wall_rock    | **0** | 76.4% | 2.75 / 6.68 → 0.50 / 1.30 | 1187867 → 1171717 | 0 |
-| wall_stone   | **0** | 72.2% | 3.18 / 3.60 → 0.58 / 0.65 | 1269195 → 1249285 | 0 |
+| ground_dirt  | **0** | 80.6% | 3.39 / 4.81 → 0.55 / 0.73 | 1684211 → 1642895 | 0 |
+| ground_moss  | **0** | 79.8% | 4.27 / 4.38 → 0.66 / 0.68 | 1703938 → 1652737 | 0 |
+| ground_stone | **0** | 76.9% | 3.56 / 4.40 → 0.61 / 0.79 | 1521120 → 1486190 | 0 |
+| wall_rock    | **0** | 77.1% | 2.75 / 6.68 → 0.50 / 1.30 | 1187867 → 1171717 | 0 |
+| wall_stone   | **0** | 78.3% | 3.18 / 3.60 → 0.58 / 0.65 | 1269195 → 1249285 | 0 |
+
+Band-share (MC 10776 re-measure vs the true PRE copies, DA-10759 §1): support = pixels with
+min(dx,dy) <= 40, i.e. the L-shaped ±40 frame INCLUDING its corner squares — 155551 px = 15.2% of
+the plate; the changed fraction is count(changed)/support. The older row (76.6/77.3/71.0/76.4/72.2)
+had counted only dx<=40 AND dy<=40 and undercounted the frame's corners.
 
 So: detail is traded **only** inside a ±40 px frame at the four plate edges (that is the named cost of an
 edge-offset blend, S47 handback), everything outside it is byte-identical to the render, and the
@@ -77,11 +82,22 @@ the evidence, not in a filename).
   `{"file": "wall_rock_planted_bad.png", "seam_max": 158, "interior_p95": 53.0, "verdict": "FAIL"}`,
   reproduced byte-identically on a second reading with a different `SEAM_OUT`.
 
-**P3 named, NOT fixed (scope):** `seam_check.py` exits **0 whatever it prints** — its contract is the
-printed verdict line, so any caller that reads only `$?` would call five FAILs green. Wiring an exit code
-is a change to the gate's own card; it does not get smuggled in under a fix pass. (The gate has no
-automated caller in the tree today — grep finds only LICENSES.md prose and its own file.)
+**P3 CLOSED (MC 10776).** The gate now exits **0 all-PASS / 1 any-FAIL / 2 usage**, `SEAM_OUT`
+is `os.makedirs`-ed (no traceback on a missing dir), and one REAL caller is wired: `smoke.sh` leg
+(c) runs the gate over `resources/generated/*.png` and gates on its exit code. The comparator is
+like-for-like (DA §3a): `seam_p95` vs the p95 of an **equal-N quantile curve** of the interior
+(n = 4096 samples both sides, TOL 1 = the p95 standard error) — the iid plate that FAILed the old
+max-vs-p95 bar (88/50) now PASSes (224/223), and an ABSOLUTE FLOOR (`interior_p95 >= 3`) refuses
+blank plates (0/0 FAIL). A low-frequency term (40-px strip mean-luma step at the wrap, max over
+four strips) is emitted **report-only**: 60.02 / 48.02 / 105.44 / 150.67 / 68.61 — the DA-named
+baked edge-lighting lines (5.2) now print as numbers beside the verdict. `seam_fix.py` validates
+`SEAM_SIGMA`/`SEAM_BAND` (0 < sigma; 0 < band < n/2, R-B rows) and refuses to write a
+`postprocess` block when zero pixels changed; the block and stdout carry `band_px`,
+`pixels_changed` and `delta_p95` vs the in-run BEFORE plate. (Old 5/5 margins below are the
+original max-vs-p95 reading, kept as history; the shipped plates also PASS the new bar with
+margins 28-47x.)
 
+(The former note read: **P3 named, NOT fixed (scope):** `seam_check.py` exits **0 whatever it prints** )
 ## 4. Visual QC
 
 512-px crops centred on the seam crossing of the 2x2 composite, before vs after:

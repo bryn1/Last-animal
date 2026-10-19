@@ -26,6 +26,12 @@ import os
 import sys
 import time
 
+try:
+    import numpy  # noqa: F401
+except ImportError:  # HOME-redirected runners (CI sets HOME=.knut) lose ~/.local
+    for _c in ("/home/claudecode/.local/lib/python3.10/site-packages",):
+        if os.path.isdir(_c) and _c not in sys.path:
+            sys.path.append(_c)
 import numpy as np
 from PIL import Image, ImageFilter
 
@@ -63,6 +69,19 @@ def fix_tile(tile, sigma=SIGMA, band=BAND):
     return np.uint8(np.clip(np.rint(out), 0, 255))
 
 
+def _interior_p95(tile):
+    """Interior 95th-percentile RGB gradient (max abs across channels), same
+    instrument as seam_check.py's pool: row/col adjacent diffs of the single tile,
+    seam lines excluded. Returned rounded to 2 decimals for the sidecar."""
+    f = tile.astype(np.int16)
+    dv = np.abs(f[:, 1:, :] - f[:, :-1, :]).max(axis=2)
+    dh = np.abs(f[1:, :, :] - f[:-1, :, :]).max(axis=2)
+    h, w = f.shape[:2]
+    pool = np.concatenate((np.delete(dv, min(w, dv.shape[1]) - 1, axis=1).ravel(),
+                           np.delete(dh, min(h, dh.shape[0]) - 1, axis=0).ravel()))
+    return round(float(np.percentile(pool, 95)), 2)
+
+
 def fix_file(path):
     """Fix one plate in place and record the post-process in its sidecar."""
     side_path = os.path.splitext(path)[0] + ".json"
@@ -77,14 +96,34 @@ def fix_file(path):
     # self-guarding in-place work — mirror if that bar moves.
     if w < 512 or h < 512 or (w & (w - 1)) or (h & (h - 1)):
         raise SystemExit("%s: size %dx%d is not power-of-two >= 512" % (path, w, h))
+    # Knob validation (DA-10759 §1 R-B): reject degenerate values instead of
+    # silently shipping a whole-plate blur (band >= n/2 makes w == 1 everywhere)
+    # or a no-op (band <= 0 changes zero pixels yet used to write the block).
+    if SIGMA <= 0:
+        raise SystemExit("%s: SEAM_SIGMA=%d invalid (need 0 < sigma; sigma >= n is a "
+                         "full-plate blur)" % (path, SIGMA))
+    n_min = min(w, h)
+    if BAND <= 0 or BAND >= n_min // 2:
+        raise SystemExit("%s: SEAM_BAND=%d invalid (need 0 < band < %d = n/2)"
+                         % (path, BAND, n_min))
     src = np.asarray(im, dtype=np.uint8)
+    p95_before = _interior_p95(src)
     fixed = fix_tile(src)
+    changed = int(np.count_nonzero(np.any(src != fixed, axis=2)))
+    if changed == 0:
+        raise SystemExit("%s: zero pixels changed (sigma=%d band=%d) — refusing to "
+                         "write a postprocess block for a no-op" % (path, SIGMA, BAND))
     # frombytes() carries ONLY the pixels: the S47 metadata-strip property survives.
     Image.frombytes("RGB", (w, h), fixed.tobytes()).save(path)
+    p95_after = _interior_p95(fixed)
     sidecar["postprocess"] = {
         "method": METHOD,
         "sigma": SIGMA,
         "band_px": BAND,
+        "pixels_changed": changed,
+        "interior_p95_before": p95_before,
+        "interior_p95_after": p95_after,
+        "delta_p95": round(p95_after - p95_before, 2),
         "tool": "skeleton/ci/seam_fix.py",
         "card": "MC 10759",
         "ts_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -95,7 +134,8 @@ def fix_file(path):
         json.dump(sidecar, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
     return {"file": path, "bytes": os.path.getsize(path), "sidecar": side_path,
-            "postprocess": "seam_fix sigma=%d band=%d" % (SIGMA, BAND)}
+            "postprocess": "seam_fix sigma=%d band_px=%d delta_p95=%+.2f pixels=%d"
+                           % (SIGMA, BAND, p95_after - p95_before, changed)}
 
 
 if __name__ == "__main__":
