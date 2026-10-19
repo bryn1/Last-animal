@@ -18,11 +18,13 @@ extends Node3D
 ## and render_resolution (grid density of the visual mesh; shader-free, built directly).
 
 const HD_RENDER: int = 64  # visual mesh grid resolution (keep lightweight)
+const GROUND_TILE_M: float = 8.0  # MC 10522 S41: one plate tile per 8 m of ground
 
 @export var zone_id: StringName = &"zone"
 @export_file("*.png") var heightmap_path: String = ""
 @export var h_scale: float = 1.0   # world units per heightmap pixel
 @export var v_scale: float = 1.0   # world units per 255 grey levels
+@export_file("*.png") var ground_texture_path: String = ""   # MC 10522 S41: tileable C’ plate (empty = flat albedo, old path)
 
 var _heights: PackedFloat32Array
 var _w: int = 0
@@ -179,6 +181,7 @@ func build_visual_mesh() -> void:
     var arrays := []
     arrays.resize(Mesh.ARRAY_MAX)
     var verts := PackedVector3Array()
+    var uvs := PackedVector2Array()
     var normals := PackedVector3Array()
     var idx := PackedInt32Array()
     var step := Vector2(_w - 1, _d - 1)  # map grid step over the plane's -0.5..0.5 uv
@@ -194,6 +197,8 @@ func build_visual_mesh() -> void:
             var wx := -aabb.size.x * 0.5 + u * aabb.size.x
             var wz := -aabb.size.z * 0.5 + v * aabb.size.z
             verts.push_back(Vector3(wx, h, wz))
+            # MC 10522 S41: world-space UV (metres / tile) so the C’ plate repeats 1:1 on the ground.
+            uvs.push_back(Vector2(wx / GROUND_TILE_M, wz / GROUND_TILE_M))
     # index buffer (two triangles per grid cell)
     for r in HD_RENDER:
         for c in HD_RENDER:
@@ -204,15 +209,21 @@ func build_visual_mesh() -> void:
             idx.push_back(i0); idx.push_back(i2); idx.push_back(i1)
             idx.push_back(i1); idx.push_back(i2); idx.push_back(i3)
     arrays[Mesh.ARRAY_VERTEX] = verts
+    arrays[Mesh.ARRAY_TEX_UV] = uvs
     arrays[Mesh.ARRAY_INDEX] = idx
     var mesh := ArrayMesh.new()
     mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
     var mi := MeshInstance3D.new()
     mi.name = "TerrainVisual"
     mi.mesh = mesh
-    # grass-coloured surface so the visual reads as ground (not wireframe black)
+    # grass-coloured surface so the visual reads as ground (not wireframe black);
+    # MC 10522 S41: when a ground plate is exported, it becomes the albedo (white
+    # modulate so the plate carries the colour) and repeats at GROUND_TILE_M.
     var mat := StandardMaterial3D.new()
-    mat.albedo_color = Color(0.35, 0.5, 0.28, 1.0)
+    if ground_texture_path.is_empty():
+        mat.albedo_color = Color(0.35, 0.5, 0.28, 1.0)
+    else:
+        mat.albedo_texture = load(ground_texture_path)
     mat.roughness = 1.0
     mi.material_override = mat
     _recalc_normals(mesh)

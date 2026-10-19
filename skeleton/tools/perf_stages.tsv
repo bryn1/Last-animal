@@ -47,3 +47,15 @@ S40	ruins	40.567	32.875	7.692	23.4	single	B2
 S40	meadow	33.700	30.658	3.042	9.9	single	before3
 S40	canyon	32.417	32.842	-0.425	-1.3	single	before3
 S40	ruins	35.933	32.875	3.058	9.3	single	before3
+S41	meadow	82.633	30.658	51.975	169.5	single	before
+S41	canyon	94.000	32.842	61.158	186.2	single	before
+S41	ruins	95.750	32.875	62.875	191.3	single	before
+S41	meadow	78.500	30.658	47.842	156.1	paired	a1
+S41	canyon	89.833	32.842	56.991	173.5	paired	a1
+S41	ruins	90.417	32.875	57.542	175.0	paired	a1
+S41	meadow	79.317	30.658	48.659	158.7	paired	quiet
+S41	canyon	102.833	32.842	69.991	213.1	paired	quiet
+S41	ruins	86.433	32.875	53.558	162.9	paired	quiet
+S41	meadow	80.083	30.658	49.425	161.2	paired	a2
+S41	canyon	92.000	32.842	59.158	180.1	paired	a2
+S41	ruins	86.167	32.875	53.292	162.1	paired	a2
