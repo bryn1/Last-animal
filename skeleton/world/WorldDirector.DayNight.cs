@@ -93,18 +93,18 @@ public static class DayNightClock
     // Meadow — warm identity (noon == shipped meadow.tscn values).
     private static readonly DayNightKey[] Meadow =
     {
-        new(-12f,  25f, 1.00f, new Color(1.00f, 0.78f, 0.60f), new Color(0.25f, 0.35f, 0.60f), new Color(0.95f, 0.65f, 0.45f), new Color(0.90f, 0.70f, 0.60f), 0.45f),
-        new(-65f,   0f, 1.50f, new Color(1.00f, 0.96f, 0.88f), new Color(0.30f, 0.52f, 0.90f), new Color(0.78f, 0.86f, 0.95f), new Color(1.00f, 0.96f, 0.88f), 0.55f),
-        new(-10f, -35f, 1.10f, new Color(1.00f, 0.62f, 0.35f), new Color(0.20f, 0.28f, 0.55f), new Color(0.98f, 0.50f, 0.30f), new Color(0.85f, 0.60f, 0.50f), 0.40f),
+        new(-12f,  25f, 1.00f, new Color(1.00f, 0.78f, 0.60f), new Color(0.25f, 0.35f, 0.60f), new Color(0.72f, 0.60f, 0.52f), new Color(0.90f, 0.70f, 0.60f), 0.45f),
+        new(-65f,   0f, 1.45f, new Color(1.00f, 0.86f, 0.66f), new Color(0.25f, 0.42f, 0.62f), new Color(0.66f, 0.74f, 0.80f), new Color(0.82f, 0.84f, 0.82f), 0.45f),
+        new(-10f, -35f, 1.10f, new Color(1.00f, 0.62f, 0.35f), new Color(0.20f, 0.28f, 0.55f), new Color(0.72f, 0.52f, 0.44f), new Color(0.85f, 0.60f, 0.50f), 0.40f),
         new(-50f, 165f, 0.35f, new Color(0.55f, 0.65f, 0.95f), new Color(0.03f, 0.05f, 0.12f), new Color(0.10f, 0.12f, 0.25f), new Color(0.30f, 0.38f, 0.60f), 0.22f),
     };
 
     // Canyon — warm haze identity (noon == shipped canyon.tscn values).
     private static readonly DayNightKey[] Canyon =
     {
-        new(-14f,  20f, 1.10f, new Color(1.00f, 0.80f, 0.62f), new Color(0.30f, 0.34f, 0.55f), new Color(0.98f, 0.60f, 0.38f), new Color(0.95f, 0.70f, 0.52f), 0.40f),
-        new(-68f,   0f, 1.60f, new Color(1.00f, 0.90f, 0.72f), new Color(0.35f, 0.40f, 0.62f), new Color(1.00f, 0.62f, 0.35f), new Color(1.00f, 0.72f, 0.50f), 0.45f),
-        new(-12f, -30f, 1.20f, new Color(1.00f, 0.55f, 0.30f), new Color(0.22f, 0.22f, 0.45f), new Color(0.95f, 0.40f, 0.22f), new Color(0.85f, 0.55f, 0.40f), 0.38f),
+        new(-14f,  20f, 1.10f, new Color(1.00f, 0.80f, 0.62f), new Color(0.30f, 0.34f, 0.55f), new Color(0.76f, 0.60f, 0.48f), new Color(0.95f, 0.70f, 0.52f), 0.40f),
+        new(-68f,   0f, 1.40f, new Color(1.00f, 0.80f, 0.58f), new Color(0.30f, 0.36f, 0.56f), new Color(0.80f, 0.62f, 0.50f), new Color(0.78f, 0.66f, 0.58f), 0.42f),
+        new(-12f, -30f, 1.20f, new Color(1.00f, 0.55f, 0.30f), new Color(0.22f, 0.22f, 0.45f), new Color(0.74f, 0.50f, 0.40f), new Color(0.85f, 0.55f, 0.40f), 0.38f),
         new(-48f, 170f, 0.35f, new Color(0.60f, 0.62f, 0.90f), new Color(0.05f, 0.05f, 0.12f), new Color(0.18f, 0.12f, 0.20f), new Color(0.35f, 0.32f, 0.48f), 0.20f),
     };
 
@@ -112,9 +112,9 @@ public static class DayNightClock
     // S13: darkness is identity — the cycle never brightens it).
     private static readonly DayNightKey[] Ruins =
     {
-        new(-16f,  15f, 0.80f, new Color(0.80f, 0.82f, 0.95f), new Color(0.10f, 0.13f, 0.28f), new Color(0.40f, 0.46f, 0.58f), new Color(0.55f, 0.62f, 0.78f), 0.42f),
-        new(-60f,   0f, 1.10f, new Color(0.95f, 0.95f, 1.00f), new Color(0.08f, 0.11f, 0.22f), new Color(0.45f, 0.50f, 0.60f), new Color(0.60f, 0.68f, 0.85f), 0.50f),
-        new(-14f, -25f, 0.80f, new Color(0.90f, 0.70f, 0.55f), new Color(0.08f, 0.09f, 0.20f), new Color(0.50f, 0.38f, 0.32f), new Color(0.52f, 0.50f, 0.62f), 0.40f),
+        new(-16f,  15f, 0.80f, new Color(0.80f, 0.82f, 0.95f), new Color(0.10f, 0.13f, 0.28f), new Color(0.38f, 0.44f, 0.54f), new Color(0.55f, 0.62f, 0.78f), 0.42f),
+        new(-60f,   0f, 1.05f, new Color(0.90f, 0.88f, 0.95f), new Color(0.08f, 0.11f, 0.22f), new Color(0.42f, 0.48f, 0.56f), new Color(0.58f, 0.64f, 0.70f), 0.42f),
+        new(-14f, -25f, 0.80f, new Color(0.90f, 0.70f, 0.55f), new Color(0.08f, 0.09f, 0.20f), new Color(0.46f, 0.40f, 0.40f), new Color(0.52f, 0.50f, 0.62f), 0.40f),
         new(-45f, 160f, 0.28f, new Color(0.45f, 0.55f, 0.85f), new Color(0.02f, 0.03f, 0.08f), new Color(0.06f, 0.08f, 0.16f), new Color(0.22f, 0.28f, 0.45f), 0.25f),
     };
 
@@ -125,9 +125,9 @@ public static class DayNightClock
     // distinct from meadow/canyon/ruins at noon (the ZONE4 leg proves it).
     private static readonly DayNightKey[] Hollow =
     {
-        new(-15f,  18f, 0.90f, new Color(0.75f, 0.90f, 0.85f), new Color(0.12f, 0.22f, 0.28f), new Color(0.55f, 0.78f, 0.72f), new Color(0.55f, 0.72f, 0.68f), 0.40f),
-        new(-62f,   0f, 1.25f, new Color(0.92f, 0.98f, 0.95f), new Color(0.20f, 0.38f, 0.44f), new Color(0.62f, 0.80f, 0.78f), new Color(0.70f, 0.85f, 0.80f), 0.48f),
-        new(-12f, -28f, 0.85f, new Color(0.62f, 0.78f, 0.72f), new Color(0.10f, 0.16f, 0.24f), new Color(0.42f, 0.60f, 0.55f), new Color(0.48f, 0.62f, 0.58f), 0.36f),
+        new(-15f,  18f, 0.90f, new Color(0.75f, 0.90f, 0.85f), new Color(0.12f, 0.22f, 0.28f), new Color(0.52f, 0.70f, 0.66f), new Color(0.55f, 0.72f, 0.68f), 0.40f),
+        new(-62f,   0f, 1.20f, new Color(0.88f, 0.96f, 0.92f), new Color(0.18f, 0.34f, 0.40f), new Color(0.56f, 0.70f, 0.68f), new Color(0.64f, 0.74f, 0.72f), 0.40f),
+        new(-12f, -28f, 0.85f, new Color(0.62f, 0.78f, 0.72f), new Color(0.10f, 0.16f, 0.24f), new Color(0.40f, 0.52f, 0.50f), new Color(0.48f, 0.62f, 0.58f), 0.36f),
         new(-46f, 168f, 0.30f, new Color(0.50f, 0.70f, 0.78f), new Color(0.02f, 0.06f, 0.10f), new Color(0.08f, 0.16f, 0.20f), new Color(0.24f, 0.38f, 0.42f), 0.24f),
     };
 
