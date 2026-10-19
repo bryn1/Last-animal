@@ -48,6 +48,13 @@ func _ready() -> void:
         return
     var inst: Node = packed.instantiate()
     add_child(inst)
+    # MC 10520 S44 heavy-plant arm (measurement-only): PERF_PLANT_N=k adds
+    # k-1 extra instances of the SAME zone scene (the shipped PackedScene,
+    # no second content path) so the planted-RED proof has a known load step.
+    # Unset/0 keeps the shipped tree byte-identical.
+    var plant_n: int = int(OS.get_environment("PERF_PLANT_N"))
+    for k in range(1, plant_n):
+        add_child(packed.instantiate())
     await get_tree().process_frame
     await get_tree().process_frame
     await get_tree().process_frame
