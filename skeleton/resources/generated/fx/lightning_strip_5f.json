@@ -1,0 +1,25 @@
+{
+"asset": "lightning_strip_5f",
+"batch": "S48-Batch-3",
+"route": "B",
+"form": "flipbook strip",
+"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"mode": "t2i",
+"quality": "fast",
+"seed": 2065601086,
+"size": "1280x256",
+"background": "transparent",
+"matting": "BEN2 alpha",
+"refs": [],
+"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 5 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a lightning strike spell effect painted in Diablo II Resurrected style: a jagged branching bolt striking downward from top of cell to bottom, electric blue-violet with a white-hot core, frame 1 thin pilot stroke, frames 2-3 full thick bright branching bolt, frame 4 thinning with breaking branches, frame 5 faint lingering sparks. Consistent strike position across all frames, glowing edges, transparent around the bolt. Sprite-sheet convention, no background, no text.",
+"generated_utc": "2026-10-20T13:0x-13:2xZ",
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
+"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"alpha_proof": {
+"transparent_px": 78148,
+"partial_px": 61205,
+"opaque_px": 188327,
+"max_corner_alpha": 8,
+"verdict": "PASS"
+}
+}

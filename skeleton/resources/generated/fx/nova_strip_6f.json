@@ -1,0 +1,25 @@
+{
+"asset": "nova_strip_6f",
+"batch": "S48-Batch-3",
+"route": "B",
+"form": "flipbook strip",
+"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"mode": "t2i",
+"quality": "fast",
+"seed": 513874034,
+"size": "1536x256",
+"background": "transparent",
+"matting": "BEN2 alpha",
+"refs": [],
+"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 6 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a poison nova spell burst painted in Diablo II Resurrected style, seen from a high 45-degree camera: a sickly green radial energy shockwave expanding outward as a flattened ring at ground level with jagged green lightning tendrils crackling around it, frame 1 small dense green core, frames 2-5 the ring expanding wider and thinner with more tendrils, frame 6 a wide faint dissipating ring. All frames centred in their cells, glowing green on transparent background, no ground visible, no background scene, no text.",
+"generated_utc": "2026-10-20T13:0x-13:2xZ",
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
+"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"alpha_proof": {
+"transparent_px": 269296,
+"partial_px": 115958,
+"opaque_px": 7962,
+"max_corner_alpha": 47,
+"verdict": "PASS"
+}
+}

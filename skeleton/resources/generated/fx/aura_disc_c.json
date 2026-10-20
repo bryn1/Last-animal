@@ -1,0 +1,34 @@
+{
+"asset": "aura_disc_c",
+"batch": "S48-Batch-3",
+"route": "B",
+"form": "single",
+"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"mode": "t2i",
+"quality": "fast",
+"seed": 2128096377,
+"size": "1024x1024",
+"background": "transparent",
+"matting": "BEN2 alpha",
+"refs": [],
+"prompt": "Game FX texture asset: a bright blessed magic aura ring lying flat on the ground, seen from a high 45-degree isometric action-RPG camera so it forms a wide flattened ellipse, painted Diablo II Resurrected style: an intense light blue-violet circular ring with near-white glowing core line, upward-streaming thin light filaments around the ring, transparent inside the ring centre and transparent outside it. High brightness value variant of the same blue-violet hue family. Isolated on transparent background, no character, no ground, no shadow, no text.",
+"generated_utc": "2026-10-20T13:0x-13:2xZ",
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
+"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"alpha_proof": {
+"transparent_px": 806141,
+"partial_px": 101077,
+"opaque_px": 141358,
+"max_corner_alpha": 0,
+"verdict": "PASS",
+"pre_max_corner_alpha": 41
+},
+"postprocess": {
+"method": "outer 8-px border ring alpha clamped to 0 (corner haze)",
+"border_px": 8,
+"tool": "skeleton/ci/edge_clamp.py",
+"card": "MC 11014",
+"ts_utc": "2026-10-20T15:03:37Z",
+"note": "prompt/seed/mode/quality/refs above are the render as shipped; this block is the CPU edge clamp only; the alpha_proof block is re-measured post-clamp with the pre-clamp corner kept there as pre_max_corner_alpha"
+}
+}

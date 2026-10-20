@@ -1,0 +1,23 @@
+{
+"asset": "flame_strip_8f",
+"batch": "S48-Batch-3",
+"route": "B",
+"form": "flipbook strip, 8 cells, 2048x256 (256px cells)",
+"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"mode": "t2i",
+"quality": "fast",
+"seed": 1654526242,
+"background": "transparent",
+"matting": "BEN2 alpha",
+"refs": [],
+"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 8 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a looping flame animation painted in Diablo II Resurrected style: a single upright fire flame licking upward, orange-yellow with deep red base and yellow-white tips, frame 1 small, frames 2-5 growing tall and bright, frames 6-8 shrinking with curling tips. Each frame centred in its cell, consistent flame position across all 8 frames for looping, transparent around each flame. Sprite-sheet convention, no background scene, no text.",
+"generated_utc": "2026-10-20T12:33Z",
+"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"alpha_proof": {
+"transparent_px": 423324,
+"partial_px": 75774,
+"opaque_px": 25190,
+"max_corner_alpha": 17,
+"verdict": "PASS"
+}
+}
