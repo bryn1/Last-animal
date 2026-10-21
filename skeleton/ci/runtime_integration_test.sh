@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10519/S27 grew it +48 to 777 l by wc AT this head (section Q2: the ZONE_VISUAL_MOUNT leg + per-zone census greps + hollow.png evidence check); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp); MC 11018/S45 +25 to 802 l by wc AT this head (section R: the CAMERA_RIG_ISO default-off run_mode leg + the FLAGGED fixed-rig leg — LA_RIG_EXPECT on the env, the cmdline user flag after the -- separator, seven-marker grep loop + the tail GATE PASS echo clause); MC 11019/S48 STEP-0 +66 to 868 l by wc AT this head (section S: the FIRST WINDOWED legs — the GL-Compat capability probe green spawn + the planted-bad red pair, xvfb-run, renderer pin + verdict greps + capture bytes + in-leg zero-FALL_RECOVERED).
+# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10519/S27 grew it +48 to 777 l by wc AT this head (section Q2: the ZONE_VISUAL_MOUNT leg + per-zone census greps + hollow.png evidence check); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp); MC 11018/S45 +25 to 802 l by wc AT this head (section R: the CAMERA_RIG_ISO default-off run_mode leg + the FLAGGED fixed-rig leg — LA_RIG_EXPECT on the env, the cmdline user flag after the -- separator, seven-marker grep loop + the tail GATE PASS echo clause); MC 11019/S48 STEP-0 +66 to 868 l by wc AT this head (section S: the FIRST WINDOWED legs — the GL-Compat capability probe green spawn + the planted-bad red pair, xvfb-run, renderer pin + verdict greps + capture bytes + in-leg zero-FALL_RECOVERED); MC 11019/S48 FIX-ROUND-1 +18 to 886 l by wc AT this head (section S gates: the DECAL_WINDOW_ALIVE + MULTILIGHT additivity + Forward+-clause greps, capture count 7->8, and the RED leg widened to the four-plant pair — every plant named, every OK-collision checked ANCHORED to the verdict line (the armed line NAMES the verdicts; a whole-log substring false-collided — proven RED-capable on the round-1 battery)).
 # runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
 # grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
 # full battery below).
@@ -782,8 +782,11 @@ LOGFTL="$(LA_GATE_MODE=FLOOR_TRUST timeout 240 "$GODOT" --headless --path "$PROJ
 # the raw-terrain blindness as FXGL_NOTE, the renderer fact downstream cards
 # must plan around); FLAME_BILLBOARD_OK (torch_flame_strip_6f frame 0);
 # DECAL_SUPPORT NAMED either way — a FAIL line must carry the CUT-rule fallback
-# (blood FX rides quads, no Decal node ships). Captures land in $PROJ/.tmp
-# (S27 idiom) and the disk bytes are checked. Zero FALL_RECOVERED in-leg.
+# (blood FX rides quads, no Decal node ships) AND the Forward+ upgrade RE-CHECK
+# DUTY (FIX-ROUND-1); DECAL_WINDOW_ALIVE must print — the planted NON-decal
+# probe quad proves the decal sample window NON-vacuous (FIX-ROUND-1).
+# Captures land in $PROJ/.tmp (S27 idiom) and the disk bytes are checked.
+# Zero FALL_RECOVERED in-leg.
 FXRC=0
 LOGFX="$(LA_FXCAP_PATH="$PROJ/.tmp/s48step0" LA_GATE_MODE=FX_GLCOMPAT xvfb-run -a timeout 300 "$GODOT" --path "$PROJ" --script "$PROOF" 2>&1)" || FXRC=$?
 [[ $FXRC -eq 0 ]] || { printf '%s\n' "$LOGFX" | tail -30 >&2; fail "FX_GLCOMPAT: the windowed probe leg exited $FXRC (named FAIL lines above)"; }
@@ -794,36 +797,51 @@ LOGFX="$(LA_FXCAP_PATH="$PROJ/.tmp/s48step0" LA_GATE_MODE=FX_GLCOMPAT xvfb-run -
 if [[ "$LOGFX" == *'DECAL_SUPPORT_FAIL'* ]]; then
   [[ "$LOGFX" == *'fallback=ground-projected QUAD'* ]] \
     || fail "FX_GLCOMPAT: DECAL_SUPPORT named FAIL WITHOUT the CUT-rule fallback line (the state must be named WITH its fallback for the downstream FX cards)"
+  [[ "$LOGFX" == *'Forward+'* ]] \
+    || fail "FX_GLCOMPAT: DECAL_SUPPORT FAIL without the Forward+ upgrade RE-CHECK DUTY (FX_GLCOMPAT must be re-run before un-retiring the Decal path if Forward+ ever becomes the effective renderer)"
 else
   [[ "$LOGFX" == *'DECAL_SUPPORT_OK'* ]] \
     || fail "FX_GLCOMPAT: no DECAL_SUPPORT verdict printed — the decal state must be NAMED for the FX chain either way (legit result: OK, or FAIL + fallback)"
 fi
 [[ "$LOGFX" == *'MULTILIGHT_2_OK'* ]] \
-  || fail "FX_GLCOMPAT: MULTILIGHT_2_OK missing — two shadowless OmniLights are not proven SIMULTANEOUSLY at the CI-effective renderer (measured line above)"
+  || fail "FX_GLCOMPAT: MULTILIGHT_2_OK missing — two shadowless OmniLights are not proven SIMULTANEOUSLY — each ALONE and ADDITIVELY together — at the CI-effective renderer (measured line above)"
+[[ "$LOGFX" == *'MULTILIGHT_2 measured'* && "$LOGFX" == *'add='* ]] \
+  || fail "FX_GLCOMPAT: the MULTILIGHT_2 measured line lacks the additivity add=(..) deltas (FIX-ROUND-1 gate must print its own margins)"
 [[ "$LOGFX" == *'FLAME_BILLBOARD_OK'* ]] \
   || fail "FX_GLCOMPAT: FLAME_BILLBOARD_OK missing — the torch-strip billboard is not proven at the CI-effective renderer"
+[[ "$LOGFX" == *'DECAL_WINDOW_ALIVE'* ]] \
+  || fail "FX_GLCOMPAT: DECAL_WINDOW_ALIVE missing — the decal sample window was never proven NON-vacuous by the planted NON-decal quad (a DECAL FAIL without it is a dead-window artifact, not an engine answer)"
 [[ "$LOGFX" == *'FXGL_PROBE_RESULT quad=OK'* && "$LOGFX" == *'FXGL_NOTE'* ]] \
   || fail "FX_GLCOMPAT: the FXGL_PROBE_RESULT summary or the FXGL_NOTE terrain-light fact line is missing (downstream cards consume these lines)"
-[[ "$(grep -c 'FXGL_CAPTURE' <<<"$LOGFX")" -ge 7 ]] \
-  || fail "FX_GLCOMPAT: fewer than 7 FXGL_CAPTURE lines — the leg owes one settled capture per rig state (S27 capture idiom)"
-[[ -s "$PROJ/.tmp/s48step0/fxgl_quad.png" && -s "$PROJ/.tmp/s48step0/fxgl_l12f.png" ]] \
+[[ "$(grep -c 'FXGL_CAPTURE' <<<"$LOGFX")" -ge 8 ]] \
+  || fail "FX_GLCOMPAT: fewer than 8 FXGL_CAPTURE lines — one settled capture per rig state (S27 idiom; FIX-ROUND-1 added the decwin window-probe frame)"
+[[ -s "$PROJ/.tmp/s48step0/fxgl_quad.png" && -s "$PROJ/.tmp/s48step0/fxgl_l12f.png" && -s "$PROJ/.tmp/s48step0/fxgl_decwin.png" ]] \
   || fail "FX_GLCOMPAT: capture files not non-empty on disk (the printed bytes claim vs reality)"
 [[ "$(grep -c 'FALL_RECOVERED from=' <<<"$LOGFX")" -eq 0 ]] \
   || fail "FX_GLCOMPAT: the probe leg produced FALL_RECOVERED lines (it must move nothing; census discipline MC 10422)"
 
-# RED pair (planted-bad, gate-red law): the SAME rig with the quad material
-# alpha FORCED 0 — the QUAD_ALPHA check MUST print its named FAIL and the run
-# MUST exit nonzero. If the plant stayed green the probe would be VACUOUS and
-# this leg says so by name. The red transcript + red capture ride beside the
-# green (evidence names both).
+# RED pair (planted-bad, gate-red law; FIX-ROUND-1 widened the plant to the
+# WHOLE rig): the SAME rig with quad/flame/window-probe materials alpha FORCED 0
+# AND the 2nd OmniLight REMOVED from the tree — QUAD_ALPHA, MULTILIGHT_2,
+# FLAME_BILLBOARD and DECAL_WINDOW must EACH print their named FAIL/DEAD at the
+# SAME measurement points and the run MUST exit nonzero. A plant staying green
+# fails the leg as VACUOUS by name (FXGL_*_NOT_CAUGHT). The red transcript +
+# red captures ride beside the green (evidence names both).
 FXPRC=0
 LOGFXP="$(LA_FXCAP_PATH="$PROJ/.tmp/s48step0-red" LA_GATE_MODE=FX_GLCOMPAT_PLANT xvfb-run -a timeout 300 "$GODOT" --path "$PROJ" --script "$PROOF" 2>&1)" || FXPRC=$?
 [[ $FXPRC -ne 0 ]] \
-  || { printf '%s\n' "$LOGFXP" | tail -20 >&2; fail "FX_GLCOMPAT_PLANT: the planted-bad leg EXITED GREEN — the QUAD_ALPHA check is VACUOUS (an alpha-0 quad cannot pass it)"; }
+  || { printf '%s\n' "$LOGFXP" | tail -20 >&2; fail "FX_GLCOMPAT_PLANT: the planted-bad leg EXITED GREEN — the checks are VACUOUS (alpha-0 quad/flame/window-probe and a REMOVED 2nd light cannot pass them)"; }
 [[ "$LOGFXP" == *'QUAD_ALPHA_FAIL'* && "$LOGFXP" == *'FXGL_PLANT_RED'* ]] \
   || fail "FX_GLCOMPAT_PLANT: exited nonzero WITHOUT the named QUAD_ALPHA_FAIL / FXGL_PLANT_RED lines (a red leg must go red BY NAME)"
-[[ "$LOGFXP" != *'QUAD_ALPHA_OK'* ]] \
-  || fail "FX_GLCOMPAT_PLANT: BOTH QUAD_ALPHA_OK and QUAD_ALPHA_FAIL printed — verdict collision"
+[[ "$LOGFXP" == *'MULTILIGHT_2_FAIL'* && "$LOGFXP" == *'FXGL_ML_PLANT_RED'* ]] \
+  || fail "FX_GLCOMPAT_PLANT: the planted 2nd-light tree-removal did NOT print MULTILIGHT_2_FAIL / FXGL_ML_PLANT_RED at the same measurement points (the solo+additivity gate is VACUOUS)"
+[[ "$LOGFXP" == *'FLAME_BILLBOARD_FAIL'* && "$LOGFXP" == *'FXGL_FLAME_PLANT_RED'* ]] \
+  || fail "FX_GLCOMPAT_PLANT: the planted alpha-0 flame did NOT print FLAME_BILLBOARD_FAIL / FXGL_FLAME_PLANT_RED (the flame check is VACUOUS)"
+[[ "$LOGFXP" == *'DECAL_WINDOW_DEAD'* && "$LOGFXP" == *'FXGL_DW_PLANT_RED'* ]] \
+  || fail "FX_GLCOMPAT_PLANT: the planted alpha-0 window probe did NOT print DECAL_WINDOW_DEAD / FXGL_DW_PLANT_RED (the DECAL non-vacuity proof is VACUOUS)"
+if grep -qE '^LA_GATE: (QUAD_ALPHA_OK|MULTILIGHT_2_OK|FLAME_BILLBOARD_OK|DECAL_WINDOW_ALIVE)' <<<"$LOGFXP"; then
+  fail "FX_GLCOMPAT_PLANT: a planted-bad leg printed a verdict OK/ALIVE LINE — verdict collision (anchored to '^LA_GATE: <MARKER>' because the FXGL_PLANT armed line NAMES every verdict — a whole-log substring check false-collides with it)"
+fi
 
 
 }   # ---- end battery_body ----

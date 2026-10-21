@@ -1,11 +1,11 @@
 using Godot;
 using LastAnimal.World;
 
-// SIZE reason (file hygiene law): 537 l by wc AT this head — ONE stage body
-// (the seven-state capture machine + the four verdict computations share the
-// probe rig, the texture-derived sample points and the Image diffs; splitting
-// a stage body mid-leg has no precedent under the mode_sets_check pairing gate,
-// one Run*Stage body == one dispatch arm).
+// SIZE reason (file hygiene law): 599 l by wc AT this head (FIX-ROUND-1 +62 —
+// additivity gate + DECAL_WINDOW_ALIVE state + four-plant RED leg; was 537 at
+// 258f787) — ONE stage body: the eight-state capture machine + the verdicts
+// share the probe rig, the texture-derived sample points and the Image diffs;
+// splitting a stage body mid-leg has no pairing-gate precedent (body == arm).
 //
 // Last Animal — MC 11019 / 10026.44.7 S48 STEP-0 GL-COMPAT renderer capability
 // probe (stage 108, modes FX_GLCOMPAT / FX_GLCOMPAT_PLANT).
@@ -52,13 +52,19 @@ using LastAnimal.World;
 //     mapping accident.
 //   DECAL_SUPPORT_OK|FAIL — the footprint center must carry the blood
 //     signature; in-footprint corners (texture alpha 0 there) must stay clean.
-//     On FAIL the line names the FALLBACK: ground-projected quads — the
-//     mount-(a) path this same probe proves OK (S28 CUT rule: the blood FX
-//     card rides quads, no Decal node ships). DECAL FAIL is a LEGITIMATE
-//     probe result; the leg still passes.
-//   MULTILIGHT_2_OK|FAIL — EACH light ALONE shifts its ground patch AND BOTH
-//     shift theirs simultaneously (a one-light renderer stays RED under both-
-//     on); FLAME_BILLBOARD_OK|FAIL rides with the mount.
+//     On FAIL the line names the FALLBACK (ground-projected quads — the
+//     mount-(a) path, S28 CUT rule: no Decal node ships) AND the Forward+
+//     upgrade re-check duty (re-run FX_GLCOMPAT before un-retiring the Decal
+//     if Forward+ ever becomes the effective renderer). DECAL FAIL is a
+//     LEGITIMATE probe result; the leg passes — only beside the next line:
+//   DECAL_WINDOW_ALIVE|DEAD (FIX-ROUND-1) — a NON-decal opaque probe quad is
+//     planted AT the decal sample point (same point, same patch, then
+//     REMOVED): its delta MUST register nonzero, else the DECAL FAIL is a
+//     dead window, not the engine's answer — DEAD fails the leg by name.
+//   MULTILIGHT_2_OK|FAIL — EACH light ALONE shifts its ground patch AND the
+//     two ADD (FIX-ROUND-1: the both-on delta must EXCEED the alone delta by
+//     FxAddThr at EVERY receiver — a ONE-light chooser would pass a thresholds-
+//     only gate; now the GATE proves "SIMULTANEOUSLY"); FLAME_BILLBOARD rides.
 //   FXGL_PROBE_RESULT quad=.. decal=.. multilight=.. flame=.. renderer=.. —
 //     the ONE summary line the downstream FX cards consume.
 //   FXGL_RENDERER method=... — the leg HALTS (exit 1) on any method other
@@ -69,10 +75,12 @@ using LastAnimal.World;
 // LA_FXCAP_PATH, default user://fxglcompat/), one settled frame per state,
 // byte-count printed and disk-checked; the battery greps lines + bytes.
 //
-// Non-vacuous (gate-red law): FX_GLCOMPAT_PLANT mounts the SAME rig with the
-// quad's material alpha FORCED 0 — QUAD_ALPHA must print its named FAIL; if
-// the plant were ever NOT caught the leg fails as VACUOUS by name. The red
-// transcript + red capture ride beside the green pair in the battery.
+// Non-vacuous (gate-red law — a check that has never failed is not a check;
+// FIX-ROUND-1 widened the plant to the whole rig): FX_GLCOMPAT_PLANT forces
+// quad + flame + window-probe materials alpha 0 AND REMOVES the 2nd OmniLight
+// from the tree (tree presence is this rig's light gate, Visible is not) — all
+// four named checks must print their FAIL at the SAME measurement points; a
+// plant NOT caught fails the leg as VACUOUS by name. Red rides beside green.
 // Zero save fields (R7); zero player motion; quiet boot; FALL_RECOVERED
 // census contribution: zero.
 //
@@ -93,6 +101,14 @@ public partial class RuntimeIntegrationProof : SceneTree
     private const float FxInThr = 0.035f;
     private const float FxOutThr = 0.02f;
     private const float FxLightThr = 0.02f;
+    // Additivity gate (S48 FIX-ROUND-1, DA F-P3-2): the both-on delta must
+    // EXCEED the alone delta by this at EVERY receiver. Documented from the
+    // measured pair at tip 258f787 (green transcript, TEST-wall re-run EXACT):
+    // alone (0.0506,0.0812) -> both (0.0701,0.0935): add-deltas (0.0195,0.0123)
+    // — 0.004 is 2x the settle EPS (0.002) and ~3x under the measured MINIMUM
+    // add-delta: real additivity clears it with 3x margin, a per-object
+    // ONE-light chooser (both==alone) cannot.
+    private const float FxAddThr = 0.004f;
     private const float FxEpsStable = 0.002f;  // settle tolerance over the verdict regions
     private const int FxPatchR = 3;
 
@@ -114,13 +130,14 @@ public partial class RuntimeIntegrationProof : SceneTree
     private OmniLight3D? _fxL1;
     private OmniLight3D? _fxL2;
     private MeshInstance3D? _fxFlame;
+    private MeshInstance3D? _fxWinProbe;       // FIX-ROUND-1: NON-decal opaque probe at the decal point, REMOVED after its frame
     private MeshInstance3D? _fxRecv1, _fxRecv2;   // shaded 1 m receiver quads under the lights
     private Texture2D? _fxAura;
     private Vector3 _fxQuadAt, _fxDecalAt, _fxFlameAt, _fxG1, _fxG2, _fxT1, _fxT2;
     private Vector2 _fxAuraMaxUv;
     private bool _fxPlant;
 
-    private static readonly string[] FxStates = { "base", "quad", "decal", "l1", "l2", "l12", "l12f" };
+    private static readonly string[] FxStates = { "base", "quad", "decal", "decwin", "l1", "l2", "l12", "l12f" };
 
 
     private void RunFxGlcompatStage()
@@ -133,7 +150,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             if (rm != "gl_compatibility")
             { Fail($"FX_GLCOMPAT: CI-effective renderer is {rm}, not gl_compatibility — a verdict measured at the wrong renderer is vacuous"); return; }
             _fxPlant = _mode == "FX_GLCOMPAT_PLANT";
-            if (_fxPlant) GD.Print("LA_GATE: FXGL_PLANT armed — quad material alpha FORCED 0; QUAD_ALPHA must go RED by name (S28 gate-red law)");
+            if (_fxPlant) GD.Print("LA_GATE: FXGL_PLANT armed — quad/flame/window-probe materials alpha FORCED 0 + 2nd OmniLight REMOVED from the tree; QUAD_ALPHA, MULTILIGHT_2, FLAME_BILLBOARD and DECAL_WINDOW_ALIVE must go RED by name (S28 gate-red law, FIX-ROUND-1)");
         }
         if (_fxClock.ElapsedMilliseconds > FxDeadlineMs)
         { Fail($"FX_GLCOMPAT: leg wall deadline {FxDeadlineMs} ms exceeded in phase {_fxPhase} (llvmpipe too slow, or a state never settled)"); return; }
@@ -206,6 +223,22 @@ public partial class RuntimeIntegrationProof : SceneTree
             Visible = false,
         };
         _fxDecalAt = new Vector3(dec.X, gy.Value + 0.02f, dec.Z);
+        // (b2) DECAL_WINDOW probe (FIX-ROUND-1): a NON-decal VISIBLE quad at the
+        // decal sample point — same point, same patch; if even IT moves zero
+        // pixels the DECAL FAIL is a dead window, not the engine's answer.
+        _fxWinProbe = new MeshInstance3D
+        {
+            Mesh = new QuadMesh { Size = new Vector2(0.8f, 0.8f) },
+            Position = new Vector3(dec.X, gy.Value + 0.05f, dec.Z),
+            RotationDegrees = new Vector3(-90f, 0f, 0f),
+            Visible = false,
+            MaterialOverride = new StandardMaterial3D
+            {
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                AlbedoColor = _fxPlant ? new Color(1f, 0f, 1f, 0f) : new Color(1f, 0f, 1f, 1f),   // THE DW PLANT: alpha forced 0
+            },
+        };
 
         // Lit RECEIVER quads (shaded StandardMaterial3D, flat, always visible)
         // directly under each light. Measured at this renderer: the terrain
@@ -258,13 +291,15 @@ public partial class RuntimeIntegrationProof : SceneTree
             Visible = false,
         };
         _fxFlameAt = _fxFlame.Position;
-        _fxFlame.MaterialOverride = new StandardMaterial3D
+        var fmat = new StandardMaterial3D
         {
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
             Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
             BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled,
             AlbedoTexture = new AtlasTexture { Atlas = strip, Region = new Rect2(0, 0, 256, 256) },
         };
+        if (_fxPlant) fmat.AlbedoColor = new Color(1f, 1f, 1f, 0f);   // THE FLAME PLANT: alpha forced 0 (mirror of the quad plant)
+        _fxFlame.MaterialOverride = fmat;
 
         // Probe FBO sharing the LIVE world; camera aimed at the cluster.
         _fxProbe = new SubViewport { Size = new Vector2I(640, 360), RenderTargetUpdateMode = SubViewport.UpdateMode.Always };
@@ -277,7 +312,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         // Rig BESIDE the live scene — root siblings share the root window's
         // default World3D, which the probe above just adopted. main.tscn and
         // every shipped system keep running untouched underneath.
-        Root.AddChild(_fxQuad); Root.AddChild(_fxDecal); Root.AddChild(_fxFlame);   // the lights join by state (tree-presence gate)
+        Root.AddChild(_fxQuad); Root.AddChild(_fxDecal); Root.AddChild(_fxFlame); Root.AddChild(_fxWinProbe);   // the lights join by state (tree-presence gate)
         Root.AddChild(_fxRecv1); Root.AddChild(_fxRecv2);
         Root.Size = new Vector2I(160, 120);   // mode-gated: the unread window shrinks, llvmpipe paints the probe
         GD.Print($"LA_GATE: FXGL_RIG quad@{_fxQuadAt} decal@{_fxDecalAt} l1@{_fxL1.Position} l2@{_fxL2.Position} flame@{_fxFlameAt} aura-max-uv={_fxAuraMaxUv} probe=640x360 window=160x120");
@@ -387,8 +422,12 @@ public partial class RuntimeIntegrationProof : SceneTree
     {
         _fxQuad!.Visible = s == "quad";
         _fxDecal!.Visible = s == "decal";
+        _fxWinProbe!.Visible = s == "decwin";
+        // The probe is a ONE-STATE plant (decwin; REMOVED from the tree in
+        // FxVerdicts). FIX-ROUND-1 ML plant: the 2nd light is FORCED OFF by
+        // never attaching it — tree presence is this rig's light gate.
         FxSetLight(_fxL1!, s is "l1" or "l12" or "l12f");
-        FxSetLight(_fxL2!, s is "l2" or "l12" or "l12f");
+        FxSetLight(_fxL2!, !_fxPlant && s is "l2" or "l12" or "l12f");
         _fxFlame!.Visible = s == "l12f";
     }
 
@@ -479,7 +518,17 @@ public partial class RuntimeIntegrationProof : SceneTree
         bool dtClass = ClassDB.ClassExists("DecalTexture");
         GD.Print($"LA_GATE: DECAL_SUPPORT measured center={decalIn:0.0000} corner={decalOut:0.0000} DecalTextureClass={dtClass} (texture wired via Decal.texture_albedo — a plain Texture2D, no runtime DecalTexture API needed)");
         if (decalOk) GD.Print("LA_GATE: DECAL_SUPPORT_OK — the Decal node projects its texture at gl_compatibility");
-        else GD.Print("LA_GATE: DECAL_SUPPORT_FAIL — Decal not proven at the CI-effective renderer — fallback=ground-projected QUAD (the mount-(a) path this probe proves OK; S28 CUT rule: blood FX cards ride quads, no Decal node ships)");
+        else GD.Print("LA_GATE: DECAL_SUPPORT_FAIL — Decal not proven at the CI-effective renderer — fallback=ground-projected QUAD (the mount-(a) path this probe proves OK; S28 CUT rule: blood FX cards ride quads, no Decal node ships; RE-CHECK DUTY: if Forward+ ever becomes the effective renderer, re-run FX_GLCOMPAT before un-retiring the Decal path)");
+
+        // (b2) DECAL_WINDOW_ALIVE (FIX-ROUND-1, TEST-wall Block 2): the FAIL
+        // above is honest ONLY if the window at that point can register a
+        // visible object at all — SAME point, SAME patch radius.
+        float winD = FxPatchDelta(cap["decwin"], base0, FxScreen(_fxDecalAt), FxPatchR);
+        bool winAlive = winD > FxInThr;
+        GD.Print($"LA_GATE: DECAL_WINDOW measured={winD:0.0000} thr>{FxInThr} (NON-decal opaque probe quad at the decal sample point, same patch, removed from the tree after its frame)");
+        if (winAlive) GD.Print("LA_GATE: DECAL_WINDOW_ALIVE — a NON-decal visible quad AT the decal sample point moved the patch: the DECAL_SUPPORT FAIL is the ENGINE'S capability answer, not a dead measurement window");
+        else GD.Print("LA_GATE: DECAL_WINDOW_DEAD — the decal sample window registers NOTHING even for a visible opaque quad: any DECAL_SUPPORT verdict here would be VACUOUS");
+        if (_fxWinProbe!.GetParent() != null) _fxWinProbe.GetParent().RemoveChild(_fxWinProbe);   // plant measured -> REMOVED (its only job is done)
 
         // (c) MULTILIGHT_2 — each light alone, then both together; flame rides.
         float t1 = FxPatchDelta(cap["l12"], base0, FxScreen(_fxT1), FxPatchR);
@@ -489,10 +538,13 @@ public partial class RuntimeIntegrationProof : SceneTree
         float d2 = FxPatchDelta(cap["l2"], base0, FxScreen(_fxG2), FxPatchR + 1);
         float b1 = FxPatchDelta(cap["l12"], base0, FxScreen(_fxG1), FxPatchR + 1);
         float b2 = FxPatchDelta(cap["l12"], base0, FxScreen(_fxG2), FxPatchR + 1);
-        bool multiOk = d1 > FxLightThr && d2 > FxLightThr && b1 > FxLightThr && b2 > FxLightThr;
-        GD.Print($"LA_GATE: MULTILIGHT_2 measured alone=({d1:0.0000},{d2:0.0000}) both=({b1:0.0000},{b2:0.0000}) thr>{FxLightThr} shadows=off");
-        if (multiOk) GD.Print("LA_GATE: MULTILIGHT_2_OK — two shadowless OmniLights light the terrain SIMULTANEOUSLY at gl_compatibility");
-        else GD.Print("LA_GATE: MULTILIGHT_2_FAIL — a light is missing where both shine (see the measured line)");
+        // S48 FIX-ROUND-1 (DA F-P3-2): SIMULTANEOUSLY is now GATED, not just
+        // printed — thresholds alone stay GREEN for a ONE-light chooser.
+        bool multiOk = d1 > FxLightThr && d2 > FxLightThr && b1 > FxLightThr && b2 > FxLightThr
+                       && b1 > d1 + FxAddThr && b2 > d2 + FxAddThr;
+        GD.Print($"LA_GATE: MULTILIGHT_2 measured alone=({d1:0.0000},{d2:0.0000}) both=({b1:0.0000},{b2:0.0000}) add=({b1 - d1:0.0000},{b2 - d2:0.0000}) thr>{FxLightThr} addthr>{FxAddThr} shadows=off");
+        if (multiOk) GD.Print("LA_GATE: MULTILIGHT_2_OK — two shadowless OmniLights light the terrain SIMULTANEOUSLY (each alone AND additively together) at gl_compatibility");
+        else GD.Print("LA_GATE: MULTILIGHT_2_FAIL — a light is missing, or the two do not ADD, where both shine (see the measured line)");
 
         float df = FxPatchDelta(cap["l12f"], cap["l12"], FxScreen(_fxFlameAt), FxPatchR + 1);
         bool flameOk = df > FxInThr;
@@ -505,15 +557,25 @@ public partial class RuntimeIntegrationProof : SceneTree
 
         if (_fxPlant)
         {
-            // The red leg: the plant MUST have forced the named FAIL.
+            // The red leg: EVERY plant must have forced its named FAIL at the
+            // same measurement points (FIX-ROUND-1: all four plantable mounts).
             ReleaseHeldRefsBeforeQuit();
-            if (!quadOk) Fail("FXGL_PLANT_RED — planted alpha-0 quad CAUGHT: QUAD_ALPHA printed its named FAIL (the check can go RED — red transcript + capture ride beside the green pair)");
+            if (!quadOk) GD.Print("LA_GATE: FXGL_PLANT_RED — planted alpha-0 quad CAUGHT: QUAD_ALPHA printed its named FAIL (the check can go RED — red transcript + capture ride beside the green pair)");
             else Fail("FXGL_PLANT_NOT_CAUGHT — the alpha-0 plant stayed GREEN past the QUAD_ALPHA check: the probe would be VACUOUS");
+            if (!multiOk) GD.Print("LA_GATE: FXGL_ML_PLANT_RED — planted 2nd-OmniLight tree-removal CAUGHT: MULTILIGHT_2 printed its named FAIL at the same measurement points (solo/both/additivity)");
+            else Fail("FXGL_ML_PLANT_NOT_CAUGHT — the 2nd light REMOVED from the tree stayed GREEN past the solo+both+additivity gate: the probe would be VACUOUS");
+            if (!flameOk) GD.Print("LA_GATE: FXGL_FLAME_PLANT_RED — planted alpha-0 flame texture CAUGHT: FLAME_BILLBOARD printed its named FAIL");
+            else Fail("FXGL_FLAME_PLANT_NOT_CAUGHT — the alpha-0 flame stayed GREEN past the FLAME_BILLBOARD check: the probe would be VACUOUS");
+            if (!winAlive) GD.Print("LA_GATE: FXGL_DW_PLANT_RED — planted alpha-0 window probe CAUGHT: DECAL_WINDOW printed DEAD (the DECAL non-vacuity proof can go RED too)");
+            else Fail("FXGL_DW_PLANT_NOT_CAUGHT — the alpha-0 window probe stayed ALIVE past the DECAL_WINDOW check: the probe would be VACUOUS");
+            Fail("FXGL_PLANT_RED — ALL FOUR plants CAUGHT by name: QUAD_ALPHA_FAIL + MULTILIGHT_2_FAIL + FLAME_BILLBOARD_FAIL + DECAL_WINDOW_DEAD (red transcript + captures ride beside the green pair)");
             return;
         }
+        if (!winAlive)
+        { Fail("DECAL_WINDOW_DEAD — the decal measurement window cannot register a visible opaque quad: the DECAL_SUPPORT verdict is VACUOUS at this renderer (fail loud, never verdict on a dead window)"); return; }
         if (!quadOk || !multiOk || !flameOk)
         { Fail($"FX_GLCOMPAT: core GL-Compat capabilities missing at the CI-effective renderer (quad={(quadOk ? "OK" : "FAIL")} multilight={(multiOk ? "OK" : "FAIL")} flame={(flameOk ? "OK" : "FAIL")}) — the FX-code chain cards stop here (the DECAL state already carries its named fallback above)"); return; }
-        GD.Print($"LA_GATE: PASS — S48 STEP-0 GL-Compat capability probe verified at gl_compatibility: QUAD_ALPHA OK + MULTILIGHT_2 OK + FLAME_BILLBOARD OK; DECAL_SUPPORT={(decalOk ? "OK" : "FAIL")} (fallback named on FAIL — the one line downstream FX cards consume); zero save fields (R7), zero player motion, spawning off at boot");
+        GD.Print($"LA_GATE: PASS — S48 STEP-0 GL-Compat capability probe verified at gl_compatibility: QUAD_ALPHA OK + MULTILIGHT_2 OK (additive) + FLAME_BILLBOARD OK + DECAL_WINDOW ALIVE; DECAL_SUPPORT={(decalOk ? "OK" : "FAIL")} (fallback + Forward+ re-check duty named on FAIL — the one line downstream FX cards consume); zero save fields (R7), zero player motion, spawning off at boot");
         _asserted = true;
         ReleaseHeldRefsBeforeQuit();
         Quit(0);

@@ -1,4 +1,4 @@
-// SIZE: 599 l by wc AT this head (MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// SIZE: 598 l by wc AT this head (MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
 // IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
 // _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
@@ -317,21 +317,20 @@ using System.Linq;
 //                    SubViewport probe FBO sharing the live world (the root-
 //                    viewport texture reads EMPTY at this renderer). Prints
 //                    named verdicts QUAD_ALPHA_OK|FAIL, DECAL_SUPPORT_OK|FAIL
-//                    (on FAIL the line names the fallback: ground-projected
-//                    quads, the mount-(a) path — S28 CUT rule; DECAL FAIL is a
-//                    legitimate probe result, the leg passes), and
-//                    MULTILIGHT_2_OK|FAIL + FLAME_BILLBOARD_OK|FAIL, then the
-//                    FXGL_PROBE_RESULT summary the downstream FX cards
-//                    consume. HALTS on any renderer != gl_compatibility (the
+//                    (on FAIL its fallback AND Forward+ re-check duty are named —
+//                    S28 CUT rule), DECAL_WINDOW_ALIVE|DEAD (the decal-window
+//                    non-vacuity proof, FIX-ROUND-1), ADDITIVE MULTILIGHT_2 +
+//                    FLAME_BILLBOARD, then the FXGL_PROBE_RESULT summary the
+//                    downstream FX cards consume. HALTS on any renderer != gl_compatibility (the
 //                    CI-effective one; --headless dummy answers ZERO to every
 //                    question). Windowed spawn (xvfb-run) — the battery's
 //                    first. Captures by the S27 idiom (env LA_FXCAP_PATH).
 //                    Stage 108, RuntimeIntegrationProof.FxGlcompat.cs.
-//   FX_GLCOMPAT_PLANT — the S48 gate-red pair: the SAME rig with the quad
-//                    material alpha FORCED 0 — QUAD_ALPHA must print its named
-//                    FAIL (FXGL_PLANT_RED, exit 1); if the plant stayed green
-//                    the leg fails as VACUOUS by name. Red transcript rides
-//                    beside the green in the battery. Stage 108, same body.
+//   FX_GLCOMPAT_PLANT — the S48 gate-red pair (FIX-ROUND-1: the plant covers
+//                    the WHOLE rig): quad/flame/window-probe materials alpha
+//                    FORCED 0 + the 2nd OmniLight REMOVED from the tree — all
+//                    four named checks must print their FAIL, or the leg fails
+//                    as VACUOUS by name. Red rides beside green. Stage 108.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
