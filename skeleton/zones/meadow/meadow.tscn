@@ -66,7 +66,7 @@ script = ExtResource("2_terr")
 heightmap_path = "res://assets/terrain/meadow.png"
 h_scale = 1.5
 v_scale = 1.5
-ground_texture_path = "res://resources/generated/ground_moss.png"
+ground_texture_path = "res://resources/generated/v2/ground_moss_v2.png"
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_1")

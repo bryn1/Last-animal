@@ -1,33 +1,27 @@
 {
-"asset": "prop_crate",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "single",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game prop texture asset: a single dark wooden medieval storage crate, a slightly open rough plank box, seen from a high 45-degree isometric action-RPG camera showing its top and two sides, painted dark gothic isometric ARPG hand-painted style: weathered dark brown planks with crude iron nails and corner braces, dark grungy painted texture. Isolated full-body cutout on transparent background, no other objects, no ground texture, no text. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1773510566,
+"size": "1024x1024",
 "mode": "t2i",
 "quality": "fast",
-"seed": 687345327,
-"size": "1024x1024",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game prop texture asset: a single dark wooden medieval storage crate, a slightly open rough plank box, seen from a high 45-degree isometric action-RPG camera showing its top and two sides, painted Diablo II Resurrected style: weathered dark brown planks with crude iron nails and corner braces, dark grungy painted texture. Isolated full-body cutout on transparent background, no other objects, no ground texture, no text.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T05:10:55Z",
+"target_for": "props/decor(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 552642,
-"partial_px": 6865,
-"opaque_px": 489069,
+"transparent_px": 631489,
+"partial_px": 6425,
+"opaque_px": 410662,
 "max_corner_alpha": 0,
 "verdict": "PASS",
-"pre_max_corner_alpha": 41
+"pre_max_corner_alpha": 37
 },
 "postprocess": {
 "method": "outer 8-px border ring alpha clamped to 0 (corner haze)",
 "border_px": 8,
 "tool": "skeleton/ci/edge_clamp.py",
 "card": "MC 11014",
-"ts_utc": "2026-10-20T15:03:39Z",
+"ts_utc": "2026-10-21T06:44:36Z",
 "note": "prompt/seed/mode/quality/refs above are the render as shipped; this block is the CPU edge clamp only; the alpha_proof block is re-measured post-clamp with the pre-clamp corner kept there as pre_max_corner_alpha"
 }
 }

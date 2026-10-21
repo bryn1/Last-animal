@@ -1,33 +1,27 @@
 {
-"asset": "prop_rubble",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "single",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game prop texture asset: a small scatter of broken stone rubble and cracked flagstone chunks lying on the ground, seen from a high 45-degree isometric action-RPG camera, painted dark gothic isometric ARPG hand-painted style: grey-brown broken masonry chunks of assorted sizes with pale fresh-break highlights and dark moss-dirt shadows, a few pebbles spread around the main cluster. Isolated full cutout on transparent background, no ground texture, no text. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1959936427,
+"size": "1024x1024",
 "mode": "t2i",
 "quality": "fast",
-"seed": 10146281,
-"size": "1024x1024",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game prop texture asset: a small scatter of broken stone rubble and cracked flagstone chunks lying on the ground, seen from a high 45-degree isometric action-RPG camera, painted Diablo II Resurrected style: grey-brown broken masonry chunks of assorted sizes with pale fresh-break highlights and dark moss-dirt shadows, a few pebbles spread around the main cluster. Isolated full cutout on transparent background, no ground texture, no text.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T05:15:37Z",
+"target_for": "props/decor(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 759444,
-"partial_px": 36894,
-"opaque_px": 252238,
+"transparent_px": 694417,
+"partial_px": 95750,
+"opaque_px": 258409,
 "max_corner_alpha": 0,
 "verdict": "PASS",
-"pre_max_corner_alpha": 40
+"pre_max_corner_alpha": 32
 },
 "postprocess": {
 "method": "outer 8-px border ring alpha clamped to 0 (corner haze)",
 "border_px": 8,
 "tool": "skeleton/ci/edge_clamp.py",
 "card": "MC 11014",
-"ts_utc": "2026-10-20T15:03:40Z",
+"ts_utc": "2026-10-21T06:44:36Z",
 "note": "prompt/seed/mode/quality/refs above are the render as shipped; this block is the CPU edge clamp only; the alpha_proof block is re-measured post-clamp with the pre-clamp corner kept there as pre_max_corner_alpha"
 }
 }

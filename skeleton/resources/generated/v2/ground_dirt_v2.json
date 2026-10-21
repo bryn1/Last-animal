@@ -1,0 +1,25 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Seamlessly tileable ground texture, top-down flat view, hand-painted dark gothic ARPG dungeon style: dark trampled dirt floor, compacted brown earth with darker packed grime patches, faint scattered small pebbles and ash flecks, subtle worn cracks, low saturation warm-dark browns, painterly brush texture not photo noise. Even diffuse lighting with no directional shadows, no vignette, no objects, no characters, no text, edges must continue naturally for seamless tiling in both directions.",
+  "seed": 120911649,
+  "size": "1024x1024",
+  "mode": "edit",
+  "quality": "fast",
+  "refs": [
+    {
+      "path": "refs/comp-dungeon-v1.png",
+      "sha256": "851ba327d3fdf177f41bf75c2e62700f49c972adb8757421991c6b1d6c8bf675"
+    }
+  ],
+  "generator": "generate_image Qwen-Image-Edit-2511 on vm100",
+  "ts_utc": "2026-10-21T04:43:06Z",
+  "target_for": "zones/<z>/ground-material: 10026.44.5",
+  "postprocess": {
+    "method": "edge-offset blend: wrap-aware isotropic gaussian (3x3 period tiling) under a periodic raised-cosine weight, 1 on the wrap lines, 0 at `band` px inside",
+    "sigma": 10,
+    "band_px": 40,
+    "tool": "skeleton/ci/seam_fix.py",
+    "card": "MC 10759",
+    "ts_utc": "2026-10-21T06:44:27Z",
+    "note": "generation prompt/seed/mode/quality/refs above are the render as shipped by skeleton/ci/asset_finalize.py; this block is the CPU post-process only"
+  }
+}

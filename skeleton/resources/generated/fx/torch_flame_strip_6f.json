@@ -1,24 +1,19 @@
 {
-"asset": "torch_flame_strip_6f",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "flipbook strip",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
-"mode": "t2i",
-"quality": "fast",
-"seed": 1446772122,
-"size": "1536x256",
-"background": "transparent",
-"matting": "BEN2 alpha",
-"refs": [],
-"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 6 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a looping torch-head flame animation painted in Diablo II Resurrected style: a compact teardrop flame burning at the tip of a short dark iron torch cup, warm orange with yellow-white core and deep orange tips, slight sway and flicker differences between frames, frames 1-6 forming a loop (frame 6 close to frame 1). Flame centred slightly above each cell centre, transparent around it. Sprite-sheet convention, no background scene, no text.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
-"alpha_proof": {
-"transparent_px": 335519,
-"partial_px": 22154,
-"opaque_px": 35543,
-"max_corner_alpha": 12,
-"verdict": "PASS"
-}
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game animation flipbook sheet: ONE horizontal row of exactly 6 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a looping torch-head flame animation painted in dark gothic isometric ARPG hand-painted style: a compact teardrop flame burning at the tip of a short dark iron torch cup, warm orange with yellow-white core and deep orange tips, slight sway and flicker differences between frames, frames 1-6 forming a loop (frame 6 close to frame 1). Flame centred slightly above each cell centre, transparent around it. Sprite-sheet convention, no background scene, no text. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+  "seed": 145846646,
+  "size": "1536x256",
+  "mode": "t2i",
+  "quality": "fast",
+  "refs": [],
+  "generator": "generate_image Qwen-Image-2512 on vm100",
+  "ts_utc": "2026-10-21T05:08:39Z",
+  "target_for": "fx/spell-effect(placeholder): 10026.44.2",
+  "alpha_proof": {
+    "transparent_px": 308720,
+    "partial_px": 22327,
+    "opaque_px": 62169,
+    "max_corner_alpha": 12,
+    "verdict": "PASS"
+  },
+  "po2_exempt": "flipbook strip sheet: 256px cells, not engine-sampled as Po2 textures yet — S48 PLAN section 2 NAMED honest gap (ii); the integration card decides sampling and re-imposes Po2 (MC 11059)"
 }

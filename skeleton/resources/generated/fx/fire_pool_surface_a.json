@@ -1,32 +1,27 @@
 {
-"asset": "fire_pool_surface_a",
-"batch": "S48-Batch-3",
-"route": "B",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game FX texture asset: a flat ground-level burning oil pool seen from a high 45-degree isometric action-RPG camera, painted dark gothic isometric ARPG hand-painted style: irregular puddle shape, roaring orange-yellow flames with deep red-orange edges, hot white-yellow core near the ground, glowing embers and scorched dark rim where the fire meets stone. Isolated on transparent background, cutout texture for a ground quad, no shadow beneath, no stone, no scene, no UI, no text, no watermark. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1853504421,
+"size": "1024x1024",
 "mode": "t2i",
 "quality": "fast",
-"seed": 387089559,
-"size": "1024x1024",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game FX texture asset: a flat ground-level burning oil pool seen from a high 45-degree isometric action-RPG camera, painted Diablo II Resurrected style: irregular puddle shape, roaring orange-yellow flames with deep red-orange edges, hot white-yellow core near the ground, glowing embers and scorched dark rim where the fire meets stone. Isolated on transparent background, cutout texture for a ground quad, no shadow beneath, no stone, no scene, no UI, no text, no watermark.",
-"generated_utc": "2026-10-20T12:28Z",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T05:03:38Z",
+"target_for": "fx/spell-effect(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 674204,
-"partial_px": 35460,
-"opaque_px": 338912,
+"transparent_px": 662245,
+"partial_px": 34119,
+"opaque_px": 352212,
 "max_corner_alpha": 0,
 "verdict": "PASS",
-"pre_max_corner_alpha": 46
+"pre_max_corner_alpha": 34
 },
 "postprocess": {
 "method": "outer 8-px border ring alpha clamped to 0 (corner haze)",
 "border_px": 8,
 "tool": "skeleton/ci/edge_clamp.py",
 "card": "MC 11014",
-"ts_utc": "2026-10-20T15:03:37Z",
+"ts_utc": "2026-10-21T06:44:35Z",
 "note": "prompt/seed/mode/quality/refs above are the render as shipped; this block is the CPU edge clamp only; the alpha_proof block is re-measured post-clamp with the pre-clamp corner kept there as pre_max_corner_alpha"
 }
 }

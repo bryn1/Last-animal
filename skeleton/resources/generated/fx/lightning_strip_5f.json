@@ -1,25 +1,20 @@
 {
-"asset": "lightning_strip_5f",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "flipbook strip",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game animation flipbook sheet: ONE horizontal row of exactly 5 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a lightning strike spell effect painted in dark gothic isometric ARPG hand-painted style: a jagged branching bolt striking downward from top of cell to bottom, electric blue-violet with a white-hot core, frame 1 thin pilot stroke, frames 2-3 full thick bright branching bolt, frame 4 thinning with breaking branches, frame 5 faint lingering sparks. Consistent strike position across all frames, glowing edges, transparent around the bolt. Sprite-sheet convention, no background, no text. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1998792077,
+"size": "1280x256",
 "mode": "t2i",
 "quality": "fast",
-"seed": 2065601086,
-"size": "1280x256",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 5 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a lightning strike spell effect painted in Diablo II Resurrected style: a jagged branching bolt striking downward from top of cell to bottom, electric blue-violet with a white-hot core, frame 1 thin pilot stroke, frames 2-3 full thick bright branching bolt, frame 4 thinning with breaking branches, frame 5 faint lingering sparks. Consistent strike position across all frames, glowing edges, transparent around the bolt. Sprite-sheet convention, no background, no text.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T05:06:46Z",
+"target_for": "fx/spell-effect(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 78148,
-"partial_px": 61205,
-"opaque_px": 188327,
-"max_corner_alpha": 8,
+"transparent_px": 71442,
+"partial_px": 23944,
+"opaque_px": 232294,
+"max_corner_alpha": 11,
 "verdict": "PASS"
-}
+},
+"po2_exempt": "flipbook strip sheet: 256px cells, not engine-sampled as Po2 textures yet \u2014 S48 PLAN section 2 NAMED honest gap (ii); the integration card decides sampling and re-imposes Po2 (MC 11059)",
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)"
 }

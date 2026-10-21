@@ -1,25 +1,20 @@
 {
-"asset": "nova_strip_6f",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "flipbook strip",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game animation flipbook sheet: ONE horizontal row of exactly 6 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a poison nova spell burst painted in dark gothic isometric ARPG hand-painted style, seen from a high 45-degree camera: a sickly green radial energy shockwave expanding outward as a flattened ring at ground level with jagged green lightning tendrils crackling around it, frame 1 small dense green core, frames 2-5 the ring expanding wider and thinner with more tendrils, frame 6 a wide faint dissipating ring. All frames centred in their cells, glowing green on transparent background, no ground visible, no background scene, no text. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1298530288,
+"size": "1536x256",
 "mode": "t2i",
 "quality": "fast",
-"seed": 513874034,
-"size": "1536x256",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game animation flipbook sheet: ONE horizontal row of exactly 6 equal square cells on a transparent background, no borders, no labels, no grid lines. Each cell contains one frame of a poison nova spell burst painted in Diablo II Resurrected style, seen from a high 45-degree camera: a sickly green radial energy shockwave expanding outward as a flattened ring at ground level with jagged green lightning tendrils crackling around it, frame 1 small dense green core, frames 2-5 the ring expanding wider and thinner with more tendrils, frame 6 a wide faint dissipating ring. All frames centred in their cells, glowing green on transparent background, no ground visible, no background scene, no text.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T05:07:46Z",
+"target_for": "fx/spell-effect(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 269296,
-"partial_px": 115958,
-"opaque_px": 7962,
-"max_corner_alpha": 47,
+"transparent_px": 259741,
+"partial_px": 127602,
+"opaque_px": 5873,
+"max_corner_alpha": 21,
 "verdict": "PASS"
-}
+},
+"po2_exempt": "flipbook strip sheet: 256px cells, not engine-sampled as Po2 textures yet \u2014 S48 PLAN section 2 NAMED honest gap (ii); the integration card decides sampling and re-imposes Po2 (MC 11059)",
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)"
 }

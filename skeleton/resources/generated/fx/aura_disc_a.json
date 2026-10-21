@@ -1,34 +1,28 @@
 {
-"asset": "aura_disc_a",
-"batch": "S48-Batch-3",
-"route": "B",
-"form": "single",
-"generator": "Qwen-Image-2512 (vm100 ComfyUI, 8-step Lightning)",
+"prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game FX texture asset: a glowing magic aura ring lying flat on the ground, seen from a high 45-degree isometric action-RPG camera so it forms a wide flattened ellipse, painted dark gothic isometric ARPG hand-painted style: a luminous blue-violet circular runic ring with a brighter inner circle and faint rotating rune notches, soft violet light falloff at the inner edge, transparent inside the ring (see-through centre where a character stands), transparent outside it. Bright saturated blue-violet glow. Isolated on transparent background, no character, no ground texture, no shadow, no text, no watermark. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+"seed": 1987183777,
+"size": "1024x1024",
 "mode": "t2i",
 "quality": "fast",
-"seed": 1318171999,
-"size": "1024x1024",
-"background": "transparent",
-"matting": "BEN2 alpha",
 "refs": [],
-"prompt": "Game FX texture asset: a glowing magic aura ring lying flat on the ground, seen from a high 45-degree isometric action-RPG camera so it forms a wide flattened ellipse, painted Diablo II Resurrected style: a luminous blue-violet circular runic ring with a brighter inner circle and faint rotating rune notches, soft violet light falloff at the inner edge, transparent inside the ring (see-through centre where a character stands), transparent outside it. Bright saturated blue-violet glow. Isolated on transparent background, no character, no ground texture, no shadow, no text, no watermark.",
-"generated_utc": "2026-10-20T13:0x-13:2xZ",
-"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
-"license": "generated-asset (owner project), see LICENSES.md S48 rows",
+"generator": "generate_image Qwen-Image-2512 on vm100",
+"ts_utc": "2026-10-21T04:50:22Z",
+"target_for": "fx/spell-effect(placeholder): 10026.44.2",
 "alpha_proof": {
-"transparent_px": 774780,
-"partial_px": 65352,
-"opaque_px": 208444,
+"transparent_px": 771307,
+"partial_px": 40052,
+"opaque_px": 237217,
 "max_corner_alpha": 0,
 "verdict": "PASS",
-"pre_max_corner_alpha": 46
+"pre_max_corner_alpha": 45
 },
+"fx_hue_ruling": "OPTION A (owner 2026-10-20)",
 "postprocess": {
 "method": "outer 8-px border ring alpha clamped to 0 (corner haze)",
 "border_px": 8,
 "tool": "skeleton/ci/edge_clamp.py",
 "card": "MC 11014",
-"ts_utc": "2026-10-20T15:03:36Z",
+"ts_utc": "2026-10-21T06:44:32Z",
 "note": "prompt/seed/mode/quality/refs above are the render as shipped; this block is the CPU edge clamp only; the alpha_proof block is re-measured post-clamp with the pre-clamp corner kept there as pre_max_corner_alpha"
 }
 }
