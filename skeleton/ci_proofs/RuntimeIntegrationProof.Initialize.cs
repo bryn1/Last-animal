@@ -95,6 +95,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             var cap = System.Environment.GetEnvironmentVariable("LA_RIG_CAPTURE");
             _crCaptureZone = string.IsNullOrEmpty(cap) ? null : cap;
         }
+        // FX_GLCOMPAT / _PLANT (MC 11019 / 10026.44.7 S48 STEP-0): the GL-Compat
+        // capability probe is scripted quiet (bus_emit idiom) — a live spawn set
+        // would move agents across the probe's sample patches and the FBO would
+        // never settle; the leg touches no gameplay state at all. The clock is
+        // PAUSED too (DAYNIGHT_STATE seam): the ~23 s sun cycle re-lights the
+        // ground patches between the two settle grabs — a frozen clock is what
+        // makes a pixel DELIVERABLE here, and the probe measures RENDERER
+        // capability, never the clock.
+        if (_mode is "FX_GLCOMPAT" or "FX_GLCOMPAT_PLANT" && main is WorldDirector dfx)
+        {
+            dfx.SetSpawningEnabled(false);
+            dfx.SetDayNightPaused(true);
+        }
         Root.AddChild(main);
 
         _main = main;

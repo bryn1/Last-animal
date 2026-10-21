@@ -1,4 +1,6 @@
-// SIZE: 609 l measured by wc AT this head (MC 11018 S45 SPLIT + restamp: NET −28
+// SIZE: 599 l by wc AT this head (MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
+// _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
 // owed (mode-doc row, KnownModes entry, capture-arm gate + budget lines, case-107
 // arm) was PAID with an MC 10218-precedent split in the same card: the _Initialize
@@ -13,7 +15,7 @@
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list, shared fields and dispatch — >400 because the 264-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure; S45 re-measure) and the 33-mode dispatch (re-measured MC 11018: mode_sets_check at this head = 33; 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure; S45 re-measure) and the 35-mode dispatch (re-measured MC 11019 S48: mode_sets_check at this head = 35; 33 at the MC 11018 head; 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -304,6 +306,32 @@ using System.Linq;
 //                    framebuffer capture (capture runs only, not a battery
 //                    leg; frame-budget watchdog lifted for that arm alone).
 //                    Stage 107, RuntimeIntegrationProof.CameraRig.cs.
+//   FX_GLCOMPAT — MC 11019 / 10026.44.7 S48 STEP-0: the GL-COMPAT renderer
+//                    capability probe for the FX-code chain (S28 step-0
+//                    idiom), quiet boot (bus_emit idiom). Mounts the three
+//                    mechanisms BESIDE the composed scene — a ground-projected
+//                    aura_disc_a alpha QUAD, a Decal node over terrain
+//                    (blood_splat_1 into texture_albedo), and TWO shadowless
+//                    OmniLight3D + a torch flame billboard (frame 0 of
+//                    torch_flame_strip_6f) — and MEASURES pixels from a
+//                    SubViewport probe FBO sharing the live world (the root-
+//                    viewport texture reads EMPTY at this renderer). Prints
+//                    named verdicts QUAD_ALPHA_OK|FAIL, DECAL_SUPPORT_OK|FAIL
+//                    (on FAIL the line names the fallback: ground-projected
+//                    quads, the mount-(a) path — S28 CUT rule; DECAL FAIL is a
+//                    legitimate probe result, the leg passes), and
+//                    MULTILIGHT_2_OK|FAIL + FLAME_BILLBOARD_OK|FAIL, then the
+//                    FXGL_PROBE_RESULT summary the downstream FX cards
+//                    consume. HALTS on any renderer != gl_compatibility (the
+//                    CI-effective one; --headless dummy answers ZERO to every
+//                    question). Windowed spawn (xvfb-run) — the battery's
+//                    first. Captures by the S27 idiom (env LA_FXCAP_PATH).
+//                    Stage 108, RuntimeIntegrationProof.FxGlcompat.cs.
+//   FX_GLCOMPAT_PLANT — the S48 gate-red pair: the SAME rig with the quad
+//                    material alpha FORCED 0 — QUAD_ALPHA must print its named
+//                    FAIL (FXGL_PLANT_RED, exit 1); if the plant stayed green
+//                    the leg fails as VACUOUS by name. Red transcript rides
+//                    beside the green in the battery. Stage 108, same body.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -386,6 +414,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
         "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
         "CAMERA_RIG_ISO",
+        "FX_GLCOMPAT", "FX_GLCOMPAT_PLANT",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -463,12 +492,8 @@ public partial class RuntimeIntegrationProof : SceneTree
 
         switch (_stage)
         {
-            case 0:
-                // Baseline was captured in _ComposeDeferred BEFORE the press
-                // (MC 1344.1) — go straight to the movement stage.
-                _stage = 1;
-                _stageFrames = 0;
-                break;
+            // MC 11019/S48 STEP-0 ceiling split (MC 10098 duty): case 0/5/6 bodies VERBATIM in Chain.cs.
+            case 0: RunBootstrapStage(); break;
 
             // MC 10098 (split duty, proof ceiling): stage 1-4 bodies moved
             // VERBATIM into RuntimeIntegrationProof.Chain.cs — dispatch semantics
@@ -478,31 +503,8 @@ public partial class RuntimeIntegrationProof : SceneTree
             case 3: if (RunHudStage())    return true; break;
             case 4: if (RunFollowStage()) return true; break;
 
-            case 5:
-                if (_mode == "save") { _stage = 20; _stageFrames = 0; break; }
-                if (_mode == "save_bad_version") { _stage = 30; _stageFrames = 0; break; }
-                if (_mode is "dna_speak" or "no_interact")
-                {
-                    // DNA-speak stage: get the player next to the companion (the
-                    // NPC the interact path talks to), then press interact.
-                    _playerBody!.GlobalPosition = _companion.GlobalPosition;
-                    GD.Print($"LA_GATE: player teleported next to the companion at {_companion.GlobalPosition} — pressing interact");
-                    _stage = 40;
-                    _stageFrames = 0;
-                    break;
-                }
-                GD.Print("LA_GATE: PASS — authoritative runtime path verified (player->enemy->kill->DNA->HUD through ONE composition root)");
-                _asserted = true;
-                _stage = 6;
-                _stageFrames = 0;
-                _holdStartPhys = _physFrames;
-                break;
-
-            case 6:
-                // Hold the live scene so graphical-test-helper (--wait 15)
-                // captures a real rendered frame, not the splash.
-                if (_physFrames >= _holdStartPhys + HoldFrames) { ReleaseHeldRefsBeforeQuit(); Quit(0); return true; }
-                break;
+            case 5: RunChainRouterStage(); break;
+            case 6: if (RunHoldStage()) return true; break;
 
             // ---- save mode: round-trip through the REAL scene state ----
             // MC 1344: the mode now runs the REAL kill chain first (stages 0-2),
@@ -587,23 +589,11 @@ public partial class RuntimeIntegrationProof : SceneTree
             // MC 11018 S45: camera rig-mode switch (stage 107 — UNIQUE number;
             // stage body lives in RuntimeIntegrationProof.CameraRig.cs).
             case 107: RunCameraRigStage(); break;
+            // MC 11019 S48 STEP-0: GL-Compat capability probe (stage 108 —
+            // UNIQUE number; body lives in RuntimeIntegrationProof.FxGlcompat.cs).
+            case 108: RunFxGlcompatStage(); break;
         }
         return false;
-    }
-
-    public override void _Finalize()
-    {
-        Input.ActionRelease("move_right");   // unconditional: never leak a pressed action
-        Input.ActionRelease("attack");
-        Input.ActionRelease("interact");
-        Input.ActionRelease("travel");       // MC 3912 2e: skill modes travel too
-        Input.ActionRelease("skill_1");
-        Input.ActionRelease("skill_2");
-        Input.ActionRelease("skill_3");      // MC 10031: the calming-speak arm
-        Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
-        Input.ActionRelease("bark");         // MC 10131 S8: the bark press arm
-        if (!_asserted && !_failed && _mode is "positive" or "save")
-            GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }
 
 }

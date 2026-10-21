@@ -218,4 +218,46 @@ public partial class RuntimeIntegrationProof : SceneTree
                 }
         return false;
     }
+
+    // MC 11019/S48 STEP-0 ceiling split (MC 10098 verbatim-move duty — this
+    // partial's OWN stages-1-4 precedent): the bootstrap chain's inline entry
+    // case 0/5/6 bodies moved VERBATIM (switch `break` -> method `return`, the
+    // mechanical conversion the S0 split applied; semantics unchanged).
+
+    private void RunBootstrapStage()
+    {
+        // Baseline was captured in _ComposeDeferred BEFORE the press
+        // (MC 1344.1) — go straight to the movement stage.
+        _stage = 1;
+        _stageFrames = 0;
+    }
+
+    private void RunChainRouterStage()
+    {
+        if (_mode == "save") { _stage = 20; _stageFrames = 0; return; }
+        if (_mode == "save_bad_version") { _stage = 30; _stageFrames = 0; return; }
+        if (_mode is "dna_speak" or "no_interact")
+        {
+            // DNA-speak stage: get the player next to the companion (the
+            // NPC the interact path talks to), then press interact.
+            _playerBody!.GlobalPosition = _companion.GlobalPosition;
+            GD.Print($"LA_GATE: player teleported next to the companion at {_companion.GlobalPosition} — pressing interact");
+            _stage = 40;
+            _stageFrames = 0;
+            return;
+        }
+        GD.Print("LA_GATE: PASS — authoritative runtime path verified (player->enemy->kill->DNA->HUD through ONE composition root)");
+        _asserted = true;
+        _stage = 6;
+        _stageFrames = 0;
+        _holdStartPhys = _physFrames;
+    }
+
+    private bool RunHoldStage()
+    {
+        // Hold the live scene so graphical-test-helper (--wait 15)
+        // captures a real rendered frame, not the splash.
+        if (_physFrames >= _holdStartPhys + HoldFrames) { ReleaseHeldRefsBeforeQuit(); Quit(0); return true; }
+        return false;
+    }
 }

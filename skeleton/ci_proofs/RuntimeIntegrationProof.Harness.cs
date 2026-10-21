@@ -67,4 +67,23 @@ public partial class RuntimeIntegrationProof : SceneTree
         GD.PrintErr($"LA_GATE: FAIL — {why}");
         Quit(1);
     }
+
+    // MC 11019/S48 STEP-0 ceiling split (MC 10218 verbatim-move duty): the
+    // entry's _Finalize override moved HERE VERBATIM — the shutdown release
+    // list belongs beside ReleaseHeldRefsBeforeQuit/Fail, the harness-shutdown
+    // concern; dispatch, mode-read and the fail-safe guard stayed in the entry.
+    public override void _Finalize()
+    {
+        Input.ActionRelease("move_right");   // unconditional: never leak a pressed action
+        Input.ActionRelease("attack");
+        Input.ActionRelease("interact");
+        Input.ActionRelease("travel");       // MC 3912 2e: skill modes travel too
+        Input.ActionRelease("skill_1");
+        Input.ActionRelease("skill_2");
+        Input.ActionRelease("skill_3");      // MC 10031: the calming-speak arm
+        Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
+        Input.ActionRelease("bark");         // MC 10131 S8: the bark press arm
+        if (!_asserted && !_failed && _mode is "positive" or "save")
+            GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
+    }
 }

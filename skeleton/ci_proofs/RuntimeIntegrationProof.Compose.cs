@@ -145,6 +145,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // FX_GLCOMPAT / _PLANT (MC 11019 / 10026.44.7 S48 STEP-0): routes
+        // BEFORE the live-enemy guard — quiet boot (bus_emit idiom); the GL-
+        // Compat capability probe mounts its rig BESIDE the composed scene and
+        // needs nothing else. Stage body lives in ...FxGlcompat.cs.
+        if (_mode is "FX_GLCOMPAT" or "FX_GLCOMPAT_PLANT")
+        {
+            _stage = 108;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (fx-glcompat mode) — zone={_director.CurrentZone} (spawning off at boot; the capability verdicts print from the leg)");
+            return;
+        }
+
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
 
         _dnaBefore = _hud.DnaMeter;

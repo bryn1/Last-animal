@@ -294,6 +294,14 @@
          at the ItemGroup END (S2 Shake.cs precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.CameraRig.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Initialize.cs" />
+    <!-- MC 11019 / 10026.44.7 S48 STEP-0: the GL-Compat renderer capability
+         probe (modes FX_GLCOMPAT / FX_GLCOMPAT_PLANT, stage 108 — UNIQUE
+         number): aura-disc alpha QUAD + Decal(texture_albedo) + two shadowless
+         OmniLights + torch billboard, all MEASURED through a SubViewport probe
+         FBO at the CI-EFFECTIVE gl_compatibility renderer (the root-viewport
+         texture reads EMPTY there); named verdict lines + planted-bad red pair;
+         zero save fields (R7). Appended at the ItemGroup END (precedent). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.FxGlcompat.cs" />
   </ItemGroup>
 
 </Project>
