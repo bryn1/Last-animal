@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10519/S27 grew it +48 to 777 l by wc AT this head (section Q2: the ZONE_VISUAL_MOUNT leg + per-zone census greps + hollow.png evidence check); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp); MC 11018/S45 +25 to 802 l by wc AT this head (section R: the CAMERA_RIG_ISO default-off run_mode leg + the FLAGGED fixed-rig leg — LA_RIG_EXPECT on the env, the cmdline user flag after the -- separator, seven-marker grep loop + the tail GATE PASS echo clause); MC 11019/S48 STEP-0 +66 to 868 l by wc AT this head (section S: the FIRST WINDOWED legs — the GL-Compat capability probe green spawn + the planted-bad red pair, xvfb-run, renderer pin + verdict greps + capture bytes + in-leg zero-FALL_RECOVERED); MC 11019/S48 FIX-ROUND-1 +18 to 886 l by wc AT this head (section S gates: the DECAL_WINDOW_ALIVE + MULTILIGHT additivity + Forward+-clause greps, capture count 7->8, and the RED leg widened to the four-plant pair — every plant named, every OK-collision checked ANCHORED to the verdict line (the armed line NAMES the verdicts; a whole-log substring false-collided — proven RED-capable on the round-1 battery)).
+# SIZE reason (file hygiene law, past the 600 test ceiling at 667 l by wc AT the MC 10420 c2 head): the battery IS the leg matrix, and the MC 10026.31(b) battery-wide census (FR_CENSUS, tail) needs ONE log spanning every leg — splitting legs across files would orphan that count; MC 10516/S38 grew it +62 to 729 l by wc AT this head (section X: the two FLOOR_TRUST legs + per-zone greps + census/header restamps); MC 10519/S27 grew it +48 to 777 l by wc AT this head (section Q2: the ZONE_VISUAL_MOUNT leg + per-zone census greps + hollow.png evidence check); MC 10420 grew it +35 (section W + the calm_use zero-FALL_RECOVERED in-leg grep + census restamps); MC 10420 c2 +12 (the FOLLOWER_EDGEHOVER + PLAYER_UNCLAMPED marker checks + the section-W comment restamp); MC 11018/S45 +25 to 802 l by wc AT this head (section R: the CAMERA_RIG_ISO default-off run_mode leg + the FLAGGED fixed-rig leg — LA_RIG_EXPECT on the env, the cmdline user flag after the -- separator, seven-marker grep loop + the tail GATE PASS echo clause); MC 11019/S48 STEP-0 +66 to 868 l by wc AT this head (section S: the FIRST WINDOWED legs — the GL-Compat capability probe green spawn + the planted-bad red pair, xvfb-run, renderer pin + verdict greps + capture bytes + in-leg zero-FALL_RECOVERED); MC 11019/S48 FIX-ROUND-1 +18 to 886 l by wc AT this head (section S gates: the DECAL_WINDOW_ALIVE + MULTILIGHT additivity + Forward+-clause greps, capture count 7->8, and the RED leg widened to the four-plant pair — every plant named, every OK-collision checked ANCHORED to the verdict line (the armed line NAMES the verdicts; a whole-log substring false-collided — proven RED-capable on the round-1 battery)). MC 11099/S49 +14 to 900 l by wc AT this head (section A2: the LA_MAX_FPS forced-low-framerate follow probe re-running the positive chain in-process — the S49-COMP red/green pair, no cold-HOME dependence).
 # runtime_integration_test.sh — T3b authoritative-runtime-path gate (MC 1256.10;
 # grown through MC 1344/1348/3904/3910/3912/3915/3943/10026.1/10031 into the
 # full battery below).
@@ -93,6 +93,20 @@ LOGP="$(LA_GATE_MODE=positive timeout 240 "$GODOT" --headless --path "$PROJ" --s
 [[ "$LOGP" == *'DNA_EXTRACTED_EMITTED'* ]] || fail "positive: expected DNA_EXTRACTED_EMITTED (kill through the REAL CombatSystem path)"
 [[ "$LOGP" == *'HUD_REFLECTS_STATE'* ]] || fail "positive: expected HUD_REFLECTS_STATE (single health tracker)"
 [[ "$LOGP" == *'COMPANION_FOLLOWS'* ]] || fail "positive: expected COMPANION_FOLLOWS (machine-wired CompanionEntity)"
+
+# (A2) MC 11099 / 10026.44.11 S49-COMP framerate-independence probe: the POSITIVE
+# chain re-run with the process frame rate FORCED LOW IN-PROCESS (LA_MAX_FPS env
+# -> the Engine.MaxFps boot hook beside the shipped 60 pin, Initialize.cs — the
+# LA_RIG_CAPTURE env idiom). The MC 11018 cold-repro killed the (E) leg's follow
+# check at a first-boot llvmpipe frame rate ("companion did NOT follow"); this
+# leg pins that condition deterministically — no cold HOME, no raster choice —
+# so the battery catches the class WARM on any host. Not a run_mode call (the
+# mode vocabulary is unchanged; grep -cE '^run_mode ' stays 45): the SAME
+# positive mode with the fps cap on the env.
+LOGLOWFPS="$(LA_GATE_MODE=positive LA_MAX_FPS=5 timeout 240 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)"; CODElf=$?
+printf '%s\n' "$LOGLOWFPS"
+[ "$CODElf" -eq 0 ] || fail "S49 low-fps probe: positive chain exited $CODElf at LA_MAX_FPS=5 — follow starved when frames dropped (MC 11099)"
+[[ "$LOGLOWFPS" == *'COMPANION_FOLLOWS'* ]] || fail "S49 low-fps probe: COMPANION_FOLLOWS missing at LA_MAX_FPS=5 — companion stalled when frames dropped (MC 11099)"
 
 # (B) negative controls: each must FAIL with its named marker.
 run_mode no_bus        fail "NEG_BUS"

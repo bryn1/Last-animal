@@ -30,6 +30,16 @@ public partial class RuntimeIntegrationProof : SceneTree
         // normally (same pattern as BridgeMvpProof).
         Engine.MaxFps = 60;
 
+        // MC 11099 S49-COMP: session-only low-framerate probe (LA_MAX_FPS, the
+        // LA_RIG_CAPTURE env idiom, same boot gate). The S45 cold-repro (MC
+        // 11018) died the (E) follow check under a first-boot llvmpipe frame
+        // rate; this hook reproduces that condition IN-PROCESS and
+        // deterministically — no cold HOME, no raster choice — so the battery
+        // leg below forces the class instead of waiting for the environment to
+        // roll it. Unset (every shipped leg) keeps the 60 pin above untouched.
+        var fpsCap = System.Environment.GetEnvironmentVariable("LA_MAX_FPS");
+        if (int.TryParse(fpsCap, out var fps) && fps > 0) Engine.MaxFps = fps;
+
         // Instance the composition root (a --script run does not load main_scene).
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
