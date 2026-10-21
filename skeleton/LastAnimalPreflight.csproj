@@ -280,6 +280,20 @@
          precedent). -->
     <Compile Include="world/WorldDirector.Mount.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.ZoneMount.cs" />
+    <!-- MC 11018 / 10026.44.6 S45: the fixed-iso camera rig behind the
+         session-only "iso-cam" cmdline USER flag (DEFAULT OFF) — the rig-mode
+         switch INSIDE world/FollowCamera.cs (no parallel camera class,
+         mechanism monogamy) + the CAMERA_RIG_ISO proof partial (mode
+         CAMERA_RIG_ISO, stage 107 — UNIQUE number): default-off pin, flag-
+         honored fixed-rig pins (exact rebase, locked orientation, S20 pulse
+         exact-rest under the fixed rig, static camera-collision clearance
+         with bit-exact release) + the capture arm parking the composed scene
+         per zone for the framebuffer evidence. The MC 10218-precedent boot-
+         gates split (RuntimeIntegrationProof.Initialize.cs) pays the entry's
+         600-l ceiling for the mode's entry-doc + dispatch growth. Appended
+         at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.CameraRig.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Initialize.cs" />
   </ItemGroup>
 
 </Project>

@@ -134,6 +134,17 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // CAMERA_RIG_ISO (MC 11018 S45): routes BEFORE the live-enemy guard —
+        // quiet boot (bus_emit idiom); the rig pins need nothing but the
+        // composition root. Stage body lives in RuntimeIntegrationProof.CameraRig.cs.
+        if (_mode == "CAMERA_RIG_ISO")
+        {
+            _stage = 107;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (camera-rig mode) — zone={_director.CurrentZone} capture={_crCaptureZone ?? "off"} (spawning off at boot; the rig pin prints from the leg)");
+            return;
+        }
+
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
 
         _dnaBefore = _hud.DnaMeter;

@@ -1,16 +1,21 @@
-// SIZE: 637 l measured by wc AT this head (MC 10519 S27 restamp: +38 over the 599 at
-// MC 10516 — +29 (the ZONE_VISUAL_MOUNT mode-doc row (+24), KnownModes entry, case-106
-// arm + its comment) + 7 (the ZONE_VISUAL_MOUNT quiet-boot spawn-off guard + comment,
-// added on the final pass so the leg never farms kills at boot) + 2 this header's own
-// restamp lines); prior 599 read: the S38 +16 over the 583 at MC 10420 c2 — the S38 FLOOR_TRUST
-// mode-doc row, KnownModes, spawn-off guard, case-105 arm;
-// that 583 read: the 557 stamp lagged cycle 1's own +17; numbers below are re-measured, never delta-summed): the
+// SIZE: 609 l measured by wc AT this head (MC 11018 S45 SPLIT + restamp: NET −28
+// over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
+// owed (mode-doc row, KnownModes entry, capture-arm gate + budget lines, case-107
+// arm) was PAID with an MC 10218-precedent split in the same card: the _Initialize
+// BODY (frame cap + composition-root instantiation + every per-mode set-before-
+// AddChild gate) moved VERBATIM to the 102-l RuntimeIntegrationProof.Initialize.cs,
+// the mode read + unknown-mode fail-safe guard STAYED in the entry (the mode_sets
+// fail-safe grep is entry-scoped by design); the entry is now SMALLER than at S27;
+// prior 637 read: the MC 10519 S27 +38 over the 599 at MC 10516 — the
+// ZONE_VISUAL_MOUNT mode-doc row, KnownModes entry, case-106 arm, quiet-boot spawn-off guard + its
+// header lines; the 599: the S38 +16 over the 583 at MC 10420 c2; that 583: the 557 stamp lagged
+// cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 243-l mode
+// header, KnownModes allow-list, shared fields and dispatch — >400 because the 264-l mode
 // doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure) and the 32-mode dispatch (re-measured MC 10731: mode_sets_check at this head = 32; 31-mode at the S27 head) ride together here. W4 SPLIT,
+// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure; S45 re-measure) and the 33-mode dispatch (re-measured MC 11018: mode_sets_check at this head = 33; 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
-// _ComposeDeferred moved VERBATIM to the 323-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 10731)
+// _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
 // ReleaseHeldRefsBeforeQuit to the 70-l RuntimeIntegrationProof.Harness.cs — zero
 // behaviour change, marker-log-diff across 8 modes in evidence .audits/*-proofsplit.
@@ -278,6 +283,27 @@ using System.Linq;
 //                    asserts its identity rows pairwise-distinct before
 //                    saving (ZONE_MOUNT_CAPTURE; path env LA_MOUNT_CAPTURE_
 //                    PATH). Stage 106, RuntimeIntegrationProof.ZoneMount.cs.
+//   CAMERA_RIG_ISO — MC 11018 / 10026.44.6 S45: the fixed-iso camera RIG
+//                    behind the session-only `-- --iso-cam` launch flag
+//                    (DEFAULT OFF), quiet boot (bus_emit idiom). The flag and
+//                    the leg's expectation ride SEPARATE channels (the camera
+//                    reads the cmdline USER arg; the leg reads LA_RIG_EXPECT)
+//                    so the rig pin is non-circular. No flag + no
+//                    LA_RIG_EXPECT: the rig must be FOLLOW and the lerp lag
+//                    alive after a pivot teleport (CAMERA_RIG_DEFAULT_OFF).
+//                    Flag + LA_RIG_EXPECT=fixed: pivot+Offset BIT-equal rebase
+//                    with zero lag (CAMERA_RIG_EXACT_REBASE), orientation
+//                    bit-locked across the mover (CAMERA_RIG_ROT_LOCKED), the
+//                    shipped S20 pulse holding BIT-EXACT rest on the fixed
+//                    base (CAMERA_RIG_PULSE_ARMED / _AT_BASE), and the static
+//                    camera-collision clearance clamping the sight under a
+//                    composed occluder then releasing BIT-EXACTLY (CAMERA_
+//                    RIG_OCCL_CLAMPED / _RELEASED). Optional LA_RIG_CAPTURE=
+//                    <zone> travel-walks the pinned rig to the zone and parks
+//                    the live composed scene for a graphical-test-helper
+//                    framebuffer capture (capture runs only, not a battery
+//                    leg; frame-budget watchdog lifted for that arm alone).
+//                    Stage 107, RuntimeIntegrationProof.CameraRig.cs.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
@@ -359,10 +385,15 @@ public partial class RuntimeIntegrationProof : SceneTree
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
         "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
+        "CAMERA_RIG_ISO",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
 
+    // MC 11018 S45 SPLIT (MC 10218 verbatim-move precedent): the boot gates
+    // moved VERBATIM to RuntimeIntegrationProof.Initialize.cs; the mode read +
+    // unknown-mode guard STAY here (the mode_sets_check fail-safe grep is
+    // entry-scoped by design), so this stays the full boot ENTRY POINT.
     public override void _Initialize()
     {
         GD.Print("LA_GATE: start");
@@ -370,14 +401,13 @@ public partial class RuntimeIntegrationProof : SceneTree
         GD.Print($"LA_GATE: mode={_mode}");
 
         // MC 10204 hardening (S17 TEST finding F1): an UNRECOGNIZED LA_GATE_MODE
-        // used to be IGNORED — every mode arm below is a positive `if`, so a
-        // typo'd or stale mode fell straight through to the default positive
-        // chain and could exit 0 having asserted nothing (vacuous green: a gate
-        // that cannot go RED is not a gate). The dispatch's own vocabulary is
-        // the allow-list (KnownModes below, this file + its partials); anything
-        // else halts here, by name, exit 1. Proof-class-local modes
-        // (roster_*/trait_effects, the ZoneBoss/P1 proofs) are dispatched by
-        // their own entry points and are untouched by this guard.
+        // used to be IGNORED — every mode arm is a positive `if`, so a typo'd or
+        // stale mode fell through to the default positive chain and could exit 0
+        // having asserted nothing (vacuous green: a gate that cannot go RED is
+        // not a gate). The dispatch's own vocabulary is the allow-list (Known-
+        // Modes above); anything else halts here, by name, exit 1. Proof-class-
+        // local modes (roster_*/trait_effects, the ZoneBoss/P1 proofs) dispatch
+        // by their own entry points and are untouched by this guard.
         if (!IsKnownMode(_mode))
         {
             _failed = true;   // halts _Process before any stage runs (Fail idiom, MC 1344.1)
@@ -386,74 +416,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
-        // MC 1344.1: in --script mode the autoload EventBus loads AFTER _Initialize,
-        // and the HUD is built by WorldDirector.BuildUi() in _Ready — both unavailable
-        // here. Do NOT create a local bus (it collides with the autoload at
-        // /root/EventBus and splits the wire); resolve bus + HUD in _ComposeDeferred
-        // on the first _Process frame, after the scene _Ready has run.
-        // Harness fix (MC 1344.1): cap process frames so physics ticks accumulate
-        // normally (same pattern as BridgeMvpProof).
-        Engine.MaxFps = 60;
-
-        // Instance the composition root (a --script run does not load main_scene).
-        var packed = GD.Load<PackedScene>("res://main.tscn");
-        if (packed == null) { Fail("cannot load res://main.tscn"); return; }
-        Node3D main = packed.Instantiate<Node3D>();
-        // no_spawn: disable enemy spawning BEFORE the director populates — the
-        // director spawns in _Ready, which runs at AddChild, so the flag must be
-        // set on the INSTANTIATED (not yet added) node (MC 1344.1).
-        if (_mode == "no_spawn" && main is WorldDirector d) d.SetSpawningEnabled(false);
-        // bus_emit (MC 10098 S0): the scripted dialogue/hurt legs need the
-        // boot zone QUIET (a standing player is whittled to death by the
-        // spawn set in ~4 s — see evidence 2026-10-05); spawning is OFF at
-        // boot and re-armed by the farm phase through the same public seam.
-        if (_mode == "bus_emit" && main is WorldDirector db) db.SetSpawningEnabled(false);
-        // quest_neg: the story/quest gate seam (MC 3904 2c) must be off BEFORE
-        // the director's _Ready runs InitStory — same set-before-AddChild idiom.
-        if (_mode == "quest_neg" && main is WorldDirector dneg) dneg.SetQuestHooksEnabled(false);
-        // skill_neg: the skill gate seam (MC 3912 2e) must be off BEFORE
-        // _Ready runs InitSkills — same set-before-AddChild idiom.
-        if (_mode == "skill_neg" && main is WorldDirector dsk) dsk.SetSkillActionsEnabled(false);
-        // calm_neg: the calm cast + window ride the SAME seam (MC 10031) —
-        // off before _Ready; the NEG_CALM leg proves a funded press leaks zero.
-        if (_mode == "calm_neg" && main is WorldDirector dcm) dcm.SetSkillActionsEnabled(false);
-        // JUICE_SHAKE (MC 10121 S2): the shake legs are scripted quiet (the
-        // bus_emit idiom) — a standing player would be whittled by the spawn
-        // set and stray PlayerHurt edges would re-arm the window mid-assert.
-        if (_mode == "JUICE_SHAKE" && main is WorldDirector dsh) dsh.SetSpawningEnabled(false);
-        // CAMERA_KILL_PULSE (MC 10217 S20): the pulse leg is scripted quiet
-        // (the bus_emit/JUICE_SHAKE idiom) — its wire is a DIRECT bus emit and
-        // nothing else must move the follow target mid-assert.
-        if (_mode == "CAMERA_KILL_PULSE" && main is WorldDirector dkp) dkp.SetSpawningEnabled(false);
-        // DAYNIGHT_STATE (MC 10199 S15): the clock leg drives no combat and
-        // reads no gameplay state — quiet boot (bus_emit idiom) keeps the
-        // ~23 s cycle run deterministic and cheap. The driver is PAUSED at
-        // construction and resumed in _ComposeDeferred: composition ticks
-        // (frame 0/1 writes) never slip past the leg's first observation, so
-        // the DAWN anchor window is unskippable (ordering-agnostic). No save
-        // is touched.
-        if (_mode == "DAYNIGHT_STATE" && main is WorldDirector ddn)
-        {
-            ddn.SetSpawningEnabled(false);
-            ddn.SetDayNightPaused(true);
-        }
-        // BARK (MC 10131 S8): the bark leg is scripted quiet (bus_emit idiom) —
-        // zero enemies means nothing can move the gameplay snapshot mid-assert;
-        // the roster shapes are built IN the leg through the product rebuild
-        // (planted saves, MC 3910 OWNED).
-        if (_mode == "BARK" && main is WorldDirector dbg) dbg.SetSpawningEnabled(false);
-        // FLOOR_TRUST (MC 10516 S38): the edge-walk/clamp/kill-plane leg parks
-        // the player on bare borders and drops them off the map — quiet boot
-        // (bus_emit idiom), no whittling, no interference with the fall.
-        if (_mode == "FLOOR_TRUST" && main is WorldDirector dft) dft.SetSpawningEnabled(false);
-        // ZONE_VISUAL_MOUNT (MC 10519 S27): quiet boot so the boot census +
-        // first park stand in a calm scene; the leg RE-ARMS the same public
-        // seam before its first travel press — every zone it ENTERS then
-        // fields its SpawnSet for real (the mount-vs-spawn assert needs it).
-        if (_mode == "ZONE_VISUAL_MOUNT" && main is WorldDirector dzm) dzm.SetSpawningEnabled(false);
-        Root.AddChild(main);
-
-        _main = main;
+        InitializeBootGates();   // MC 11018 S45 SPLIT — verbatim body, see Initialize.cs
     }
 
     public override bool _PhysicsProcess(double delta)
@@ -490,6 +453,12 @@ public partial class RuntimeIntegrationProof : SceneTree
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
         int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
+        // MC 11018 S45: the CAMERA_RIG_ISO CAPTURE arm parks the live scene
+        // for the graphical-test-helper framebuffer grab — the run's external
+        // timeout is its watchdog; the in-leg budget would quit before the
+        // capture lands (MC 1344.1 quit-race class). Battery legs keep the
+        // shipped FrameBudget untouched.
+        if (_mode == "CAMERA_RIG_ISO" && _crCaptureZone != null) budget = int.MaxValue;
         if (_frames > budget) { Fail("frame budget exhausted before all stages"); return true; }
 
         switch (_stage)
@@ -615,6 +584,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // MC 10519 S27: zone-scene mounting (stage 106 — UNIQUE number;
             // stage body lives in RuntimeIntegrationProof.ZoneMount.cs).
             case 106: RunZoneMountStage(); break;
+            // MC 11018 S45: camera rig-mode switch (stage 107 — UNIQUE number;
+            // stage body lives in RuntimeIntegrationProof.CameraRig.cs).
+            case 107: RunCameraRigStage(); break;
         }
         return false;
     }
