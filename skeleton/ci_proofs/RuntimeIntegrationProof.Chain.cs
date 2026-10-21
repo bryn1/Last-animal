@@ -55,18 +55,11 @@ public partial class RuntimeIntegrationProof : SceneTree
                     Input.ActionRelease("move_right");
                     GD.Print("LA_GATE: PLAYER_EXISTS_MOVED — WASD -> body -> director-owned PlayerController (instance identity via GameBootstrap)");
                     TeleportIntoRange();
-                    // MC 1345 (option A): capture the follow baseline HERE, right
-                    // after the teleport — the companion is still at the player's
-                    // pre-teleport position, so dist0 honestly reads "started away"
-                    // and the close-in assert in stage 4 is exercised as written.
-                    // Capturing at stage 4 raced the companion's convergence during
-                    // the attack wait, and the check could fire on the capture frame
-                    // itself (_followStartPhys defaults 0), reading field defaults
-                    // (dist0=0) instead of a measurement.
-                    _companionStart = _companion.GlobalPosition;
-                    _followDist0 = _companion.GlobalPosition.DistanceTo(_playerBody.GlobalPosition);
-                    _followStartPhys = _physFrames;
-                    GD.Print($"LA_GATE: follow baseline captured dist0={_followDist0:0.###}");
+                    // MC 1345 option A (the teleport-time follow baseline) was
+                    // RETIRED by MC 11099 S49-COMP: see RunHudStage — the
+                    // baseline is captured at the stage-3 -> 4 transition after
+                    // a clear-distance reposition, the MC 1388 idiom already
+                    // shipped in BridgeMvpProof.
                     _stage = 2;
                     _stageFrames = 0;
                 }
@@ -185,6 +178,35 @@ public partial class RuntimeIntegrationProof : SceneTree
                           $"hud={_hud.Life} model={_director.PlayerModel.Health}");
                     if (_failed) return true;
                     GD.Print("LA_GATE: HUD_REFLECTS_STATE — Hud.Life == PlayerController.Health (single health tracker)");
+                    // MC 11099 / 10026.44.11 S49-COMP: the follow baseline is
+                    // captured HERE — after a clear-distance reposition — the
+                    // MC 1388 idiom already shipped in BridgeMvpProof (see its
+                    // stage-3 body), replacing the MC 1345 teleport-time capture.
+                    // The whole-class failure it replaces: the teleport leaves
+                    // dist0 only ~0.2 m off the settled FollowDistance ring, so
+                    // the 40-tick closure window measures a real closing run
+                    // ONLY while the kill stage ends inside it; at a low frame
+                    // rate the process-frame-cadenced attack loop (stage 2)
+                    // burns more ENGINE time than the window holds, the follower
+                    // settles on the ring before the sample, and the closure
+                    // left (dist0 − ring ≈ 0.19) cannot meet the 0.25 bar — RED
+                    // at LA_MAX_FPS=5, 3/3, in-process; the MC 11018 cold-repro
+                    // on llvmpipe was THIS, not a movement defect (CompanionFollow
+                    // Body's lerp is exp-delta, framerate-free). Repositioning
+                    // the player 6 m clear off the ring at EVERY frame rate makes
+                    // the window always measure a real closing run (available
+                    // closure ≈ 2+ m even fully settled vs the 0.25 bar). The
+                    // ASSERT ITSELF IS UNTOUCHED — same moved ≥ 0.2 and same
+                    // closure ≥ 0.25 law; only WHERE the honest baseline starts
+                    // changed, never WHAT is demanded.
+                    var away = _playerBody.GlobalPosition - _companion.GlobalPosition;
+                    away.Y = 0f;
+                    _playerBody.GlobalPosition += (away.LengthSquared() < 1e-8f
+                        ? new Vector3(6f, 0f, 0f) : away.Normalized() * 6f);
+                    _companionStart = _companion.GlobalPosition;
+                    _followDist0 = _companion.GlobalPosition.DistanceTo(_playerBody.GlobalPosition);
+                    _followStartPhys = _physFrames;
+                    GD.Print($"LA_GATE: follow baseline captured after player reposition dist0={_followDist0:0.###}");
                     _stage = 4;
                     _stageFrames = 0;
                 }
@@ -199,8 +221,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                 // and physics ticks diverge under Xvfb (a process frame can span
                 // many ticks), so a window counted in process frames measures the
                 // wrong thing in both directions. 40 physics ticks = 0.67s of
-                // engine time regardless of frame rate. The baseline was captured
-                // at the teleport (stage 1, MC 1345) — see _followStartPhys.
+                // engine time regardless of frame rate. The baseline is captured
+                // at the stage-3 -> 4 transition after a 6 m reposition (MC 11099
+                // replaced the MC 1345 teleport-time capture — see RunHudStage);
+                // NO process-cadenced stage body sits inside the window any more.
                 if (_physFrames >= _followStartPhys + FollowFrames)
                 {
                     // COMPANION_FOLLOWS: the machine-wired CompanionEntity
