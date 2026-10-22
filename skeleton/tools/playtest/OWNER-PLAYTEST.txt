@@ -1,0 +1,38 @@
+LAST ANIMAL - OWNER PLAYTEST (one page, MC 11129)
+
+You are trying BOTH camera styles so you can pick the default.
+
+WHAT TO DO
+  1. Keep all files in THIS folder (the game LastAnimal.exe, the data_
+     folder, the two .bat files). Do not move them apart.
+  2. Play one round each way:
+     - DOUBLE-CLICK  LAST-ANIMAL-CLASSIC.bat   = the CLASSIC camera
+       (follows behind you, eases and lags a little).
+     - DOUBLE-CLICK  LAST-ANIMAL-ISO.bat       = the ISO camera
+       (a fixed isometric view - it never lags or swings, like a
+       strategy game).
+  3. While you play, the game writes its boot line to a log file in this
+     folder (BOOT-LOG-CLASSIC.txt or BOOT-LOG-ISO.txt). When you CLOSE the
+     game, the black window stays open and shows that line, e.g.
+        LA_PLAYTEST_RIG=ISO (fixed isometric camera)
+     That line is the proof of which camera you were actually looking at.
+  4. Press any key in the black window to close it.
+
+TELLING THE TWO APART WHILE YOU PLAY
+  CLASSIC: walk around - the camera turns with you and eases into place
+           behind you (smooth lag).
+  ISO:     walk around - the view stays at the same fixed angle the whole
+           time. It never swings.
+
+IF NOTHING OPENS
+  A window that flashes and vanishes in under a second usually means
+  Windows blocked the download: right-click LAST-ANIMAL-CLASSIC.bat ->
+  Properties -> check "Unblock" -> OK, then try again. The folder also
+  gets a BOOT-LOG-*-err.txt file - if it says something about ".NET" or
+  "hostfxr", the free "Microsoft .NET Desktop Runtime 8.0 (x64)" needs to
+  be installed once (say so and we will do it for you).
+
+WHAT YOUR PICK MEANS
+  Playing both and naming your favourite sets the game's default camera.
+  The choice is yours; nothing is saved about the camera and either
+  launcher loads your save.
