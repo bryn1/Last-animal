@@ -148,7 +148,7 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
 | Preflight gate | `preflight.tscn` via the M00 preflight csproj (`LastAnimalPreflight.sln`). |
 | CI smokes | `bash ci/<gate>.sh` from `skeleton/` (see §5). |
 | Export a release | `bash tools/export_windows.sh` / `bash tools/export_linux.sh`. |
-| Playtest either camera rig (MC 11129) | Unzip the Windows package, double-click `LAST-ANIMAL-CLASSIC.bat` or `LAST-ANIMAL-ISO.bat` (the ISO one passes `--iso-cam` AFTER the `--` separator); the boot line `LA_PLAYTEST_RIG=CLASSIC\|ISO` names the live rig in the console window + the engine user log. |
+| Playtest either camera rig (MC 11129) | Unzip the Windows package, double-click `LAST-ANIMAL-CLASSIC.bat` or `LAST-ANIMAL-ISO.bat` (the ISO one passes `--iso-cam` AFTER the `--` separator); the boot line `LA_PLAYTEST_RIG=CLASSIC\|ISO` lands in `BOOT-LOG-<RIG>.txt` beside the game + the engine user log. |
 
 ## 5. Export pipeline (Windows + Linux, one gate)
 
@@ -167,16 +167,20 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
   fails loudly when the data dir or the game assembly is missing from the zip;
   optional EXTRA args (MC 11129) ride the zip top level, each verified present.
 - `tools/export_windows.sh` — gate → zip (exe + `data_LastAnimalPreflight_windows_x86_64/`
-  + MC 11129 extras: `LastAnimal_console.exe` — the console build, the ONLY
-  build whose boot rig line is VISIBLE to the owner — and the two
-  `tools/playtest/` launchers) → optional wine smoke (skipped explicitly when
-  wine is absent; never faked).
-- `tools/playtest/LAST-ANIMAL-CLASSIC.bat` / `LAST-ANIMAL-ISO.bat` (MC 11129
-  owner playtest, per the MC 10995 append 9 "Toggle" ruling — the owner plays
-  both rigs and names the default): double-click entry points riding the
-  Windows zip beside the binaries. ISO passes `-- --iso-cam`. The ONE boot
-  print lives in `FollowCamera._Ready` (constant text, once at boot, F4-CMP
-  clean): stdout + the engine user log, windowed AND console builds alike.
+  + MC 11129 extras: the two `tools/playtest/` launchers + `OWNER-PLAYTEST.txt`)
+  → optional wine smoke (skipped explicitly when wine is absent; never faked).
+  MEASURED at this head: the engine emits NO `*_console.exe` despite
+  `debug/export_console_wrapper=1` (exe is PE Subsystem=2 GUI; the Oct-18
+  reference export lacks one too) — the launchers therefore capture the boot
+  rig line via PowerShell `Start-Process -Wait -RedirectStandardOutput`.
+- `tools/playtest/LAST-ANIMAL-CLASSIC.bat` / `LAST-ANIMAL-ISO.bat` / `OWNER-
+  PLAYTEST.txt` (MC 11129 owner playtest, per the MC 10995 append 9 "Toggle"
+  ruling — the owner plays both rigs and names the default): double-click
+  entry points + the one-page plain-English note, riding the Windows zip
+  beside the binaries. ISO passes `-- --iso-cam`. The ONE boot print lives in
+  `FollowCamera._Ready` (constant text, once at boot, F4-CMP clean): stdout
+  (the launchers save it to `BOOT-LOG-<RIG>.txt` beside the game) + the engine
+  user log.
 - `tools/export_linux.sh` — gate → zip (binary + `data_*_linuxbsd_x86_64/`) →
   native Xvfb launch smoke.
 - `tools/launch_linux_smoke.sh` — launches the packaged Linux binary under Xvfb

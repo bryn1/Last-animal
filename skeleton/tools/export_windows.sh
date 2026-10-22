@@ -34,23 +34,23 @@ cd "$PROJ"
 echo "EXPORT_WINDOWS: step 2/3 — packaging $OUT_EXE + .NET data dir -> $OUT_ZIP"
 DATA_DIR="$(cd build && ls -d data_*_windows_x86_64 2>/dev/null | head -1 || true)"
 [ -n "$DATA_DIR" ] || { echo "$(basename "$0" .sh | tr a-z A-Z): FAIL: no .NET assemblies data dir (build/data_*_windows_x86_64) beside $OUT_EXE" >&2; exit 1; }
-# MC 11129 owner playtest: the zip also carries the CONSOLE wrapper (the
-# windowed exe detaches the launcher's console — the boot rig line printed by
-# FollowCamera._Ready is only VISIBLE through the console build) and the two
-# rig launchers from tools/playtest/. The console exe is mandatory whenever
-# debug/export_console_wrapper=1 (preset.0 sets it): its absence fails here,
-# never ships a package whose boot line is invisible.
-CONSOLE_EXE="${OUT_EXE%.exe}_console.exe"
-[ -f "$CONSOLE_EXE" ] || { echo "EXPORT_WINDOWS: FAIL: console wrapper $CONSOLE_EXE missing (export_console_wrapper?)" >&2; exit 1; }
-LAUNCHERS=("$HERE/playtest/LAST-ANIMAL-CLASSIC.bat" "$HERE/playtest/LAST-ANIMAL-ISO.bat")
+# MC 11129 owner playtest: the zip also carries the two rig launchers + the
+# one-page note (tools/playtest/). MEASURED at this head: the engine emits NO
+# console wrapper despite debug/export_console_wrapper=1 (build/ holds no
+# *_console.exe; the exe is PE Subsystem=2 GUI, and even the Oct-18 reference
+# export in /srv/workspace/.../build lacks one) — so the launchers capture the
+# boot rig line with PowerShell Start-Process -Wait -RedirectStandardOutput
+# into BOOT-LOG-<RIG>.txt beside the game (user-visible + on disk).
+LAUNCHERS=("$HERE/playtest/LAST-ANIMAL-CLASSIC.bat" "$HERE/playtest/LAST-ANIMAL-ISO.bat"
+           "$HERE/playtest/OWNER-PLAYTEST.txt")
 for l in "${LAUNCHERS[@]}"; do
-  [ -f "$l" ] || { echo "EXPORT_WINDOWS: FAIL: playtest launcher missing: $l" >&2; exit 1; }
+  [ -f "$l" ] || { echo "EXPORT_WINDOWS: FAIL: playtest artifact missing: $l" >&2; exit 1; }
 done
 # Packaging is the shared helper (DA P3 dedup, MC 1405): one implementation
 # of the binary + data-dir zip concern for both platforms; the extras ride the
 # zip TOP LEVEL and the helper's gate goes red if any is absent from the zip.
 bash "$HERE/package_artifact.sh" "$OUT_ZIP" "$OUT_EXE" "build/$DATA_DIR" "EXPORT_WINDOWS" \
-  "$CONSOLE_EXE" "${LAUNCHERS[@]}"
+  "${LAUNCHERS[@]}"
 
 echo "EXPORT_WINDOWS: step 3/3 — packaged-binary smoke"
 if command -v wine >/dev/null 2>&1; then
