@@ -130,7 +130,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     private OmniLight3D? _fxL1;
     private OmniLight3D? _fxL2;
     private MeshInstance3D? _fxFlame;
-    private MeshInstance3D? _fxWinProbe;       // FIX-ROUND-1: NON-decal opaque probe at the decal point, REMOVED after its frame
+    private MeshInstance3D? _fxWinProbe;       // FIX-ROUND-1: NON-decal opaque probe at the decal point, REMOVED after the capture battery (in verdicts)
     private MeshInstance3D? _fxRecv1, _fxRecv2;   // shaded 1 m receiver quads under the lights
     private Texture2D? _fxAura;
     private Vector3 _fxQuadAt, _fxDecalAt, _fxFlameAt, _fxG1, _fxG2, _fxT1, _fxT2;
@@ -525,8 +525,8 @@ public partial class RuntimeIntegrationProof : SceneTree
         // visible object at all — SAME point, SAME patch radius.
         float winD = FxPatchDelta(cap["decwin"], base0, FxScreen(_fxDecalAt), FxPatchR);
         bool winAlive = winD > FxInThr;
-        GD.Print($"LA_GATE: DECAL_WINDOW measured={winD:0.0000} thr>{FxInThr} (NON-decal opaque probe quad at the decal sample point, same patch, removed from the tree after its frame)");
-        if (winAlive) GD.Print("LA_GATE: DECAL_WINDOW_ALIVE — a NON-decal visible quad AT the decal sample point moved the patch: the DECAL_SUPPORT FAIL is the ENGINE'S capability answer, not a dead measurement window");
+        GD.Print($"LA_GATE: DECAL_WINDOW measured={winD:0.0000} thr>{FxInThr} (NON-decal opaque probe quad at the decal sample point, same patch, removed from the tree after the capture battery)");
+        if (winAlive) GD.Print("LA_GATE: DECAL_WINDOW_ALIVE — a NON-decal visible quad AT the decal sample point moved the patch: the window is NON-DEAD TO SATURATED COLOR — the DECAL_SUPPORT FAIL is the ENGINE'S capability answer, not a dead measurement window (scope, named per the step-0 DA attack-3 finding: the proof is against a saturated opaque magenta probe; a FAINT low-contrast delta is NOT proven to register above the threshold)");
         else GD.Print("LA_GATE: DECAL_WINDOW_DEAD — the decal sample window registers NOTHING even for a visible opaque quad: any DECAL_SUPPORT verdict here would be VACUOUS");
         if (_fxWinProbe!.GetParent() != null) _fxWinProbe.GetParent().RemoveChild(_fxWinProbe);   // plant measured -> REMOVED (its only job is done)
 

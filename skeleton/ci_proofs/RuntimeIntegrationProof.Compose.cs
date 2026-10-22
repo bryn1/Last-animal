@@ -157,6 +157,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // SKY_STRIP / _PLANT (MC 11088 / 10026.44.10 S48 FIX-ROUND-1, DA F1):
+        // routes BEFORE the live-enemy guard — quiet boot (the FX gate idiom);
+        // the sky-strip render probe mounts its quad BESIDE the composed scene
+        // and needs nothing else. Stage body lives in ...SkyStrip.cs.
+        if (_mode is "SKY_STRIP" or "SKY_STRIP_PLANT")
+        {
+            _stage = 109;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (sky-strip mode) — zone={_director.CurrentZone} (spawning off at boot; the render verdict prints from the leg)");
+            return;
+        }
+
         if (_enemies.Count == 0) { Fail("WorldDirector spawned no EnemyActor"); return; }
 
         _dnaBefore = _hud.DnaMeter;

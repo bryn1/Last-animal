@@ -302,6 +302,21 @@
          texture reads EMPTY there); named verdict lines + planted-bad red pair;
          zero save fields (R7). Appended at the ItemGroup END (precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.FxGlcompat.cs" />
+    <!-- MC 11088 / 10026.44.10 S48 BATCH-4 FIX-ROUND-1 (DA F1): the sky-strip
+         render probe the Batch-4 card DoD NAMES (modes SKY_STRIP /
+         SKY_STRIP_PLANT, stage 109 — UNIQUE number): the SHIPPED canyon_sky_v1
+         mounted on an unshaded native-4:1 quad BESIDE the composed scene, PAINT
+         + MAPPING measured at RUN-derived expected screen points through the
+         SubViewport probe FBO at gl_compatibility; SKY_STRIP_RENDER_OK|FAIL +
+         planted alpha-0 red pair (FXSKY_PLANT_RED); the CI-probe mount touches
+         the in-game sky path NOT at all; zero save fields (R7). Appended at the
+         ItemGroup END (precedent). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.SkyStrip.cs" />
+    <!-- MC 11088 / 10026.44.10 S48 BATCH-4 FIX-ROUND-1 ceiling split (MC 10218
+         verbatim-move precedent): the entry's shared machine fields + consts
+         moved VERBATIM here — zero behaviour change; the entry keeps the mode
+         doc, KnownModes, the mode read + fail-safe guard and the dispatch. -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.State.cs" />
   </ItemGroup>
 
 </Project>

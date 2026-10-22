@@ -118,6 +118,16 @@ public partial class RuntimeIntegrationProof : SceneTree
             dfx.SetSpawningEnabled(false);
             dfx.SetDayNightPaused(true);
         }
+        // SKY_STRIP / _PLANT (MC 11088 / 10026.44.10 S48 FIX-ROUND-1, DA F1):
+        // the sky-strip render probe rides the FX gate law VERBATIM in spirit —
+        // quiet boot (a spawn set crossing the sample patches never settles the
+        // FBO) + PAUSED clock (a frozen sun is what makes a pixel deliverable
+        // here); the leg touches no gameplay state at all.
+        if (_mode is "SKY_STRIP" or "SKY_STRIP_PLANT" && main is WorldDirector dsky)
+        {
+            dsky.SetSpawningEnabled(false);
+            dsky.SetDayNightPaused(true);
+        }
         Root.AddChild(main);
 
         _main = main;

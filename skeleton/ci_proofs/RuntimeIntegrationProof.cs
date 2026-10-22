@@ -1,4 +1,4 @@
-// SIZE: 598 l by wc AT this head (MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// SIZE: 589 l by wc AT this head (MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
 // IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
 // _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
@@ -13,9 +13,14 @@
 // header lines; the 599: the S38 +16 over the 583 at MC 10420 c2; that 583: the 557 stamp lagged
 // cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
-// header, KnownModes allow-list, shared fields and dispatch — >400 because the 264-l mode
-// doc mode_sets_check parses (awk '/Modes \(env/ ../ Run:/' this commit; 162 at the S24
-// head by this same measure — the S24 row's 161 excluded the // Run: line; MC 10255 re-measure; S45 re-measure) and the 35-mode dispatch (re-measured MC 11019 S48: mode_sets_check at this head = 35; 33 at the MC 11018 head; 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
+// header, KnownModes allow-list and dispatch (the shared fields moved VERBATIM
+// to State.cs at MC 11088 — see that header) — >400 because the 308-l mode
+// doc mode_sets_check parses (awk from '// Modes \(env' through '// Run:' this
+// commit, BOTH ends inclusive; 289 at the MC 11019 S48 head per §6.4's
+// re-measure, 162 at the S24 head; MC 11088 re-measure) and the 37-mode
+// dispatch (re-measured MC 11088 S48 BATCH-4 FIX-ROUND-1: mode_sets_check at
+// this head = 37; 35 at the MC 11019 S48 head; 33 at the MC 11018 head;
+// 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -331,70 +336,53 @@ using System.Linq;
 //                    FORCED 0 + the 2nd OmniLight REMOVED from the tree — all
 //                    four named checks must print their FAIL, or the leg fails
 //                    as VACUOUS by name. Red rides beside green. Stage 108.
+//   SKY_STRIP — MC 11088 / 10026.44.10 S48 BATCH-4 FIX-ROUND-1 (DA F1 — the
+//                    card DoD NAMES this probe): mounts the SHIPPED resources/
+//                    generated/sky/canyon_sky_v1.png on an unshaded 8x2 m quad
+//                    (its NATIVE 4:1 aspect) BESIDE the composed scene and
+//                    measures from a SubViewport probe FBO at gl_compatibility
+//                    that the strip is PAINTED at expected screen points RUN-
+//                    DERIVED from the asset bytes (the FxMaxAlphaUv law) and
+//                    MAPPED AS AUTHORED (each painted patch nearer to its own
+//                    asset block color than to any other sample's). Prints
+//                    SKY_STRIP_RENDER_OK|FAIL with every margin beside it; the
+//                    renderer is pinned (FXSKY_RENDERER). CI-probe mount ONLY —
+//                    the in-game ProceduralSky/DayNight sky path is UNTOUCHED.
+//                    Stage 109, RuntimeIntegrationProof.SkyStrip.cs.
+//   SKY_STRIP_PLANT — the S48 gate-red pair: the strip material alpha FORCED 0
+//                    (an alpha-0 copy of the mount — the proven FX_GLCOMPAT_-
+//                    PLANT mechanism). SKY_STRIP_RENDER must print its named
+//                    FAIL at the SAME points (marker FXSKY_PLANT_RED), else the
+//                    leg fails as VACUOUS by name (FXSKY_PLANT_NOT_CAUGHT). Red
+//                    rides beside green. Stage 109.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
 // File size: >400 total lines — the mode doc + dispatch of a multi-mode proof
-// harness (9+ modes). The
-// mode-specific stage bodies live in the partial-class halves
-// RuntimeIntegrationProof.Save.cs (stages 20/21/22/30),
-// RuntimeIntegrationProof.Interact.cs (stages 40/90),
-// RuntimeIntegrationProof.Chain.cs (stages 1-4, moved VERBATIM MC 10098
-// split duty) and RuntimeIntegrationProof.Bus.cs (stage 80, bus_emit);
-// the compose routing lives in RuntimeIntegrationProof.Compose.cs and the
-// shared helpers (Fail/Check/…) in RuntimeIntegrationProof.Harness.cs (the
-// MC 10218 W4 split); this file keeps the header doc, fields, KnownModes
-// allow-list and dispatch.
+// harness (9+ modes). 589 l by wc AT this head (MC 11088 S48 BATCH-4 FIX-
+// ROUND-1: the card's +22 crossed the ceiling at 620 and was PAID IN-CARD by
+// the MC 10218 verbatim-move split — the shared machine fields + consts to the
+// State.cs partial). Doc, allow-list, the mode read + fail-safe guard and the
+// stage arms are ENTRY-SCOPED BY DESIGN (mode_sets_check.py parses the ENTRY's
+// header doc, its KnownModes and its switch (_stage) arms); every stage BODY
+// lives in a per-concern partial — Save.cs (20/21/22/30), Interact.cs (40/90),
+// Chain.cs (1-4, moved VERBATIM MC 10098 split duty), Bus.cs (stage 80,
+// bus_emit) — the roster continuing one-file-per-stage through SkyStrip.cs
+// (stage 109, MC 11088); compose routing in Compose.cs, shared helpers in
+// Harness.cs and the shutdown release list in Harness.cs (the MC 10218 W4 split).
 public partial class RuntimeIntegrationProof : SceneTree
 {
-    private const int MoveFrames = 12;
-    // MC 1344.1: movement is applied in _PhysicsProcess ticks. Headless --script
-    // process frames are uncapped, so counting process frames measures wall-clock
-    // frames, not engine time. Count physics ticks instead (BridgeMvpProof pattern).
-    private int _physFrames;
-    private int _pressPhysFrame;
-    private int _followStartPhys; // physics tick when the follow baseline was captured (MC 1345)
-    private int _holdStartPhys;   // physics tick when the render-bar hold began (MC 1344.1)
-    private const int AttackBudgetFrames = 240;   // input-path kill budget
-    private const int FollowFrames = 40;
-    private const int HoldFrames = 1200;          // post-PASS hold for the render bar:
-    // 1200 physics-capped frames @60fps = 20s > the helper's 15s capture window.
-    // 600 (10s) raced the capture — the proof quit before the framebuffer grab
-    // and the render bar read a blank screen (MC 1344.1, flaky in runtime32).
-    private const int FrameBudget = 2400;
-
-    private EventBus? _bus;
-    private WorldDirector? _director;
-    private CharacterBody3D? _playerBody;
-    private Hud? _hud;
-    private DialogueSystem? _dialogue;
-    private CompanionEntity? _companion;
-    private readonly List<EnemyActor> _enemies = new();
-
-    private string _mode = "positive";
-    private int _frames;
-    private int _stage;
-    private int _stageFrames;
-    private Node3D? _main;      // composition root, resolved in _Initialize (MC 1344.1)
-    private bool _composed;     // _ComposeDeferred has run (MC 1344.1)
-    private bool _failed;
-    private bool _asserted;
-    private int _dnaCount;
-    private int _dnaSpokenCount;
-    private int _dnaBefore;
-    private int _attackToggle;
-    private int _interactToggle;
-    private Vector3 _playerStart;
-    private Vector3 _companionStart;
-    private float _followDist0;
-    private int _kills;
-    private int _loyaltyBeforeSave;
-    private int _dnaMeterBeforeSave;
-    private int _spokenDnaBeforeSave;
-    private int _progressBeforeSave;
-    private int _dnaMutated;
-    private string _zoneBeforeSave = "";
-
+    // MC 11088 S48 FIX-ROUND-1 SPLIT (MC 10218 verbatim-move precedent): the
+    // shared machine fields + movement/budget consts moved VERBATIM to
+    // RuntimeIntegrationProof.State.cs — the card's +22 (two mode-doc rows +
+    // the stage-109 arm) crossed the 600 house ceiling at 620 and §6's law
+    // ("ANY further entry growth MUST be paid by an MC 10218-precedent
+    // verbatim-move split BEFORE merging") is paid IN-CARD here. Zero behaviour
+    // change: a partial class holds every field wherever the declaration sits;
+    // the entry keeps the mode doc, the KnownModes allow-list, the mode read +
+    // unknown-mode fail-safe guard and the stage dispatch (every one of them
+    // mode_sets_check-entry-scoped BY DESIGN). The full battery re-run at this
+    // head is the proof.
     /// <summary>The mode vocabulary of THIS dispatch (this file + its partials)
     /// — the unknown-mode guard's allow-list (MC 10204, S17 TEST F1): a new mode
     /// arm must register HERE too, or the harness refuses to run it. Kept beside
@@ -413,7 +401,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
         "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
         "CAMERA_RIG_ISO",
-        "FX_GLCOMPAT", "FX_GLCOMPAT_PLANT",
+        "FX_GLCOMPAT", "FX_GLCOMPAT_PLANT", "SKY_STRIP", "SKY_STRIP_PLANT",
     };
 
     private static bool IsKnownMode(string mode) => KnownModes.Contains(mode);
@@ -591,6 +579,9 @@ public partial class RuntimeIntegrationProof : SceneTree
             // MC 11019 S48 STEP-0: GL-Compat capability probe (stage 108 —
             // UNIQUE number; body lives in RuntimeIntegrationProof.FxGlcompat.cs).
             case 108: RunFxGlcompatStage(); break;
+            // MC 11088 S48 FIX-ROUND-1 (DA F1): sky-strip render probe (stage 109 —
+            // UNIQUE number; body lives in RuntimeIntegrationProof.SkyStrip.cs).
+            case 109: RunSkyStripStage(); break;
         }
         return false;
     }
