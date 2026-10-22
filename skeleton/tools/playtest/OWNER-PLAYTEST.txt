@@ -19,6 +19,8 @@ WHAT TO DO
   4. Press any key in the black window to close it.
 
 TELLING THE TWO APART WHILE YOU PLAY
+  Both rigs open on the same first frame - feel the difference when
+  you MOVE.
   CLASSIC: walk around - the camera turns with you and eases into place
            behind you (smooth lag).
   ISO:     walk around - the view stays at the same fixed angle the whole

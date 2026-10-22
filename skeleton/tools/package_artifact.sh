@@ -13,6 +13,60 @@
 # Optional extra files (MC 11129: the Windows package carries the console
 # wrapper + the two playtest launchers) ride the zip TOP LEVEL beside the
 # binary, and the gate goes red if any of them is missing from the zip.
+#
+# MC 11129 FIX-ROUND-1 (DA stage-hygiene P2): the SAME packaging concern also
+# owns the integrity manifest of a STAGED payload dir (an unzipped delivery
+# folder: exe + data dir + launchers + one-pager), so the owner can prove
+# what landed. Manifest mode:
+#   bash tools/package_artifact.sh --sums <dir>
+# writes <dir>/SHA256SUMS.txt — per-file sha256, relative paths,
+# `sha256sum -c` compatible — over EVERY file in the tree (the manifest
+# excludes itself by name), then RE-READS the written lines and re-hashes
+# every file: any mismatch (or a file that vanished between write and read)
+# goes red with a nonzero exit. ONE implementation, reused by the staging
+# step — not hand-rolled.
+if [ "${1:-}" = "--sums" ]; then
+  DIR="${2:?dir}"
+  python3 - "$DIR" <<'PY'
+import hashlib, os, sys
+
+d = sys.argv[1]
+MANIFEST = "SHA256SUMS.txt"
+
+def digest(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+files = []
+for root, _dirs, names in os.walk(d):
+    for n in sorted(names):
+        rel = os.path.relpath(os.path.join(root, n), d)
+        if rel == MANIFEST:
+            continue
+        files.append(rel)
+files.sort()
+with open(os.path.join(d, MANIFEST), "w", newline="\n") as out:
+    for rel in files:
+        out.write(f"{digest(os.path.join(d, rel))}  {rel}\n")
+want = {}
+with open(os.path.join(d, MANIFEST)) as f:
+    for line in f:
+        h, sep, rel = line.rstrip("\n").partition("  ")
+        if sep:
+            want[rel] = h
+missing = [rel for rel in files if rel not in want]
+mismatch = [rel for rel in files if want.get(rel) not in (None,)
+            and want[rel] != digest(os.path.join(d, rel))]
+if missing or mismatch:
+    sys.exit(f"--sums: FAIL: manifest lost {len(missing)} lines, {len(mismatch)} files "
+             f"do not re-hash to the lines just written: {(missing + mismatch)[:5]}")
+print(f"--sums: {len(files)} files hashed + re-read verified -> {os.path.join(d, MANIFEST)}")
+PY
+  exit 0
+fi
 set -euo pipefail
 
 OUT_ZIP="${1:?out_zip}"
