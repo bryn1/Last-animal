@@ -37,8 +37,8 @@ using LastAnimal.World;
 //      the constants the S20 contract named, not to the class (marker
 //      BOSS_FRAME_CONSTANTS).
 // This mode NEEDS the live spawn set (farm + boss) — it routes after the
-// enemy guard, like DISSOLVE_SUPPRESS/CHAR_MOTION. The camera prints NOTHING
-// (F4-CMP) — every marker here is proof output.
+// enemy guard, like DISSOLVE_SUPPRESS/CHAR_MOTION. The camera prints ONLY
+// its boot rig line (F4-CMP) — every marker here is proof output.
 //
 // Run:  LA_GATE_MODE=BOSS_FRAME $GODOT --headless --path <proj> \
 //         --script res://ci_proofs/RuntimeIntegrationProof.cs

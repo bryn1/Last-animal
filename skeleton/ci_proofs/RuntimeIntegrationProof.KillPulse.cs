@@ -21,7 +21,7 @@ using LastAnimal.World;
 //      tolerance, a bit comparison (the pulse never writes _followBase; the
 //      kick is additive and exactly zero at window close).
 // Spawning is off at boot (bus_emit/JUICE_SHAKE quiet-leg idiom) and the
-// camera prints NOTHING (F4-CMP) — every marker here is proof output.
+// camera prints ONLY its boot rig line (F4-CMP) — every marker here is proof output.
 //
 // S23 STRENGTHENING (MC 10229 / DA S20 residual P2): closer/farther alone
 // keeps a wrong-direction punch or a gutted preset GREEN — the punch

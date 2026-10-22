@@ -41,7 +41,7 @@ using LastAnimal.World;
 // of the composed scene under this rig (frame-budget watchdog lifted for
 // this run only — the helper's timeout is the watchdog).
 // Spawning is off at boot (bus_emit quiet-leg idiom); the camera prints
-// NOTHING (F4-CMP) — every marker here is proof output.
+// NOTHING but its boot rig line (F4-CMP) — every marker here is proof output.
 //
 // Run (follow side):  LA_GATE_MODE=CAMERA_RIG_ISO $GODOT --headless --path
 //                      <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs

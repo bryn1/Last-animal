@@ -108,7 +108,7 @@ per-zone const keyframe tables on the shipped `Environment` + `DirectionalLight3
 280 l), `WorldDirector.Motion.cs` (partial: the S14/MC 10198 character-life driver —
 integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.Ground.cs` (partial, MC 10420 split of the ground guarantee — the MC 10404 fall plane MOVED VERBATIM + the NEW XZ ground-extent clamp, both resolved per zone-entry from the terrain_builder meta channel `floor_min_y` + `ground_extent` (ONE channel, one mechanism); `ClampToGround` is the ONE point world motion + co-locations bound to the loaded ground, missing meta DISARMS LOUD (never-silent); MC 10420 c2 F-DA1 adds `WireFollowClamp` — the same method injected into every visible companion body at spawn, 179 l), `WorldDirector.Mount.cs` (partial, MC 10519/S27 — the zone-scene MOUNT route: `MountZoneScene(zoneId)` instantiates `res://zones/<id>/<id>.tscn` under `World`, unmounts + frees the previous root synchronously so the per-zone ground walk never sees a stale zone, and re-pins the day-night bindings through `InvalidateDayNightBindings` (the stale-binding close: the driver re-resolves the MOUNTED `Environment/*` on its next tick); same-zone re-entry is a no-op; a missing zone scene PushError-s LOUD and keeps the current mount rather than dropping the world to no-ground, 104 l), `VisualJuice.cs`
 (the S1/MC 10120 juice node: hit-flash + offset-punch presentation, split out of
-`ActorVisual.cs` at MC 10183, 186 l), `FollowCamera.cs` (MC 11018/S45 rig-mode switch — the SAME node also frames a FIXED isometric rig behind the session-only `--iso-cam` cmdline USER flag, DEFAULT OFF = the shipped follow rig byte-shared; fixed rig = rigid pivot+offset rebase + bit-locked constant orientation + ONE clearance mechanism (camera collision vs STATIC scenery, pivot push-in ruled out) with dynamic actors stepped over on a bounded ray; every juice window derives from the LIVE base + exported Offset so the shipped S2/S20 windows hold under BOTH rigs with ZERO retuned consts; rig state is never persisted — zero save fields, R7; mode `CAMERA_RIG_ISO`, 320 l), `SaveLoadController.cs`) and `terrain_builder.gd`.
+`ActorVisual.cs` at MC 10183, 186 l), `FollowCamera.cs` (MC 11018/S45 rig-mode switch — the SAME node also frames a FIXED isometric rig behind the session-only `--iso-cam` cmdline USER flag, DEFAULT OFF = the shipped follow rig byte-shared; fixed rig = rigid pivot+offset rebase + bit-locked constant orientation + ONE clearance mechanism (camera collision vs STATIC scenery, pivot push-in ruled out) with dynamic actors stepped over on a bounded ray; every juice window derives from the LIVE base + exported Offset so the shipped S2/S20 windows hold under BOTH rigs with ZERO retuned consts; rig state is never persisted — zero save fields, R7; mode `CAMERA_RIG_ISO`; MC 11129 owner playtest: the ONLY print is the ONE boot line `LA_PLAYTEST_RIG=CLASSIC|ISO` naming the live rig, 331 l), `SaveLoadController.cs`) and `terrain_builder.gd`.
 - **Scenes**: `main.tscn` (game entry), `preflight.tscn` (M00 preflight),
   `capture_scene.tscn` + `scripts/capture*.gd` (framebuffer capture for CI smokes).
   `scripts/capture_wrapper.gd` also carries the MC 10165 S11 `PERF_WINDOW=N` capture
@@ -148,6 +148,7 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
 | Preflight gate | `preflight.tscn` via the M00 preflight csproj (`LastAnimalPreflight.sln`). |
 | CI smokes | `bash ci/<gate>.sh` from `skeleton/` (see §5). |
 | Export a release | `bash tools/export_windows.sh` / `bash tools/export_linux.sh`. |
+| Playtest either camera rig (MC 11129) | Unzip the Windows package, double-click `LAST-ANIMAL-CLASSIC.bat` or `LAST-ANIMAL-ISO.bat` (the ISO one passes `--iso-cam` AFTER the `--` separator); the boot line `LA_PLAYTEST_RIG=CLASSIC\|ISO` names the live rig in the console window + the engine user log. |
 
 ## 5. Export pipeline (Windows + Linux, one gate)
 
@@ -163,9 +164,19 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
   implementation used by both export scripts).
 - `tools/package_artifact.sh` — the ONE zip-packaging step (binary + .NET data
   dir → distributable zip, python3 `zipfile`) shared by both export scripts;
-  fails loudly when the data dir or the game assembly is missing from the zip.
-- `tools/export_windows.sh` — gate → zip (exe + `data_LastAnimalPreflight_windows_x86_64/`)
-  → optional wine smoke (skipped explicitly when wine is absent; never faked).
+  fails loudly when the data dir or the game assembly is missing from the zip;
+  optional EXTRA args (MC 11129) ride the zip top level, each verified present.
+- `tools/export_windows.sh` — gate → zip (exe + `data_LastAnimalPreflight_windows_x86_64/`
+  + MC 11129 extras: `LastAnimal_console.exe` — the console build, the ONLY
+  build whose boot rig line is VISIBLE to the owner — and the two
+  `tools/playtest/` launchers) → optional wine smoke (skipped explicitly when
+  wine is absent; never faked).
+- `tools/playtest/LAST-ANIMAL-CLASSIC.bat` / `LAST-ANIMAL-ISO.bat` (MC 11129
+  owner playtest, per the MC 10995 append 9 "Toggle" ruling — the owner plays
+  both rigs and names the default): double-click entry points riding the
+  Windows zip beside the binaries. ISO passes `-- --iso-cam`. The ONE boot
+  print lives in `FollowCamera._Ready` (constant text, once at boot, F4-CMP
+  clean): stdout + the engine user log, windowed AND console builds alike.
 - `tools/export_linux.sh` — gate → zip (binary + `data_*_linuxbsd_x86_64/`) →
   native Xvfb launch smoke.
 - `tools/launch_linux_smoke.sh` — launches the packaged Linux binary under Xvfb

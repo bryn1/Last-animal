@@ -17,8 +17,8 @@ using LastAnimal.World;
 //      and is proven by the bus_emit leg).
 // Spawning is off at boot (bus_emit quiet-leg idiom): a standing player is
 // otherwise whittled by the spawn set and stray PlayerHurt edges would
-// re-open the window mid-assertion. The camera itself prints NOTHING
-// (F4-CMP) — every marker here is proof output.
+// re-open the window mid-assertion. The camera itself prints ONLY
+// its boot rig line (F4-CMP) — every marker here is proof output.
 //
 // Run:  LA_GATE_MODE=JUICE_SHAKE $GODOT --headless --path <proj> \
 //         --script res://ci_proofs/RuntimeIntegrationProof.cs

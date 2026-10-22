@@ -5,7 +5,9 @@ using LastAnimal.Core;
 // this file 192 -> 320 l by wc AT this head. Kept whole by the card's own
 // mechanism-monogamy law — the rig mode is a switch INSIDE the ONE camera;
 // splitting rigs across files would author the parallel-camera-class shape
-// the owner ruling (MC 10995 append 9 "Toggle") forbids.
+// the owner ruling (MC 10995 append 9 "Toggle") forbids. MC 11129 owner
+// playtest build +11 to 331 l by wc AT this head (the ONE boot rig line — a
+// print of the already-decided Rig, no new state).
 
 // Last Animal — W3-fix composition (MC 1123.10, artemis, 2026-09-08).
 //
@@ -120,7 +122,7 @@ public partial class FollowCamera : Node3D
     // opens a ShakeFrames window decaying on an INTEGER counter (F4: no
     // delta-time/Tween/Timer). The kick is ADDED on top of the smoothed
     // follow base, never folded into it, so the +12f base return is EXACT.
-    // The camera prints NOTHING (F4-CMP).
+    // The camera prints ONLY its ONE boot rig line (MC 11129; F4-CMP).
     //
     // MC 10217 Inc-4 S20 extends the SAME consumer pattern with two further
     // windows, each its own concern, all kicks summed on top of the base:
@@ -162,6 +164,15 @@ public partial class FollowCamera : Node3D
         // S45: the ONE boot read of the session-only toggle (DEFAULT OFF:
         // flag absent -> Rig stays Follow, the shipped rig).
         if (IsoCamFlagAtBoot()) Rig = CameraRigMode.FixedIso;
+        // MC 11129 owner playtest build: the ONE user-visible boot line naming
+        // the ACTIVE rig (owner ruling "Toggle" — he plays both and names the
+        // default; a raw terminal flag is not an artifact for him, so the rig
+        // he is looking at must be NAMED where he can see it: stdout + the
+        // engine user log). Constant text printed ONCE at boot — zero
+        // per-frame output, so the F4-CMP marker streams stay clean.
+        GD.Print(RigIsFixedIso
+            ? "LA_PLAYTEST_RIG=ISO (fixed isometric camera)"
+            : "LA_PLAYTEST_RIG=CLASSIC (follow camera)");
         // Robust runtime resolution: this FollowCamera lives on the composition
         // root's Camera node, whose sibling Player is the frame target.
         Target ??= GetNodeOrNull<Node3D>("../Player");

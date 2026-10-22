@@ -301,7 +301,7 @@ echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verifie
 # TakeDamage-driven emit, HELD at +4f (camera off its follow base), and the
 # camera sits back on its EXACT shake-free follow base by +12f (integer
 # decay, F4 — the planted delta-time decay goes RED). BossFallen arm reacts
-# too. Real bus wire, stage 96; the camera itself prints NOTHING (F4-CMP).
+# too. Real bus wire, stage 96; the camera prints ONLY its boot rig line (F4-CMP).
 run_mode JUICE_SHAKE pass "JUICE_SHAKE_AT_BASE"
 
 echo "RUNTIME_INTEGRATION_TEST: GATE PASS — authoritative runtime path verified (positive green; no_bus/no_spawn/no_controller/no_dna/save_bad_version all red with named markers; save round-trip green; zone travel + boss phase green; death recovery green; MC 1348 P1 regressions green; quest arc green, persist + evidence-rewind green, reward beats + guard green, quest_neg red; skill economy green, skill_neg red; roster follow/save-load/book arms + mean-last emit order green, pay-after-break refused green, oversized-save trim green, roster_neg cap red; juice shake green; non-blank render)"
@@ -442,7 +442,7 @@ bash "$HERE/mode_sets_check.sh" \
 # (a delta-time decay or a base-writing pulse lands RED here; planted-bad RED
 # pre-proof in evidence .audits/*-s20/). Quiet boot + DIRECT bus emit (the
 # shipped consumer-test idiom, JUICE_SHAKE BossFallen precedent). Stage 100,
-# proof partial RuntimeIntegrationProof.KillPulse.cs; the camera prints NOTHING.
+# proof partial RuntimeIntegrationProof.KillPulse.cs; the camera prints ONLY its boot line.
 run_mode CAMERA_KILL_PULSE pass "CAMERA_PULSE_AT_BASE"
 LOGKP="$(LA_GATE_MODE=CAMERA_KILL_PULSE timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
 # S23 strength asserts (MC 10229, DA S20 residual P2) ride this SAME leg (no
@@ -494,7 +494,7 @@ done
 # retune holds with ZERO constants moved), and the static camera-collision
 # clearance clamps the sight under a composed occluder (CAMERA_RIG_OCCL_
 # CLAMPED) then releases BIT-EXACTLY (CAMERA_RIG_OCCL_RELEASED). Quiet boot,
-# the camera prints NOTHING (F4-CMP). Stage 107, partial
+# the camera prints ONLY its boot rig line (F4-CMP). Stage 107, partial
 # RuntimeIntegrationProof.CameraRig.cs. Planted-bad RED pair in evidence.
 run_mode CAMERA_RIG_ISO pass "CAMERA_RIG_DEFAULT_OFF"
 LOGCRIF="$(LA_RIG_EXPECT=fixed LA_GATE_MODE=CAMERA_RIG_ISO timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" -- --iso-cam 2>&1)" || true
