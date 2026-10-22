@@ -143,3 +143,28 @@ uncommitted per .audits hygiene).
 | `skeleton/resources/generated/v2/ground_stone_v2.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-Edit-2511, mode edit, fast, finalize-authored MC 11059, prompt+seed sidecar) — prompt head: "Seamlessly tileable ground texture, top-down flat view, hand …" | 99898824 | `skeleton/resources/generated/v2/ground_stone_v2.json` | `seam_fix.py` edge-offset blend (sigma 10, band 40) |
 | `skeleton/resources/generated/v2/wall_rock_v2.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-Edit-2511, mode edit, fast, finalize-authored MC 11059, prompt+seed sidecar) — prompt head: "Seamlessly tileable WALL texture, straight-on flat elevation …" | 1931308083 | `skeleton/resources/generated/v2/wall_rock_v2.json` | `seam_fix.py` edge-offset blend (sigma 10, band 40) |
 | `skeleton/resources/generated/v2/wall_stone_v2.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-Edit-2511, mode edit, fast, finalize-authored MC 11059, prompt+seed sidecar) — prompt head: "Seamlessly tileable WALL texture, straight-on flat elevation …" | 449986293 | `skeleton/resources/generated/v2/wall_stone_v2.json` | `seam_fix.py` edge-offset blend (sigma 10, band 40) |
+
+## Fleet-generated assets — S48 Batch-4 canyon sky strip + hollow icon sheet (MC 11088 / 10026.44.10, 2026-10-22)
+
+Fleet-generated in-house work (owner project). Both assets ship through
+`skeleton/ci/asset_finalize.py` (§6 sidecar beside each PNG; prompt VERBATIM from the render,
+seed/mode/quality/refs/generator/ts_utc recorded by the tool from the producer manifest); the
+icon sheet additionally carries the `skeleton/ci/edge_clamp.py` corner-haze clamp (sidecar
+`postprocess` block, `pre_max_corner_alpha` 16 kept in the re-measured `alpha_proof`). The
+clean-room sentence "ORIGINAL artwork, no copyrighted characters, no game franchise
+references." starts BOTH shipped prompts verbatim (VERIFIED this session off the finalized
+sidecars). Generator per sidecar: `generate_image Qwen-Image-Edit-2511 on vm100` (sky, mode
+edit, style-ref `refs/comp-dungeon-v1.png` sha256-pinned in the sidecar — the ratified S48
+clean-room anchor) and `generate_image Qwen-Image-2512 on vm100` (icons, mode t2i).
+`hollow_icons_v1` was REJECTED at producer review (duplicated potion cell), superseded by v2,
+and NEVER entered the repo. Consumers at this head: NEITHER asset is loaded by any
+`tscn/gd/cs` — the honest zero-consumer rulings are recorded in the MC 11088 LEDGER row (zone
+sky today is ProceduralSkyMaterial driven per-frame by DayNight.cs and asserted bit-exact by
+the DayNight/ZoneMount legs — a painted strip cannot ride it without a new mechanism; the
+hollow icon sheet per PLAN §2 Batch-4 "is additive with zero mount dependency — the honest
+consumer story: it needs none today").
+
+| path | origin | license | seed | sidecar | post-process |
+|---|---|---|---|---|---|
+| `skeleton/resources/generated/sky/canyon_sky_v1.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-Edit-2511, mode edit, fast, finalize-authored MC 11088, prompt+seed sidecar) — prompt head: "ORIGINAL artwork … Painted panoramic SKY STRIP … WARM HAZE HORIZON …" — opaque RGB 2048x512, non-tileable strip: NO seam verdict claimed (STYLE_BIBLE §6: strips are not tiles) | 643377991 | `skeleton/resources/generated/sky/canyon_sky_v1.json` | — (opaque RGB, ships as finalized; Po2-native 2048x512, no exemption) |
+| `skeleton/resources/generated/icons/hollow_icons_v2.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-2512, mode t2i, fast, finalize-authored MC 11088, prompt+seed sidecar) — prompt head: "ORIGINAL artwork … Game HUD ICON SHEET … 3x3 grid of NINE game icons …" | 2129400588 | `skeleton/resources/generated/icons/hollow_icons_v2.json` | `edge_clamp.py` border-alpha clamp (8-px ring) |

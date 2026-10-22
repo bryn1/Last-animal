@@ -1,0 +1,16 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Painted panoramic SKY STRIP for a dark gothic isometric ARPG, hand-painted style: a wide horizon band seen from a high isometric viewpoint over a canyon at noon — identity is the WARM HAZE HORIZON: glowing ember-orange horizon glow (#ff9e59) dissolving upward through dusty rose (#d9946f) into deep dusky violet sky at the top of the band, soft painted cloud bands catching the warm light, distant canyon rim silhouettes along the very bottom edge in dark warm brown. Hand-painted gouache texture, restrained saturation gradients, no sun disc, no characters, no text, no ground terrain beyond the thin bottom silhouette edge. Style anchored to the reference image's hand-painted dark-gothic palette and brushwork.",
+  "seed": 643377991,
+  "size": "2048x512",
+  "mode": "edit",
+  "quality": "fast",
+  "refs": [
+    {
+      "path": "refs/comp-dungeon-v1.png",
+      "sha256": "851ba327d3fdf177f41bf75c2e62700f49c972adb8757421991c6b1d6c8bf675"
+    }
+  ],
+  "generator": "generate_image Qwen-Image-Edit-2511 on vm100",
+  "ts_utc": "2026-10-21T15:15:17Z",
+  "target_for": "zones/canyon/sky-strip: 10026.44.10"
+}
