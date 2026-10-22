@@ -1,0 +1,43 @@
+{
+  "prompt": "ORIGINAL artwork, no copyrighted characters, no game franchise references. Game HUD ICON SHEET for a dark gothic isometric ARPG, hand-painted style: a neat 3x3 grid of NINE game icons, ALL NINE DIFFERENT from each other, evenly spaced with generous empty gaps: row one: a stone heart, a glowing mana teardrop, a DNA double helix; row two: a rounded skill rune stone with a carved glyph, a rolled parchment quest scroll, a glowing circular aura ring; row three: a stoppered potion bottle, a small round shield, a lit torch with warm flame. Each icon is a single clean silhouette reading at small size, a SMALL dark near-black backdrop plate with a thin ornate frame centred in its cell — plate plus icon together no more than one third of the cell, wide transparent margin all around the plate,, one rim light from the same upper-left direction on every icon. Palette strictly cold spectral teal-silver: mid teal #3b565f bodies, pale spectral silver-teal #92adaa highlights, warm ember accent #d9946f rim light and torch flame. Consistent ornate frame treatment across all nine, no text. Isolated grid on transparent background, no outer backdrop panel. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects. The subject is isolated and fully visible, centred on a plain, flat, uniform light grey studio background with generous empty margins, no cast shadow, no floor, no other objects.",
+  "seed": 2011804690,
+  "size": "1024x1024",
+  "mode": "t2i",
+  "quality": "full",
+  "refs": [],
+  "generator": "generate_image Qwen-Image-2512 on vm100",
+  "ts_utc": "2026-10-22T07:42:44Z",
+  "target_for": "zones/hollow/hud-icons(placeholder): 10026.44.10",
+  "alpha_proof": {
+    "transparent_px": 786689,
+    "partial_px": 14608,
+    "opaque_px": 247279,
+    "max_corner_alpha": 0,
+    "verdict": "PASS"
+  },
+  "postprocess": {
+    "method": "producer recompose: cell-bbox crop + re-centre in 341px cells (fit 205, PIL LANCZOS downscale) — mechanical thinning enforcing STYLE_BIBLE §5 ≤40%; NO edge_clamp applied and none needed (native BEN2 matte, corner4 max 0)",
+    "tool": "producer PIL recompose (design-lab, PRE-finalize); shipped bytes via skeleton/ci/asset_finalize.py metadata-free re-encode only",
+    "card": "MC 11088 ASSET-SWAP",
+    "ts_utc": "2026-10-22T07:42:44Z",
+    "note": "prompt/seed/mode/quality/refs above are the SENT render per seeds.jsonl prompt_sent (BYTE-EQUAL, incl. the duplicated studio-matting tail — the sidecar law keeps the prompt AS SENT, STYLE_BIBLE §6). The recompose ran pre-finalize and its output IS the finalized input, so alpha_proof is already post-postprocess; the v2 pre/post-corner split does not apply — no clamp step exists on this asset (v2 top-level key set kept; pre_max_corner_alpha honestly omitted)",
+    "occupancy_census": {
+      "instrument": "python3-PIL getchannel('A').histogram(), alpha>=8, round-thirds grid, measured on SHIPPED bytes",
+      "per_cell_3x3": [
+        20.1,
+        22.4,
+        20.2,
+        21.8,
+        24.6,
+        21.9,
+        35.7,
+        22.2,
+        35.9
+      ],
+      "max": 35.9,
+      "limit": "§5 ≤40 percent",
+      "verdict": "PASS"
+    },
+    "runner_up": "draw 1 seed 789396020 FAILED the same census (55.6-68.5 recorded in seeds.jsonl; re-census of the kept bytes hollow_icons_v3.png.bak-20261022T073924Z: all cells >40, max 78.2) and was DISCARDED; draw 2 seed 2011804690 selected on art (9 distinct icons) and thinned by this recompose — draws law (≤3/asset) honored"
+  }
+}

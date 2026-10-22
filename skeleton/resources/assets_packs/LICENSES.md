@@ -149,15 +149,20 @@ uncommitted per .audits hygiene).
 Fleet-generated in-house work (owner project). Both assets ship through
 `skeleton/ci/asset_finalize.py` (§6 sidecar beside each PNG; prompt VERBATIM from the render,
 seed/mode/quality/refs/generator/ts_utc recorded by the tool from the producer manifest); the
-icon sheet additionally carries the `skeleton/ci/edge_clamp.py` corner-haze clamp (sidecar
-`postprocess` block, `pre_max_corner_alpha` 16 kept in the re-measured `alpha_proof`). The
+icon sheet shipped at ship-era as `hollow_icons_v2` carrying the `skeleton/ci/edge_clamp.py`
+corner-haze clamp. [RESTAMPED MC 11088 ASSET-SWAP 2026-10-22, owner ruling "Regenerate thinner":
+that v2 pair is RETIRED and removed; the sheet at this head is `hollow_icons_v3_final`, regenerated
+thinner (t2i, quality full) + producer crop/re-centre recompose — NO clamp on it and none needed
+(native matte, `alpha_proof.max_corner_alpha` 0, no pre/post-corner split); the sidecar
+`postprocess` block carries the recompose + the §5 occupancy census 20.1-35.9% max 35.9 PASS.] The
 clean-room sentence "ORIGINAL artwork, no copyrighted characters, no game franchise
 references." starts BOTH shipped prompts verbatim (VERIFIED this session off the finalized
 sidecars). Generator per sidecar: `generate_image Qwen-Image-Edit-2511 on vm100` (sky, mode
 edit, style-ref `refs/comp-dungeon-v1.png` sha256-pinned in the sidecar — the ratified S48
 clean-room anchor) and `generate_image Qwen-Image-2512 on vm100` (icons, mode t2i).
 `hollow_icons_v1` was REJECTED at producer review (duplicated potion cell), superseded by v2,
-and NEVER entered the repo. Consumers at this head: NEITHER asset is loaded by any
+and NEVER entered the repo; v2 was in turn RETIRED by the ASSET-SWAP above (never a rejected
+draw — an occupancy rejection by measurement + owner ruling). Consumers at this head: NEITHER asset is loaded by any
 `tscn/gd/cs` — the honest zero-consumer rulings are recorded in the MC 11088 LEDGER row (zone
 sky today is ProceduralSkyMaterial driven per-frame by DayNight.cs and asserted bit-exact by
 the DayNight/ZoneMount legs — a painted strip cannot ride it without a new mechanism; the
@@ -167,4 +172,4 @@ consumer story: it needs none today").
 | path | origin | license | seed | sidecar | post-process |
 |---|---|---|---|---|---|
 | `skeleton/resources/generated/sky/canyon_sky_v1.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-Edit-2511, mode edit, fast, finalize-authored MC 11088, prompt+seed sidecar) — prompt head: "ORIGINAL artwork … Painted panoramic SKY STRIP … WARM HAZE HORIZON …" — opaque RGB 2048x512, non-tileable strip: NO seam verdict claimed (STYLE_BIBLE §6: strips are not tiles) | 643377991 | `skeleton/resources/generated/sky/canyon_sky_v1.json` | — (opaque RGB, ships as finalized; Po2-native 2048x512, no exemption) |
-| `skeleton/resources/generated/icons/hollow_icons_v2.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-2512, mode t2i, fast, finalize-authored MC 11088, prompt+seed sidecar) — prompt head: "ORIGINAL artwork … Game HUD ICON SHEET … 3x3 grid of NINE game icons …" | 2129400588 | `skeleton/resources/generated/icons/hollow_icons_v2.json` | `edge_clamp.py` border-alpha clamp (8-px ring) |
+| `skeleton/resources/generated/icons/hollow_icons_v3_final.png` | fleet-generated owner-project | fleet-generated owner-project (Qwen-Image-2512, mode t2i, full, finalize-authored MC 11088, prompt+seed sidecar) — REPLACES `hollow_icons_v2` RETIRED by owner ruling "Regenerate thinner" 2026-10-22 (v2 measured 74.5-75.9% cell occupancy vs STYLE_BIBLE §5 ≤40%); runner-up law: draw 1 seed 789396020 failed the same census (55.6-68.5, discarded), draw 2 seed below selected — ≤3 draws/asset honored — prompt head: "ORIGINAL artwork … Game HUD ICON SHEET … 3x3 grid of NINE game icons …" (sidecar prompt byte-equal to the seeds.jsonl `prompt_sent` AS SENT, §6 law; t2i — no style-ref anchor, seed+sidecar is the provenance, same structure as the retired v2 row) | 2011804690 | `skeleton/resources/generated/icons/hollow_icons_v3_final.json` | producer recompose: cell-bbox crop + re-centre in 341px cells (fit 205, PIL LANCZOS downscale); §5 occupancy census on SHIPPED bytes 20.1-35.9% max 35.9 PASS (instrument python3-PIL alpha≥8); no edge clamp (native matte, corner4 max 0) |
