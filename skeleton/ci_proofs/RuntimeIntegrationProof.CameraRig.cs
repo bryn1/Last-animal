@@ -4,7 +4,7 @@ using LastAnimal.Core.Framework;
 using LastAnimal.World;
 
 // SIZE reason (file hygiene law, MC 11018/S45): 343 l by wc AT this head,
-// past the ~250 house mark (MC 11189 default flip +9 to 352 l by wc AT this
+// past the ~250 house mark (MC 11189 default flip +11 to 354 l by wc AT this
 // head — the flipped A/B contract doc + the CAMERA_RIG_DEFAULT_ISO pin line).
 // Kept whole: this is ONE stage body — the eight
 // phases share witnessed bases and bit-comparisons (the settled witness
