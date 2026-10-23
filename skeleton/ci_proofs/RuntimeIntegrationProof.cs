@@ -290,26 +290,26 @@ using System.Linq;
 //                    asserts its identity rows pairwise-distinct before
 //                    saving (ZONE_MOUNT_CAPTURE; path env LA_MOUNT_CAPTURE_
 //                    PATH). Stage 106, RuntimeIntegrationProof.ZoneMount.cs.
-//   CAMERA_RIG_ISO — MC 11018 / 10026.44.6 S45: the fixed-iso camera RIG
-//                    behind the session-only `-- --iso-cam` launch flag
-//                    (DEFAULT OFF), quiet boot (bus_emit idiom). The flag and
-//                    the leg's expectation ride SEPARATE channels (the camera
-//                    reads the cmdline USER arg; the leg reads LA_RIG_EXPECT)
-//                    so the rig pin is non-circular. No flag + no
-//                    LA_RIG_EXPECT: the rig must be FOLLOW and the lerp lag
-//                    alive after a pivot teleport (CAMERA_RIG_DEFAULT_OFF).
-//                    Flag + LA_RIG_EXPECT=fixed: pivot+Offset BIT-equal rebase
-//                    with zero lag (CAMERA_RIG_EXACT_REBASE), orientation
-//                    bit-locked across the mover (CAMERA_RIG_ROT_LOCKED), the
-//                    shipped S20 pulse holding BIT-EXACT rest on the fixed
-//                    base (CAMERA_RIG_PULSE_ARMED / _AT_BASE), and the static
-//                    camera-collision clearance clamping the sight under a
-//                    composed occluder then releasing BIT-EXACTLY (CAMERA_
-//                    RIG_OCCL_CLAMPED / _RELEASED). Optional LA_RIG_CAPTURE=
-//                    <zone> travel-walks the pinned rig to the zone and parks
-//                    the live composed scene for a graphical-test-helper
-//                    framebuffer capture (capture runs only, not a battery
-//                    leg; frame-budget watchdog lifted for that arm alone).
+//   CAMERA_RIG_ISO — MC 11018 / 10026.44.6 S45 rig-mode switch, MC 11189
+//                    DEFAULT FLIP (owner ruling verbatim "Iso,"): the FIXED
+//                    ISO rig is the shipped default; session-only opt-out
+//                    flag `-- --classic-cam`, quiet boot (bus_emit idiom).
+//                    The flag and the leg's expectation ride SEPARATE
+//                    channels (the camera reads the cmdline USER arg; the
+//                    leg reads LA_RIG_EXPECT) so the rig pin is non-
+//                    circular. No flag (expect the default): the rig must be
+//                    FIXED ISO — pin CAMERA_RIG_DEFAULT_ISO — with pivot+
+//                    Offset BIT-equal zero-lag rebase (CAMERA_RIG_EXACT_
+//                    REBASE), orientation bit-locked across the mover
+//                    (CAMERA_RIG_ROT_LOCKED), the shipped S20 pulse holding
+//                    BIT-EXACT rest on the fixed base (CAMERA_RIG_PULSE_
+//                    ARMED / _AT_BASE), and the static camera-collision
+//                    clearance clamping the sight under a composed occluder
+//                    then releasing BIT-EXACTLY (CAMERA_RIG_OCCL_CLAMPED /
+//                    _RELEASED). Flag + LA_RIG_EXPECT=follow: the FOLLOW rig,
+//                    lerp lag alive (CAMERA_RIG_CLASSIC_ON). Optional
+//                    LA_RIG_CAPTURE=<zone> parks the composed scene per zone
+//                    for a graphical-test-helper capture (not a battery leg).
 //                    Stage 107, RuntimeIntegrationProof.CameraRig.cs.
 //   FX_GLCOMPAT — MC 11019 / 10026.44.7 S48 STEP-0: the GL-COMPAT renderer
 //                    capability probe for the FX-code chain (S28 step-0

@@ -1,16 +1,20 @@
-LAST ANIMAL - OWNER PLAYTEST (one page, MC 11129)
+LAST ANIMAL - OWNER PLAYTEST (one page, MC 11129; default flipped MC 11189)
 
-You are trying BOTH camera styles so you can pick the default.
+You picked ISO as the game's default camera - it is done. This folder still
+lets you play BOTH camera styles: plain boot = ISO, and the CLASSIC launcher
+brings the old camera back for a session.
 
 WHAT TO DO
   1. Keep all files in THIS folder (the game LastAnimal.exe, the data_
      folder, the two .bat files). Do not move them apart.
   2. Play one round each way:
+     - DOUBLE-CLICK  LAST-ANIMAL-ISO.bat       = the ISO camera - THE
+       DEFAULT (a fixed isometric view - it never lags or swings, like a
+       strategy game). This launcher carries no game flag: the plain boot
+       IS the iso rig.
      - DOUBLE-CLICK  LAST-ANIMAL-CLASSIC.bat   = the CLASSIC camera
-       (follows behind you, eases and lags a little).
-     - DOUBLE-CLICK  LAST-ANIMAL-ISO.bat       = the ISO camera
-       (a fixed isometric view - it never lags or swings, like a
-       strategy game).
+       (follows behind you, eases and lags a little; this launcher
+       carries the session-only --classic-cam flag for this choice).
   3. While you play, the game writes its boot line to a log file in this
      folder (BOOT-LOG-CLASSIC.txt or BOOT-LOG-ISO.txt). When you CLOSE the
      game, the black window stays open and shows that line, e.g.
@@ -35,6 +39,7 @@ IF NOTHING OPENS
   be installed once (say so and we will do it for you).
 
 WHAT YOUR PICK MEANS
-  Playing both and naming your favourite sets the game's default camera.
-  The choice is yours; nothing is saved about the camera and either
-  launcher loads your save.
+  Your pick is IN: ISO is the game's default camera now (you named it,
+  MC 11189). The CLASSIC launcher is how you play the other one whenever
+  you like. Nothing is saved about the camera and either launcher loads
+  your save.

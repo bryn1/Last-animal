@@ -7,7 +7,9 @@ using LastAnimal.Core;
 // splitting rigs across files would author the parallel-camera-class shape
 // the owner ruling (MC 10995 append 9 "Toggle") forbids. MC 11129 owner
 // playtest build +11 to 331 l by wc AT this head (the ONE boot rig line — a
-// print of the already-decided Rig, no new state).
+// print of the already-decided Rig, no new state). MC 11189 default flip
+// +14 to 345 l by wc AT this head (comment-carried rulings; the switch
+// itself inverted ONE read: default FixedIso, opt-out flag --classic-cam).
 
 // Last Animal — W3-fix composition (MC 1123.10, artemis, 2026-09-08).
 //
@@ -23,10 +25,16 @@ using LastAnimal.Core;
 // MC 11018 / 10026.44.6 S45: the SAME node also carries the fixed isometric
 // rig behind a toggle — a rig-mode switch inside the existing camera, NOT a
 // parallel camera class (mechanism monogamy). The mode is chosen PER BOOT
-// from a session-only launch flag: `--iso-cam` as a cmdline USER arg (after
-// the `--` separator). R7-safe: zero save fields, the rig is never
-// persisted; a save loads in either rig. DEFAULT OFF = the follow rig below,
-// code-identical when the flag is absent. The fixed rig frames
+// from a session-only launch flag: `--classic-cam` as a cmdline USER arg
+// (after the `--` separator). R7-safe: zero save fields, the rig is never
+// persisted; a save loads in either rig. MC 11189 DEFAULT FLIP (owner
+// ruling verbatim "Iso," — PoE/D2 ground-dominated iso view, camera-ref
+// VIEW-REFERENCE.md): NO flag -> the FIXED ISO rig is THE shipped default;
+// `--classic-cam` -> the follow rig below. The earlier "Toggle" reading
+// (MC 10995 append 9, "the owner plays both and names the default later")
+// STANDS in its mechanism half — both rigs stay launchable per session,
+// session-only; it is only the default it named that the owner's own later
+// ruling replaced. The fixed rig frames
 // pivot+offset (pivot = the target position, offset = the SAME exported
 // Offset; no smoothing lag) with a CONSTANT orientation, and takes ONE
 // clearance mechanism — camera collision against STATIC scenery (pivot
@@ -76,28 +84,32 @@ public static class BossFramingTuning
 }
 
 /// <summary>MC 11018 S45: the two rig modes of the ONE camera (no parallel
-/// camera class). Follow = the shipped smoothed behind-follow base (default,
-/// byte-identical to master). FixedIso = rigid pivot+offset framing with a
-/// constant orientation + static-scenery camera collision.</summary>
+/// camera class). Follow = the smoothed behind-follow base (the `--classic-cam`
+/// side since MC 11189, byte-identical to master). FixedIso = rigid
+/// pivot+offset framing with a constant orientation + static-scenery camera
+/// collision — THE shipped default since the MC 11189 owner ruling "Iso,".</summary>
 public enum CameraRigMode { Follow, FixedIso }
 
 [GlobalClass]
 public partial class FollowCamera : Node3D
 {
-    /// <summary>MC 11018 S45: session-only boot choice (R7: never persisted).
-    /// The flag is a cmdline USER arg — read ONCE in _Ready, so a mid-session
-    /// process could never change what a boot already decided.</summary>
-    public static bool IsoCamFlagAtBoot()
+    /// <summary>MC 11018 S45, flipped by MC 11189: session-only boot choice
+    /// (R7: never persisted). The flag is a cmdline USER arg — read ONCE in
+    /// _Ready, so a mid-session process could never change what a boot
+    /// already decided. The SAME read decides the rig AND the boot print —
+    /// one switch, no second flag read.</summary>
+    public static bool ClassicCamFlagAtBoot()
     {
         foreach (var a in OS.GetCmdlineUserArgs())
-            if (a == IsoCamFlagName) return true;
+            if (a == ClassicCamFlagName) return true;
         return false;
     }
-    private const string IsoCamFlagName = "--iso-cam";
+    private const string ClassicCamFlagName = "--classic-cam";
 
     /// <summary>S45 READ seam for proof legs (HasLiveBoss idiom — presentation
-    /// authority reads, never set by anyone but _Ready's boot read).</summary>
-    public CameraRigMode Rig { get; private set; } = CameraRigMode.Follow;
+    /// authority reads, never set by anyone but _Ready's boot read). MC 11189:
+    /// the boot default is FixedIso (owner ruling "Iso,"); the flag opts OUT.</summary>
+    public CameraRigMode Rig { get; private set; } = CameraRigMode.FixedIso;
     public bool RigIsFixedIso => Rig == CameraRigMode.FixedIso;
 
     // S45 fixed-rig clearance constants (camera collision against STATIC
@@ -161,15 +173,17 @@ public partial class FollowCamera : Node3D
 
     public override void _Ready()
     {
-        // S45: the ONE boot read of the session-only toggle (DEFAULT OFF:
-        // flag absent -> Rig stays Follow, the shipped rig).
-        if (IsoCamFlagAtBoot()) Rig = CameraRigMode.FixedIso;
+        // S45: the ONE boot read of the session-only toggle. MC 11189 FLIP:
+        // DEFAULT ON = FixedIso (owner ruling verbatim "Iso,"); the flag is
+        // now `--classic-cam` and opts INTO the follow rig.
+        if (ClassicCamFlagAtBoot()) Rig = CameraRigMode.Follow;
         // MC 11129 owner playtest build: the ONE user-visible boot line naming
-        // the ACTIVE rig (owner ruling "Toggle" — he plays both and names the
-        // default; a raw terminal flag is not an artifact for him, so the rig
-        // he is looking at must be NAMED where he can see it: stdout + the
-        // engine user log). Constant text printed ONCE at boot — zero
-        // per-frame output, so the F4-CMP marker streams stay clean.
+        // the ACTIVE rig (owner ruling "Toggle" — he plays both; MC 11189
+        // named the default "Iso,"; a raw terminal flag is not an artifact
+        // for him, so the rig he is looking at must be NAMED where he can see
+        // it: stdout + the engine user log). Constant text printed ONCE at
+        // boot — zero per-frame output, so the F4-CMP marker streams stay
+        // clean. Derived from the SAME Rig the switch above decided.
         GD.Print(RigIsFixedIso
             ? "LA_PLAYTEST_RIG=ISO (fixed isometric camera)"
             : "LA_PLAYTEST_RIG=CLASSIC (follow camera)");

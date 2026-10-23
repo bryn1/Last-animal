@@ -4,24 +4,30 @@ using LastAnimal.Core.Framework;
 using LastAnimal.World;
 
 // SIZE reason (file hygiene law, MC 11018/S45): 343 l by wc AT this head,
-// past the ~250 house mark. Kept whole: this is ONE stage body — the eight
+// past the ~250 house mark (MC 11189 default flip +9 to 352 l by wc AT this
+// head — the flipped A/B contract doc + the CAMERA_RIG_DEFAULT_ISO pin line).
+// Kept whole: this is ONE stage body — the eight
 // phases share witnessed bases and bit-comparisons (the settled witness
 // feeds the rebase pin feeds the pulse rest feeds the clearance release),
 // and splitting a stage body mid-leg across files has no precedent in the
 // pairing gate (one Run*Stage body == one dispatch arm).
 
 // Last Animal — MC 11018 / 10026.44.6 S45 fixed-iso-camera-rig proof
-// (stage 107, mode CAMERA_RIG_ISO).
+// (stage 107, mode CAMERA_RIG_ISO). MC 11189 DEFAULT FLIP (owner ruling
+// verbatim "Iso,"): the DEFAULT rig is now the FIXED ISO one; the session-
+// only opt-out flag is `--classic-cam` (was: default follow, opt-in
+// --iso-cam). "Toggle" (MC 10995 append 9) stands — both rigs stay
+// launchable per session, session-only.
 //
 // Proves the S45 rig-mode contract on the LIVE playable scene, spawned in
 // TWO ways by the battery (the launch flag and its expectation arrive on
 // SEPARATE channels — the game reads the cmdline user arg, this leg reads
-// LA_RIG_EXPECT — so "flag honored" and "default OFF" are non-circular
+// LA_RIG_EXPECT — so "flag honored" and "default ISO" are non-circular
 // asserts, one input never proves itself):
-//   A) plain  (no flag, no LA_RIG_EXPECT): the rig MUST be Follow and the
-//      lerp lag MUST be alive (teleport the target: the camera does NOT
-//      sit on target+Offset next frame) — marker CAMERA_RIG_DEFAULT_OFF.
-//   B) LA_RIG_EXPECT=fixed + `-- --iso-cam`: the rig MUST be FixedIso and:
+//   A) plain  (no flag; LA_RIG_EXPECT unset or =fixed): the rig MUST be
+//      FixedIso — the shipped default (MC 11189) — and:
+//      CAMERA_RIG_DEFAULT_ISO  — flag ABSENT -> fixed iso boots (the named
+//        default pin the battery run_mode leg asserts);
 //      CAMERA_RIG_EXACT_REBASE — teleport re-bases the camera BIT-EQUAL to
 //      pivot+Offset with zero lag (a shipped-lerp plant stays RED: the lag
 //      survives the teleport);
@@ -34,6 +40,10 @@ using LastAnimal.World;
 //      STATIC box on the sight-line parks the camera inside the rest pose
 //      (camera collision, the ONE clearance), and its removal returns the
 //      camera BIT-EXACTLY onto pivot+Offset.
+//   B) LA_RIG_EXPECT=follow + `-- --classic-cam`: the rig MUST be Follow
+//      and the lerp lag MUST be alive (teleport the target: the camera does
+//      NOT sit on target+Offset next frame) — marker CAMERA_RIG_CLASSIC_ON
+//      (the opt-in flag honored).
 // Optional env LA_RIG_CAPTURE=<zone> (CAPTURE runs only, NOT a battery
 // leg): after the rig pin the leg travel-walks to the zone (shipped Press-
 // Travel idiom, park across every mount), asserts the mounted root, and
@@ -43,10 +53,10 @@ using LastAnimal.World;
 // Spawning is off at boot (bus_emit quiet-leg idiom); the camera prints
 // NOTHING but its boot rig line (F4-CMP) — every marker here is proof output.
 //
-// Run (follow side):  LA_GATE_MODE=CAMERA_RIG_ISO $GODOT --headless --path
-//                      <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
-// Run (fixed side):   LA_GATE_MODE=CAMERA_RIG_ISO LA_RIG_EXPECT=fixed \
-//                      $GODOT --headless --path <proj> --script <proof> -- --iso-cam
+// Run (iso-default side):  LA_GATE_MODE=CAMERA_RIG_ISO $GODOT --headless
+//                      --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
+// Run (classic side):      LA_GATE_MODE=CAMERA_RIG_ISO LA_RIG_EXPECT=follow \
+//                      $GODOT --headless --path <proj> --script <proof> -- --classic-cam
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private int _crPhase;
@@ -86,10 +96,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (_crCam == null) { CrFail("FollowCamera absent at Main/Camera"); break; }
                 if (_crCam.IsShaking || _crCam.IsPulsing || _crCam.IsFramingBoss)
                 { CrFail("camera boots with a presentation window open"); break; }
-                _crExpectFixed = System.Environment.GetEnvironmentVariable("LA_RIG_EXPECT") == "fixed";
+                _crExpectFixed = System.Environment.GetEnvironmentVariable("LA_RIG_EXPECT") != "follow";
                 if (_crCam.RigIsFixedIso != _crExpectFixed)
-                { CrFail($"boot rig {_crCam.Rig} does not match the spawn contract (LA_RIG_EXPECT={(_crExpectFixed ? "fixed" : "<unset>")}) — the camera's OWN boot read of the cmdline user flag decided {(_crCam.RigIsFixedIso ? "FixedIso" : "Follow")}"); break; }
-                GD.Print($"LA_GATE: CAMERA_RIG_BOOT rig={(_crCam.RigIsFixedIso ? "fixed-iso" : "follow")} (expect {(_crExpectFixed ? "fixed" : "follow/follow-default")})");
+                { CrFail($"boot rig {_crCam.Rig} does not match the spawn contract (LA_RIG_EXPECT={(_crExpectFixed ? "fixed-or-unset" : "follow")}) — the camera's OWN boot read of the cmdline user flag decided {(_crCam.RigIsFixedIso ? "FixedIso" : "Follow")}"); break; }
+                GD.Print($"LA_GATE: CAMERA_RIG_BOOT rig={(_crCam.RigIsFixedIso ? "fixed-iso" : "follow")} (expect {(_crExpectFixed ? "fixed/fixed-default" : "follow")})");
                 _playerBody!.SetPhysicsProcess(false);   // Motion/KillPulse bit-still idiom
                 _crBootRotation = _crCam.GlobalRotation;
                 _crPrevPos = _crCam.GlobalPosition;
@@ -139,6 +149,7 @@ public partial class RuntimeIntegrationProof : SceneTree
                     if (cam.GlobalRotation != _crBootRotation)
                     { CrFail($"CAMERA_RIG_ROT_LOCKED: orientation drifted across the target move (boot={_crBootRotation} now={cam.GlobalRotation})"); break; }
                     GD.Print($"LA_GATE: CAMERA_RIG_ROT_LOCKED — orientation bit-identical across the pivot mover rot=({cam.GlobalRotation.X:0.####},{cam.GlobalRotation.Y:0.####},{cam.GlobalRotation.Z:0.####})");
+                    GD.Print("LA_GATE: CAMERA_RIG_DEFAULT_ISO — flag ABSENT -> FIXED ISO is the shipped default (MC 11189, owner ruling verbatim \"Iso,\")");
                     // re-witness the base at the NEW pivot (pulse/occlusion pins
                     // measure against it bit-exactly)
                     _crStillRun = 0; _crPrevPos = pos; _crPhaseStart = _frames;
@@ -148,10 +159,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                 {
                     float lag = pos.DistanceTo(want);
                     if (lag < CrLagFloorM)
-                    { CrFail($"CAMERA_RIG_DEFAULT_OFF: follow rig sat {lag:0.####} m off pivot+Offset — below the {CrLagFloorM} m lag floor (is the fixed rig the DEFAULT?)"); break; }
-                    GD.Print($"LA_GATE: CAMERA_RIG_DEFAULT_OFF — follow rig alive, lerp lag {lag:0.###} m off pivot+Offset after the teleport (flag ABSENT -> shipped behaviour)");
+                    { CrFail($"CAMERA_RIG_CLASSIC_ON: follow rig sat {lag:0.####} m off pivot+Offset — below the {CrLagFloorM} m lag floor (--classic-cam honored?)"); break; }
+                    GD.Print($"LA_GATE: CAMERA_RIG_CLASSIC_ON — follow rig alive, lerp lag {lag:0.###} m off pivot+Offset after the teleport (`--classic-cam` -> CLASSIC rig, MC 11189)");
                     if (_crCaptureZone != null) { _crPhase = 8; break; }
-                    GD.Print("LA_GATE: PASS — S45 default-off verified (no flag -> follow rig, lerp path byte-shared with master)");
+                    GD.Print("LA_GATE: PASS — S45 classic side verified (`-- --classic-cam` -> follow rig, lerp path byte-shared with master)");
                     _asserted = true;
                     _crCam = null;
                     ReleaseHeldRefsBeforeQuit();
@@ -252,7 +263,7 @@ public partial class RuntimeIntegrationProof : SceneTree
                 { CrFail($"CAMERA_RIG_OCCL_RELEASED: camera did NOT return BIT-EXACTLY to pivot+Offset after the clearance released (pos={pos} rest={_crRestPos})"); break; }
                 GD.Print($"LA_GATE: CAMERA_RIG_OCCL_RELEASED — bit-exact return to pivot+Offset pos=({pos.X:0.####},{pos.Y:0.####},{pos.Z:0.####}) clearance released clean");
                 if (_crCaptureZone != null) { _crPhase = 8; break; }
-                GD.Print("LA_GATE: PASS — S45 fixed rig verified (flag-honoured boot, exact rebase, locked orientation, pulse exact-rest, static camera collision with bit-exact release)");
+                GD.Print("LA_GATE: PASS — S45 fixed rig verified (default boot, exact rebase, locked orientation, pulse exact-rest, static camera collision with bit-exact release)");
                 _asserted = true;
                 _crCam = null;
                 ReleaseHeldRefsBeforeQuit();
