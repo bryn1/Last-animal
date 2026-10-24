@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# export_templates_guard.sh — mono-vs-standard export-template IDENTITY gate (MC 11137).
+# export_templates_guard.sh — mono<->standard export-template SWAP-invariant gate (MC 11137).
 #
 # WHY THIS EXISTS. Host VM350's export_templates dirs drifted twice (finding class
 # MC 11129, shipped repair + MC 11137): a mono/standard byte swap inside
 # ~/.local/share/godot/export_templates is SILENT to the engine — the mono editor
 # exports happily from standard-drifted mono templates, and a standard dir carrying
 # mono bytes exports a wrong-runtime build, both with zero engine errors.
-# ci/export_check.sh only checked the templates dir EXISTS; this gate checks what
-# the bytes ARE, per template, and is wired into that gate (one spine, both
+# ci/export_check.sh only checked the templates dir EXISTS; what this gate checks
+# is exactly the mono<->standard SWAP invariant, per file name: a SHARED name must
+# be byte-identical across the two dirs, a DIVERGED name must DIFFER across them —
+# so a swap cannot pass green. KNOWN GAP (honest scope): it is NOT a hash pin
+# against the official .tpz — non-swap diverged drift (garbage or wrong-version
+# bytes on a DIVERGED file) passes green as long as the pair still differs;
+# hashlist-pin mode = follow-up card. Wired into that gate (one spine, both
 # platforms — MC 1405 dedup idiom, no beside-mechanism).
 #
 # THE MAP (baseline-proven 2026-10-24 by MC 11137 against the OFFICIAL
@@ -125,4 +130,6 @@ if [ $drift -ne 0 ]; then
   echo "TPL_GUARD: FAIL — mono/standard template identity drift (MC 11137): restore from checksum-verified .tpz (evidence: .audits/20261024-0528-137t/EVIDENCE.md)"
   exit 1
 fi
+# Counts in the PASS line below are pinned by the baseline map (9 SHARED names; 26 = the 35-file
+# 4.7.2 listing minus the 9) — --selftest's MAP-INTEGRITY block asserts the map itself is intact.
 echo "TPL_GUARD: PASS — $checked templates checked (9 shared-identical + 26 diverged, per 4.7.2 baseline map)"
