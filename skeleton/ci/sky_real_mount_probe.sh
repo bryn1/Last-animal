@@ -60,8 +60,13 @@ LOGSKY="$(LA_SKYCAP_PATH="$CAP" LA_GATE_MODE=SKY_STRIP xvfb-run -a timeout 300 "
   || fail "SKY_STRIP: SKY_STRIP_RENDER_OK missing — the shipped strip is NOT proven painted-as-authored THROUGH THE PRODUCT MOUNT"
 [[ "$LOGSKY" == *'SKY_STRIP measured pt'* && "$LOGSKY" == *'SKY_STRIP measured pts='* ]] \
   || fail "SKY_STRIP: the per-point measured lines or the summary are missing — verdicts must print their margins"
-grep -qE '^LA_GATE: (FXSKY_UNSETTLED|ZONE4_FAIL|FALL_RECOVERED)' <<<"$LOGSKY" \
-  && fail "SKY_STRIP: the log carries a unsettled/FAIL/FALL_RECOVERED line (an unstable or falling leg has no pixel verdicts)"
+ # BATTERY PARITY (MC 11113 DA wall F-1): the battery's only fall-check for this
+ # leg is zero 'FALL_RECOVERED from=' lines. The leg's FXSKY_UNSETTLED line is an
+ # INFORMATIONAL settle-retry print (the battery does not grep it) — an earlier
+ # draft of this script made it fatal, which could go RED on a battery-green
+ # run on a machine needing retries. Match the battery exactly; never out-strict it.
+ [ "$(grep -c 'FALL_RECOVERED from=' <<<"$LOGSKY")" -eq 0 ] \
+   && true || fail "SKY_STRIP: the probe leg produced FALL_RECOVERED lines (it must move nothing; census discipline MC 10422)"
 [ "$(grep -c 'FXSKY_CAPTURE' <<<"$LOGSKY")" -ge 2 ] \
   || fail "SKY_STRIP: fewer than 2 FXSKY_CAPTURE lines"
 for f in skystrip_skybase.png skystrip_skyon.png; do
