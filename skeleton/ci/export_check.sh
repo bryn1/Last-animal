@@ -24,6 +24,12 @@ VER="$($GODOT --version 2>/dev/null | tail -1)"
 TDIR="$HOME/.local/share/godot/export_templates"
 echo "EXPORT_CHECK: godot=$VER  templates=$TDIR"
 [ -d "$TDIR" ] || fail "no export templates dir at $TDIR (install .tpz -> $TDIR/<version>)"
+# MC 11137: existence alone was NOT enough — these dirs twice carried mono-vs-
+# standard byte drift (MC 11129 mono-carries-standard; MC 11137 standard-carrying-
+# mono bytes), and the engine exports from drifted templates SILENTLY. Identity
+# gate runs BEFORE the export; drift exits non-zero naming the exact template.
+bash "$PROJ/tools/export_templates_guard.sh" \
+  || fail "export templates mono/standard identity drift (MC 11137) — see TPL_DRIFT line(s) above; restore from checksum-verified .tpz (lineage: .audits/20261024-0528-137t/EVIDENCE.md)"
 
 cd "$PROJ" || fail "cannot cd $PROJ"
 # Clean-export property, scoped to THIS platform (DA P3, MC 1405): a Windows
