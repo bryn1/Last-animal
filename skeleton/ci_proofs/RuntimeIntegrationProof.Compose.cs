@@ -159,8 +159,8 @@ public partial class RuntimeIntegrationProof : SceneTree
 
         // SKY_STRIP / _PLANT (MC 11088 / 10026.44.10 S48 FIX-ROUND-1, DA F1):
         // routes BEFORE the live-enemy guard — quiet boot (the FX gate idiom);
-        // the sky-strip render probe mounts its quad BESIDE the composed scene
-        // and needs nothing else. Stage body lives in ...SkyStrip.cs.
+        // the leg TRAVELS to canyon with the shipped press and probes the
+        // PRODUCT backdrop mount (zones/canyon/canyon.tscn SkyStrip) itself.
         if (_mode is "SKY_STRIP" or "SKY_STRIP_PLANT")
         {
             _stage = 109;

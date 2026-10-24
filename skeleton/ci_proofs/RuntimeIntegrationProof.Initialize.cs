@@ -118,11 +118,13 @@ public partial class RuntimeIntegrationProof : SceneTree
             dfx.SetSpawningEnabled(false);
             dfx.SetDayNightPaused(true);
         }
-        // SKY_STRIP / _PLANT (MC 11088 / 10026.44.10 S48 FIX-ROUND-1, DA F1):
+        // SKY_STRIP / _PLANT (MC 11113 / 10026.44.12 S50-SKY, REAL-MOUNT):
         // the sky-strip render probe rides the FX gate law VERBATIM in spirit —
         // quiet boot (a spawn set crossing the sample patches never settles the
-        // FBO) + PAUSED clock (a frozen sun is what makes a pixel deliverable
-        // here); the leg touches no gameplay state at all.
+        // FBO; the flag also gates ApplySpawnSet, so the travel below fields
+        // nothing) + PAUSED clock at boot; the leg then drives ONE shipped
+        // travel press (the mount IS the probe subject), parks the clock on the
+        // NIGHT capture anchor and pauses it again — zero direct gameplay writes.
         if (_mode is "SKY_STRIP" or "SKY_STRIP_PLANT" && main is WorldDirector dsky)
         {
             dsky.SetSpawningEnabled(false);
