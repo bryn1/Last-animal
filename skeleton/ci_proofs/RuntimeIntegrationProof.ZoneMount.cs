@@ -85,6 +85,24 @@ public partial class RuntimeIntegrationProof : SceneTree
         if (root.GetNodeOrNull("Environment/WorldEnvironment") is WorldEnvironment we && we.Environment != null)
             _zmFog[zoneId] = we.Environment.FogLightColor;
         GD.Print($"LA_GATE: ZONE_MOUNT_CENSUS zone={zoneId} root=World/{root.Name} nodes={ids.Count} ids={string.Join(",", ids)}");
+        // MC 11037 / 10026.44.8 ground-plate wiring READBACK (the S41 material-
+        // readback idiom; the battery leg owning GROUND_TEX_WIRING owns the
+        // verdict — the shell-side Q2 census-count compare is the precedent):
+        // what THIS mount's terrain builder actually carries as
+        // ground_texture_path, and whether the built TerrainVisual material
+        // carries a NON-null albedo plate. painted=0 is the WHITE-GROUND class
+        // the TEST wall 2026-10-20 named: a mis-pathed plate makes
+        // terrain_builder.gd's load() log its engine resource-not-found ERROR
+        // and return null — the zone still mounts and the process still exits
+        // 0, so only a NAMED leg can catch it. Print-only BY DESIGN: a plant
+        // must reach the battery leg's named GROUND_TEX_WIRING RED, not fail
+        // the host mode mid-mount — a fail here would turn the battery RED at
+        // the STALE marker greps before the leg's own assert ever runs.
+        var ground = root.GetNodeOrNull("Ground");
+        string gtex = ground?.Get("ground_texture_path").AsString() ?? "";
+        bool painted = ground?.GetNodeOrNull("TerrainVisual") is MeshInstance3D gmv
+                       && gmv.MaterialOverride is StandardMaterial3D gsm && gsm.AlbedoTexture != null;
+        GD.Print($"LA_GATE: ZONE_MOUNT_GROUNDTEX zone={zoneId} tex={gtex} painted={(painted ? 1 : 0)}");
     }
 
     private static void CollectEnvIds(Node n, List<string> into)
