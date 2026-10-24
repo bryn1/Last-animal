@@ -336,30 +336,38 @@ using System.Linq;
 //                    FORCED 0 + the 2nd OmniLight REMOVED from the tree — all
 //                    four named checks must print their FAIL, or the leg fails
 //                    as VACUOUS by name. Red rides beside green. Stage 108.
-//   SKY_STRIP — MC 11088 / 10026.44.10 S48 BATCH-4 FIX-ROUND-1 (DA F1 — the
-//                    card DoD NAMES this probe): mounts the SHIPPED resources/
-//                    generated/sky/canyon_sky_v1.png on an unshaded 8x2 m quad
-//                    (its NATIVE 4:1 aspect) BESIDE the composed scene and
-//                    measures from a SubViewport probe FBO at gl_compatibility
-//                    that the strip is PAINTED at expected screen points RUN-
-//                    DERIVED from the asset bytes (the FxMaxAlphaUv law) and
-//                    MAPPED AS AUTHORED (each painted patch nearer to its own
-//                    asset block color than to any other sample's). Prints
-//                    SKY_STRIP_RENDER_OK|FAIL with every margin beside it; the
-//                    renderer is pinned (FXSKY_RENDERER). CI-probe mount ONLY —
-//                    the in-game ProceduralSky/DayNight sky path is UNTOUCHED.
-//                    Stage 109, RuntimeIntegrationProof.SkyStrip.cs.
-//   SKY_STRIP_PLANT — the S48 gate-red pair: the strip material alpha FORCED 0
-//                    (an alpha-0 copy of the mount — the proven FX_GLCOMPAT_-
-//                    PLANT mechanism). SKY_STRIP_RENDER must print its named
-//                    FAIL at the SAME points (marker FXSKY_PLANT_RED), else the
-//                    leg fails as VACUOUS by name (FXSKY_PLANT_NOT_CAUGHT). Red
-//                    rides beside green. Stage 109.
+//   SKY_STRIP — MC 11113 / 10026.44.12 S50-SKY: the REAL-MOUNT upgrade of
+//                    the 11088 probe (option (b) wiring: the shipped strip
+//                    rides zones/canyon/canyon.tscn as the SkyStrip horizon
+//                    backdrop, mounted by the ONE WorldMount route): the leg
+//                    presses the shipped travel ONCE, asserts the REAL back-
+//                    drop node in the MOUNTED Canyon scene carries the shipped
+//                    PNG on a native-4:1 quad, parks the clock on the NIGHT
+//                    anchor and READS IT BACK bit-exact (the kept Procedural-
+//                    Sky/DayNight law proven ALIVE, not asserted in a comment),
+//                    mirrors the shipped camera into a SubViewport probe FBO
+//                    at gl_compatibility and measures the strip PAINTED at
+//                    points RUN-DERIVED from the asset bytes (the FxMaxAlphaUv
+//                    law) and MAPPED AS AUTHORED through the node's own
+//                    GlobalTransform. Prints SKY_STRIP_RENDER_OK|FAIL with
+//                    every margin beside it; the renderer is pinned (FXSKY_
+//                    RENDERER). Stage 109, RuntimeIntegrationProof.SkyStrip.cs.
+//   SKY_STRIP_PLANT — the gate-red pair: the REAL mount's material_override
+//                    REPLACED with an alpha-0 copy (a TRANSPARENT shipped
+//                    strip inside the mounted product scene — the FXGL_-
+//                    PLANT mechanism applied to the product mount).
+//                    SKY_STRIP_RENDER must print its named FAIL at the SAME
+//                    points (marker FXSKY_PLANT_RED), else the leg fails as
+//                    VACUOUS by name (FXSKY_PLANT_NOT_CAUGHT). Red rides
+//                    beside green. Stage 109.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/RuntimeIntegrationProof.cs
 //
 // File size: >400 total lines — the mode doc + dispatch of a multi-mode proof
-// harness (9+ modes). 589 l by wc AT this head (MC 11088 S48 BATCH-4 FIX-
+// harness (9+ modes). 597 l by wc AT this head (MC 11113 S50-SKY +8: the
+// SKY_STRIP/_PLANT mode-doc rows REWRITTEN for the REAL-MOUNT upgrade (+6) and
+// this stamp (+2) — no mode added, none retired, vocabulary 37 UNCHANGED; the
+// prior stamp said 589 at the MC 11088 FIX-ROUND-1 head below (MC 11088 S48 BATCH-4 FIX-
 // ROUND-1: the card's +22 crossed the ceiling at 620 and was PAID IN-CARD by
 // the MC 10218 verbatim-move split — the shared machine fields + consts to the
 // State.cs partial). Doc, allow-list, the mode read + fail-safe guard and the

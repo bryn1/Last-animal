@@ -1,7 +1,8 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://zones/zone.gd" id="1_zone"]
 [ext_resource type="Script" path="res://world/terrain_builder.gd" id="2_terr"]
+[ext_resource type="Texture2D" path="res://resources/generated/sky/canyon_sky_v1.png" id="13_skystrip"]
 [ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeA.glb" id="4_rlA"]
 [ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeB.glb" id="5_rlB"]
 [ext_resource type="PackedScene" path="res://resources/assets_packs/nature-kit/Models/GLTF format/rock_largeC.glb" id="6_rlC"]
@@ -67,6 +68,20 @@ height = 1.8
 [sub_resource type="StandardMaterial3D" id="StdMat_rock"]
 albedo_color = Color(0.45, 0.4, 0.35, 1)
 roughness = 1.0
+
+; MC 11113 / 10026.44.12 S50-SKY option (b): the shipped painted horizon strip
+; (resources/generated/sky/canyon_sky_v1.png, STYLE_BIBLE §7 canyon primary C'
+; target) as an UNSHADED backdrop material. Unshaded + cull disabled: the strip
+; is baked art, never lit or orientation-fragile; casts NO shadows (a backdrop
+; must never darken the graded ground); zero collision (camera clearance and
+; floor-trust rays cannot see it).
+[sub_resource type="QuadMesh" id="SkyQuad_1"]
+size = Vector2(40, 10)
+
+[sub_resource type="StandardMaterial3D" id="StdMat_skystrip"]
+shading_mode = 0
+cull_mode = 2
+albedo_texture = ExtResource("13_skystrip")
 
 [node name="Canyon" type="Node3D"]
 script = ExtResource("1_zone")
@@ -151,3 +166,29 @@ transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 8, 0.5, -24)
 
 [node name="Pebble4" parent="Decor" instance=ExtResource("9_rsB")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 30, 0.6, 10)
+
+; MC 11113 / 10026.44.12 S50-SKY option (b) — the painted sky strip meets the
+; SHIPPED procedural sky as a layered HORIZON BACKDROP on the WorldMount idiom
+; (this scene mounts under World on every EnterZone, MC 10519/S27; the strip
+; mounts with it — canyon-only identity, STYLE_BIBLE §7 "painted sky strip /
+; horizon"; owner VIEW ruling 2026-10-23: ground-dominated, horizon a thin
+; band, the strip serves ambient mood, it is NOT the star). Native 4:1 aspect
+; (40x10 m for the 2048x512 strip — zero stretch); YAW 45 deg so the face
+; meets the fixed-iso sight-line (-X,-Z, FollowCamera offset (9,6.5,9));
+; centre 35 m out along -X-Z, bottom edge 1.2 m over the local terrain
+; (measured <=0.44 m along the footprint from canyon.png) — it reads as the
+; distant haze horizon, never intersects walkable ground. NOT under Decor:
+; zone.gd's 36-45 m distance cull must never pop zone identity away. The
+; ProceduralSkyMaterial + DayNight driver above stays the ONE dynamic-sky
+; mechanism — this node adds a consumer of shipped art, no second sky.
+; cull_mode = 2 is CULL_DISABLED: the .tscn int mapping bites (1 parses as
+; CULL_FRONT — measured at this head, MC 11113 FXSKY_DIAG2 — which culls the
+; camera-facing side and paints NOTHING anywhere, zero delta corner to
+; corner; 2 reads back as Disabled in the C# binding the leg asserts). The
+; unshaded textured quad then PAINTS through the CI SubViewport FBO at
+; gl_compatibility exactly as authored (the leg measures it).
+[node name="SkyStrip" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, -25, 6.2, -25)
+cast_shadow = 0
+mesh = SubResource("SkyQuad_1")
+material_override = SubResource("StdMat_skystrip")
