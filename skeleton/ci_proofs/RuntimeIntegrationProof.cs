@@ -1,4 +1,4 @@
-// SIZE: 599 l by wc AT this head (merge base after MC 11294 rebase read 598; this card's quest_mono mode-doc row + KnownModes/budget arms crossed the ceiling at 604 and was PAID IN-CARD the MC 11019 FIX-ROUND-1 re-word precedent — the 6-l mode-doc row re-worded to 2 l and this card's own header re-measure clauses folded; UNDER the ceiling again, NO split owed; the clause stays live for future growth; MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// SIZE: 599 l by wc AT this fourth-merge head (the MC 11297 merge left the entry AT the ceiling, 600; this card's quest_mono arms landed 602 and were PAID IN-CARD AGAIN the MC 11019 FIX-ROUND-1 re-word precedent — mode-doc row to the tame-mode 1-l idiom + the card's own re-measure clauses folded, all re-word cuts inside this card's own text; the earlier MC 11294-base crossing at 604 paid the same way; UNDER the ceiling, NO split owed; the clause stays live for future growth; MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
 // IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
 // _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
@@ -14,13 +14,11 @@
 // cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list and dispatch (the shared fields moved VERBATIM
-// to State.cs at MC 11088 — see that header) — >400 because the 315-l mode
+// to State.cs at MC 11088 — see that header) — >400 because the 316-l mode
 // doc mode_sets_check parses (awk from '// Modes \(env' through '// Run:' this
-// commit, BOTH ends inclusive; 315 at this head (MC 11295 re-measure at the
-// rebase head), 289 at the MC 11019 S48 head; 162 at the S24 head — per §6.4's re-measures) and the 38-mode
-// dispatch (MC 11295 re-measure: mode_sets_check at this head = 38; the prior
-// re-measured MC 11088 S48 BATCH-4 FIX-ROUND-1 = 37; 35 at the MC 11019 S48 head; 33 at the MC 11018 head;
-// 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
+// commit, BOTH ends inclusive; 316 at this head (MC 11295 re-measure at the fourth-merge head; prior 315 at the d2e8913 head, 289 at MC 11019 S48, 162 at the S24 head) and the 40-mode
+// dispatch (MC 11295 re-measure at the fourth-merge head = 40; MC 11297 added tame_use+tame_neg; 37 at MC 11088 S48 BATCH-4; 35 at the MC 11019 S48 head; 32-mode at the MC 10731
+// head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
@@ -88,8 +86,7 @@ using System.Linq;
 //                     completions, the act-two save round-trip on the shipped
 //                     QuestStates wire, close card (ACT2_* + ACT_CARD markers;
 //                     RuntimeIntegrationProof.Story2.cs).
-//   quest_mono      — MC 11295 (playthrough D3): REAL boss-kill AT the ruins opens act two
-//                     at the standing zone; the beat ADVANCES, save->disk->load keeps it (MONO_*).
+//   quest_mono      — MC 11295 (playthrough D3): REAL boss-kill AT the ruins opens act two at the standing zone; the beat ADVANCES, save->disk->load keeps it, re-entries regress nothing (MONO_*). QuestMono.cs, stage-50 slot.
 //   skill_use       — MC 3912 stage 2e: the skill economy end-to-end on the
 //                     live scene — kill gain, live unlock, armed multiplier
 //                     AT the single DealDamage site, arm consumed after one
