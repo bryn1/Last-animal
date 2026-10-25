@@ -1,7 +1,7 @@
 using Godot;
 using LastAnimal.World;
 
-// SIZE reason (file hygiene law): 581 -> 713 l by wc AT this head (+132,
+// SIZE reason (file hygiene law): 581 -> 719 l by wc AT this head (+138,
 // MC 11269 S51-SKY-DIM: the clock factor print, the delta-space wash law +
 // gain guard, the SKY_DIM read-back marker and the plant comment — all the
 // ONE stage body's own verdict law, not splittable; the MC 11113 REAL-MOUNT
@@ -85,8 +85,11 @@ using LastAnimal.World;
 //     block, spacing scales with the factor EXACTLY) against f-scaled asset
 //     colors, with the render's own delta-gain guarded against the clock
 //     prediction. The RGB carrier measured dead this head (tonemap lift, gain
-//     0.6381 at factor 0.25 — transcript banked, alpha replaced it in the
-//     SAME card, the owner law unchanged).
+//     0.6381 at factor 0.25 — the failing-run transcript was NOT preserved, a
+//     same-name re-run overwrite; named at the DA gate F1, numbers restated in
+//     prose and re-measured there; the banked RED at this head is the ALPHA
+//     law at the old floor, out/sky_proof_green_try2.log). Alpha replaced the
+//     carrier in the SAME card, the owner law unchanged).
 // material_override with an alpha-0 copy (the FX_GLCOMPAT_PLANT mechanism
 // applied to the PRODUCT mount — a TRANSPARENT shipped strip), the verdict
 // must print SKY_STRIP_RENDER_FAIL at the SAME points (marker FXSKY_PLANT_RED)
@@ -413,8 +416,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // mix(bg, texel, f) — the ABSOLUTE-space wash is dominated by the
         // backdrop at the dimmed brightness (measured with the RGB carrier
         // this head: tonemap lifted albedo-0.25 to gain 0.6381, mapping margin
-        // -0.021, leg RED by name — the transcript of that dead end is banked
-        // at out/sky_proof_green.log). The delta against the SAME view with
+        // -0.021, leg RED by name — that failing-run transcript was NOT
+        // preserved, same-name overwrite, named at the DA gate F1; the banked
+        // RED at this head is out/sky_proof_green_try2.log — the ALPHA law at
+        // the old floor, margin 0.009). The delta against the SAME view with
         // the strip HIDDEN — d = on − base, exactly what the PAINT check (a)
         // already measures — cancels the per-block backdrop and scales with f
         // EXACTLY: expectations ride f × the shipped asset colors, wash and
