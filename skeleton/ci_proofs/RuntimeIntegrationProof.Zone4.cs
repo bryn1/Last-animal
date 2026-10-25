@@ -276,6 +276,9 @@ public partial class RuntimeIntegrationProof : SceneTree
         // edge fires TravelToNextZone within a frame, re-arm on release so the
         // next leg's press is a real released->pressed transition (a held cycle
         // is a silent no-op — MC 1348 A5 follow-up).
+        // MC 11294 keep-alive: the death gate refuses a DEAD player travel — this
+        // census leg is not a death test; revive ONLY when already dead, shipped seam.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         _z4TravelToggle++;
         if (_z4TravelToggle == 1) Input.ActionPress("travel");
         if (_z4TravelToggle >= Z4PressFrames)

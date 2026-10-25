@@ -90,6 +90,13 @@ public partial class WorldDirector
     {
         if (!_skillHooksEnabled || _skills == null) return;
         TickCalmWindows();   // MC 10031: the sweep runs BEFORE the press chain (§2 frame contract)
+        // MC 11294 D2 (playthrough MC 11270): the corpse casts NOTHING. Presses
+        // are refused while IsDead — including Mend, which heals through
+        // RestoreHealth and would otherwise SELF-REVIVE a corpse for Manna,
+        // bypassing the shipped F9-load revive (MC 1348 N1, D3 "no free
+        // refill"). The calm-window sweep above keeps ticking: that is world
+        // simulation, not corpse agency.
+        if (_player.IsDead) return;
         if (Input.IsActionJustPressed("skill_1"))
         {
             var unlocked = PlayerMutations.Unlocked(

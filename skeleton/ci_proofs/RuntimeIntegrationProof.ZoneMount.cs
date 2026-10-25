@@ -209,6 +209,10 @@ public partial class RuntimeIntegrationProof : SceneTree
     private bool PressZmTravel()
     {
         // ZoneBossProof / Zone4 PressTravel idiom VERBATIM in behaviour.
+        // MC 11294 keep-alive: the death gate refuses a DEAD player travel —
+        // this census leg is not a death test; revive ONLY when already dead,
+        // through the shipped RestoreHealth (F9) seam.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         _zmTravelToggle++;
         if (_zmTravelToggle == 1) Input.ActionPress("travel");
         if (_zmTravelToggle >= ZmPressFrames)

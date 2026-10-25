@@ -123,6 +123,11 @@ public partial class RuntimeIntegrationProof : SceneTree
     /// False = the zone pool is dry (travel on, ZoneBossProof idiom).</summary>
     private bool QKillLoop()
     {
+        // MC 11294: farm legs are NOT death tests — the death gate refuses a dead
+        // farmer its swings (pre-card this rode the D2 corpse-agency defect: the
+        // battery leg was false-green ON A CORPSE). Revive ONLY when already
+        // dead, through the same shipped model seam the F9 load uses.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         EnemyActor? target = null;
         float best = float.MaxValue;
         foreach (var e in _director!.Enemies)
@@ -147,6 +152,9 @@ public partial class RuntimeIntegrationProof : SceneTree
     /// <summary>Teleport next to the live boss and attack it (finale only).</summary>
     private void QBossAttackLoop()
     {
+        // MC 11294 keep-alive (see QKillLoop): a dead farmer cannot swing the
+        // finale boss down either — revive ONLY when already dead, shipped seam.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         var boss = _director!.BossActor;
         if (boss == null || !GodotObject.IsInstanceValid(boss)) return;
         Vector3 p = boss.GlobalPosition;

@@ -295,6 +295,9 @@ public partial class RuntimeIntegrationProof : SceneTree
                 }
                 if (_frames - _crPhaseStart > CrTravelStepBudget)
                 { CrFail($"travel step to '{_crCaptureZone}' budget exhausted at zone {_director.CurrentZone}"); break; }
+                // MC 11294 keep-alive: a dead player cannot lap the travel cycle —
+                // this rig leg is not a death test; revive ONLY when already dead.
+                if (_director.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
                 _crTravelToggle++;
                 if (_crTravelToggle == 1) Input.ActionPress("travel");
                 if (_crTravelToggle >= 6)   // ZmPressFrames=6 shipped press-settle window

@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (572 l by wc AT this head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
+// SIZE: inherited >400 (604 l by wc AT this head = 572@MC10519/S27 head + 32 MC 11294/D2 honest-death gate: the LA_DEATH once-per-death announcement block at the tick authority (covers BOTH TakeDamage callers — enemy damage AND the Roster betrayal settle) + the ONE !IsDead guard around the attack/interact/travel polling; the mirror corpse-cast guard rides the Skills partial (7 l there) and the movement lock already lived in Player.cs — one death predicate, its guards named in every file they touch); prior reading 572 l by wc AT that head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
 // lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
 // clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
 // bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
@@ -110,6 +110,10 @@ public partial class WorldDirector : Node3D
     private Hud _hud = null!;
     private DialogueSystem _dialogue = null!;
     private EmpathyPanel _empathy = null!;
+
+    // MC 11294 D2 (playthrough MC 11270): the LA_DEATH announcement is printed
+    // ONCE per death transition, rearmed when a revived player lives again.
+    private bool _deathAnnounced;
 
     // Interact reach: must exceed the companion's FollowDistance (3.5) so the
     // trailing companion is talkable when the player stops.
@@ -228,6 +232,24 @@ public partial class WorldDirector : Node3D
     public override void _Process(double delta)
     {
         if (Player == null) return;
+
+        // MC 11294 D2 (playthrough MC 11270, defect D2): honest death feedback,
+        // printed ONCE per death transition — at the tick authority, so EVERY
+        // lethal path announces (the enemy-damage block below AND the Roster
+        // partial's betrayal settle are both TakeDamage callers) — and rearmed
+        // when a revived player lives again. The revive path is the EXISTING
+        // save/load design: docs/player-guide.md §Saving-and-loading F9 load,
+        // the MC 1348 N1 health snapshot (RestoreHealth clears IsDead). No
+        // respawn mechanic is invented here.
+        if (_player.IsDead && !_deathAnnounced)
+        {
+            _deathAnnounced = true;
+            GD.Print($"LA_DEATH: player died in zone '{_zone}' (Life 0/{_player.MaxHealth}) — " +
+                     "corpse refuses attack/interact/travel/skills, movement locked; F9 load revives");
+        }
+        else if (!_player.IsDead)
+            _deathAnnounced = false;
+
         Vector3 ppos = Player.GlobalPosition;
 
         // MC 10404 (owner playtest P1): a fall below the loaded ground's floor
@@ -286,12 +308,22 @@ public partial class WorldDirector : Node3D
         // 1348 A3 settlement policy is unchanged.
         TickRoster(delta);
 
-        if (Input.IsActionJustPressed("attack"))
-            TryAttack();
-        if (Input.IsActionJustPressed("interact"))
-            TryInteract();
-        if (Input.IsActionJustPressed("travel"))
-            TravelToNextZone();
+        // MC 11294 D2 (playthrough MC 11270): dead locks agency — the corpse
+        // refused NOTHING before this card (frames 17/22: Life 0 banked Manna
+        // and killed the boss across zones). ONE gate on the SAME IsDead
+        // predicate that already locks the Player.cs shell and the C10 model.
+        // Save/load/book stay polled: the F9 load is the shipped revive path
+        // (docs/player-guide.md §Saving-and-loading), so a corpse that could
+        // not press F9 would be the soft-lock this gate exists to survive.
+        if (!_player.IsDead)
+        {
+            if (Input.IsActionJustPressed("attack"))
+                TryAttack();
+            if (Input.IsActionJustPressed("interact"))
+                TryInteract();
+            if (Input.IsActionJustPressed("travel"))
+                TravelToNextZone();
+        }
         if (Input.IsActionJustPressed("book"))
             ToggleEmpathyBook();
         if (Input.IsActionJustPressed("save_game"))

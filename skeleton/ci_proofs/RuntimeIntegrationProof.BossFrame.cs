@@ -86,6 +86,11 @@ public partial class RuntimeIntegrationProof : SceneTree
     /// kill would skip the very ENTER this leg proves).</summary>
     private bool BfFarmKill()
     {
+        // MC 11294: farm legs are NOT death tests — the death gate refuses a dead
+        // farmer its swings (pre-card this rode the D2 corpse-agency defect: the
+        // battery leg was false-green ON A CORPSE). Revive ONLY when already
+        // dead, through the same shipped model seam the F9 load uses.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         EnemyActor? target = null;
         float best = float.MaxValue;
         foreach (var e in _director!.Enemies)
@@ -293,6 +298,9 @@ public partial class RuntimeIntegrationProof : SceneTree
                 Vector3 p = boss.GlobalPosition;
                 if (p.DistanceTo(_playerBody!.GlobalPosition) > _director.PlayerModel.AttackRange)
                     _playerBody!.GlobalPosition = new Vector3(p.X - 0.8f, p.Y, p.Z);
+                // MC 11294 keep-alive (see BfFarmKill): a dead farmer cannot swing
+                // the boss down either — revive on the shipped F9 seam ONLY when dead.
+                if (_director.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
                 _bfKillToggle++;
                 if (_bfKillToggle % 4 == 1) Input.ActionPress("attack");
                 else if (_bfKillToggle % 4 == 3) Input.ActionRelease("attack");

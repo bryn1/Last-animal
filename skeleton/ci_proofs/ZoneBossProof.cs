@@ -1,4 +1,4 @@
-// SIZE: >400 (460 l measured at MC 10255 head) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l; MC 10210 unknown-mode dispatch switch +18 l, incl. the header Modes default row; MC 10216 S18 BaseHealth row +1 l — the 459 stamp lagged it, restamped from wc MC 10255); ONE SceneTree state machine per MC 3895 DA P2-1.
+// SIZE: >400 (597 l by wc AT this head = 460@MC10255 + 137 MC 11294/D2 (152 in / 15 out: the death_load corpse-agency extension — rejection stages 34-35, acceptance stages 36-37, the NearestLiveEnemy helper, the KillLoop keep-alive seam, the mode-doc rewrite at net 9 lines, the fields block — comment compressions landed the file 3 l UNDER the 600 ceiling; the ceiling rule stands: the next growth of this file pays an MC 10218 verbatim-move split, entry-file precedent) — prior reading 460 l measured at MC 10255 head) — CI proof harness, test-class ceiling 600 (MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 added the rooted-fields release, +22 l; MC 10210 unknown-mode dispatch switch +18 l, incl. the header Modes default row; MC 10216 S18 BaseHealth row +1 l — the 459 stamp lagged it, restamped from wc MC 10255); ONE SceneTree state machine per MC 3895 DA P2-1.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -26,15 +26,15 @@ using System.Collections.Generic;
 //     BossController.Phase and fire C2 EcosystemAdapted on the REAL autoload
 //     bus (BOSS_PHASE_FIRED).
 //
-//   death_load — MC 1348 N1: save while alive (F5 path), kill the player
-//     through the model, assert the SHELL stops moving (dead = no input
-//     movement), then LoadGame() (F9 path) must restore health, clear IsDead
-//     and make movement work again. MC 3910 (DA W2): the phase OWNS its save
-//     — the ONE shared user://savegame.json is deleted before the DEATH_SAVE
-//     leg and the loaded health must equal this run's health stamp, so a
-//     stale file from a sibling mode can never pass off. Markers:
-//     DEATH_SAVE_OWNED, DEATH_MOVEMENT_STOPPED, DEATH_LOAD_RESURRECTED,
-//     DEATH_MOVEMENT_RESTORED.
+//   death_load — MC 1348 N1: save while alive (F5 path), kill the player through
+//     the model, assert the corpse is INERT — no shell movement, no attack
+//     damage, no travel (MC 11294 D2 closed the run2 corpse-bosskill, Life 0)
+//     — then LoadGame() (F9) restores health, clears IsDead and returns
+//     movement, travel AND attack. MC 3910 (DA W2): the phase OWNS its save
+//     (delete-then-write + health stamp; a stale sibling file can never pass
+//     off). Markers: DEATH_SAVE_OWNED, DEATH_MOVEMENT_STOPPED,
+//     DEATH_ATTACK_REJECTED, DEATH_TRAVEL_REJECTED, DEATH_LOAD_RESURRECTED,
+//     DEATH_MOVEMENT_RESTORED, REVIVE_TRAVEL_ACCEPTED, REVIVE_ATTACK_ACCEPTED.
 //
 // Run:  $GODOT --headless --path <proj> --script res://ci_proofs/ZoneBossProof.cs
 public partial class ZoneBossProof : SceneTree
@@ -68,6 +68,14 @@ public partial class ZoneBossProof : SceneTree
     private int _healthBeforeSave;
     private Vector3 _deadPos;
     private int _moveToggle;
+    // MC 11294 D2: corpse-rejection + post-revive acceptance state (death_load
+    // extension; D2 = the Life-0 corpse travelling/killing, MC 11270 frames 17/22).
+    private string _zoneBeforeDeath = "";
+    private EnemyActor? _rejectTarget;
+    private int _rejectHp0, _rejectDna0;
+    private int _rejectTravelWindows;
+    private EnemyActor? _reviveTarget;
+    private int _reviveHp0, _reviveDna0;
 
     public override void _Initialize()
     {
@@ -265,6 +273,7 @@ public partial class ZoneBossProof : SceneTree
                     Check("player dead after lethal damage", _director.PlayerModel.IsDead,
                           $"health={_director.PlayerModel.Health}");
                     if (_failed) return true;
+                    _zoneBeforeDeath = _director.CurrentZone;   // MC 11294: the travel-rejection baseline
                     _deadPos = _playerBody!.GlobalPosition;
                     _stage = 31;
                     _stageFrames = 0;
@@ -282,9 +291,64 @@ public partial class ZoneBossProof : SceneTree
                           $"moved={XzDist(_playerBody.GlobalPosition, _deadPos):0.###}");
                     if (_failed) return true;
                     GD.Print("LA_GATE: DEATH_MOVEMENT_STOPPED");
+                    _stage = 34;   // MC 11294: movement was never the only agency lost — continue into the action rejections
+                    _stageFrames = 0;
+                }
+                break;
+
+            // ---- MC 11294 D2: the ATTACK rejection. A live enemy is held in melee
+            // reach (the KillLoop teleport idiom, corpse-side) and the attack key
+            // pressed: before this card's gate the swing LANDED (run2 killed the
+            // boss as a corpse). Asserted on WORLD STATE, not a print: the target's
+            // AI health and the spoken-DNA history must NOT move.
+            case 34:
+                {
+                    _rejectTarget ??= NearestLiveEnemy();
+                    if (_rejectTarget == null)
+                    {
+                        if (_stageFrames > 240) Fail("death_attack: no live enemy to stand in reach");
+                        break;
+                    }
+                    if (_rejectHp0 == 0 && _rejectDna0 == 0) { _rejectHp0 = _rejectTarget.Ai.Health; _rejectDna0 = _director!.SpokenDna.Count; }
+                    Vector3 ep = _rejectTarget.GlobalPosition;
+                    _playerBody!.GlobalPosition = new Vector3(ep.X - 0.8f, _playerBody.GlobalPosition.Y, ep.Z);
+                    _attackToggle++;
+                    if (_attackToggle % 4 == 1) Input.ActionPress("attack");
+                    else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");
+                    if (_stageFrames >= 32)
+                    {
+                        Input.ActionRelease("attack");
+                        _attackToggle = 0;
+                        bool untouched = IsInstanceValid(_rejectTarget)
+                            && _rejectTarget.Ai.Health == _rejectHp0
+                            && _director!.SpokenDna.Count == _rejectDna0;
+                        Check("DEATH_ATTACK_REJECTED: corpse attack presses damage nothing", untouched,
+                              $"hp={(IsInstanceValid(_rejectTarget) ? _rejectTarget!.Ai.Health : -999)} (was {_rejectHp0}) obs={_director!.SpokenDna.Count} (was {_rejectDna0})");
+                        if (_failed) return true;
+                        GD.Print("LA_GATE: DEATH_ATTACK_REJECTED");
+                        _stage = 35;
+                        _stageFrames = 0;
+                        _rejectTravelWindows = 0;
+                    }
+                }
+                break;
+
+            // ---- MC 11294 D2: the TRAVEL rejection. Two full travel press windows
+            // (the PressTravel re-arm idiom) while dead: the zone must be unchanged
+            // (run2 travelled canyon->ruins->hollow on Life 0).
+            case 35:
+                if (PressTravel()) _rejectTravelWindows++;
+                if (_rejectTravelWindows >= 2)
+                {
+                    Check("DEATH_TRAVEL_REJECTED: corpse travel presses change no zone",
+                          _director!.CurrentZone == _zoneBeforeDeath,
+                          $"zone={_director.CurrentZone} (died in {_zoneBeforeDeath})");
+                    if (_failed) return true;
+                    GD.Print("LA_GATE: DEATH_TRAVEL_REJECTED");
                     _stage = 32;
                     _stageFrames = 0;
                 }
+                else if (_stageFrames > 120) Fail("travel windows never completed");
                 break;
 
             case 32:
@@ -317,11 +381,63 @@ public partial class ZoneBossProof : SceneTree
                           $"moved={moved:0.###} health={_director!.PlayerModel.Health}");
                     if (_failed) return true;
                     GD.Print("LA_GATE: DEATH_MOVEMENT_RESTORED");
-                    GD.Print("LA_GATE: PASS — death recovery verified (dead stops, load resurrects, movement works)");
-                    _asserted = true;
-                    ReleaseHeldRefsBeforeQuit();   // MC 10126 rooted-fields idiom
-                    Quit(0);
-                    return true;
+                    _stage = 36;   // MC 11294: agency must come back WHOLE, not just walking
+                    _stageFrames = 0;
+                    _travelToggle = 0;   // re-arm the just-pressed window
+                }
+                break;
+
+            // ---- MC 11294 D2: post-revive the TRAVEL press is ACCEPTED again
+            // (spawn re-armed after stage 32's quiet load — the next zone then
+            // fields the set the attack leg below farms).
+            case 36:
+                _director!.SetSpawningEnabled(true);
+                if (PressTravel() && _director.CurrentZone != _zoneBeforeDeath)
+                {
+                    Check("REVIVE_TRAVEL_ACCEPTED: revived player travels — zone changed after the F9 load",
+                          _director.CurrentZone != _zoneBeforeDeath,
+                          $"zone={_director.CurrentZone} (died in {_zoneBeforeDeath})");
+                    if (_failed) return true;
+                    GD.Print("LA_GATE: REVIVE_TRAVEL_ACCEPTED");
+                    _stage = 37;
+                    _stageFrames = 0;
+                    _attackToggle = 0;
+                }
+                else if (_stageFrames > 240) Fail("travel never fired after the revive");
+                break;
+
+            // ---- MC 11294 D2: post-revive the ATTACK press lands again — the mirror
+            // of stage 34 on the SAME press idiom: the target's AI health (or the
+            // spoken-DNA history, if the swing killed it) MUST move.
+            case 37:
+                {
+                    _reviveTarget ??= NearestLiveEnemy();
+                    if (_reviveTarget == null)
+                    {
+                        if (_stageFrames > 240) Fail("revive_attack: no live enemy in the new zone");
+                        break;
+                    }
+                    if (_reviveHp0 == 0) { _reviveHp0 = _reviveTarget.Ai.Health; _reviveDna0 = _director!.SpokenDna.Count; }
+                    Vector3 ep = _reviveTarget.GlobalPosition;
+                    _playerBody!.GlobalPosition = new Vector3(ep.X - 0.8f, _playerBody.GlobalPosition.Y, ep.Z);
+                    _attackToggle++;
+                    if (_attackToggle % 4 == 1) Input.ActionPress("attack");
+                    else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");
+                    if (_stageFrames >= 60)
+                    {
+                        Input.ActionRelease("attack");
+                        bool landed = (IsInstanceValid(_reviveTarget) && _reviveTarget!.Ai.Health < _reviveHp0)
+                            || _director!.SpokenDna.Count > _reviveDna0;
+                        Check("REVIVE_ATTACK_ACCEPTED: revived player's attacks damage again", landed,
+                              $"hp={(IsInstanceValid(_reviveTarget) ? _reviveTarget!.Ai.Health : -999)} (was {_reviveHp0}) obs={_director!.SpokenDna.Count} (was {_reviveDna0})");
+                        if (_failed) return true;
+                        GD.Print("LA_GATE: REVIVE_ATTACK_ACCEPTED");
+                        GD.Print("LA_GATE: PASS — death recovery verified (dead stops movement, attack and travel; load resurrects; movement, travel and attack work again)");
+                        _asserted = true;
+                        ReleaseHeldRefsBeforeQuit();   // MC 10126 rooted-fields idiom
+                        Quit(0);
+                        return true;
+                    }
                 }
                 break;
         }
@@ -355,6 +471,22 @@ public partial class ZoneBossProof : SceneTree
         return a.DistanceTo(b);
     }
 
+    /// <summary>MC 11294: the nearest LIVE spawned enemy (KillLoop selection idiom,
+    /// no boss exclusion — these legs test the attack WIRE, any live enemy is a
+    /// valid witness). Null when the zone pool is dry.</summary>
+    private EnemyActor? NearestLiveEnemy()
+    {
+        EnemyActor? best = null;
+        float bestD = float.MaxValue;
+        foreach (var e in _director!.Enemies)
+        {
+            if (e.IsDead || !IsInstanceValid(e)) continue;
+            float d = e.GlobalPosition.DistanceTo(_playerBody!.GlobalPosition);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
+    }
+
     /// <summary>Press travel for one frame out of PressFrames (just-pressed idiom).
     /// Returns true when the press window has elapsed so the zone check is fair.</summary>
     private bool PressTravel()
@@ -382,6 +514,11 @@ public partial class ZoneBossProof : SceneTree
     /// gone) — so the caller can travel on and keep killing in a fresh set.</summary>
     private bool KillLoop()
     {
+        // MC 11294: farm legs are NOT death tests — the death gate refuses a dead
+        // farmer its swings (pre-card this rode the D2 corpse-agency defect: the
+        // battery leg was false-green ON A CORPSE). Revive ONLY when already
+        // dead, through the same shipped model seam the F9 load uses.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         EnemyActor? target = null;
         float best = float.MaxValue;
         foreach (var e in _director!.Enemies)

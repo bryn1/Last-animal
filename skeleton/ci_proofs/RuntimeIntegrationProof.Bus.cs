@@ -90,6 +90,11 @@ public partial class RuntimeIntegrationProof : SceneTree
     //  and toggle attack (ZoneBossProof.KillLoop idiom). False = pool dry.</summary>
     private bool BusKillLoop()
     {
+        // MC 11294: farm legs are NOT death tests — the death gate refuses a dead
+        // farmer its swings (pre-card this rode the D2 corpse-agency defect: the
+        // battery leg was false-green ON A CORPSE). Revive ONLY when already
+        // dead, through the same shipped model seam the F9 load uses.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         EnemyActor? target = null;
         float best = float.MaxValue;
         foreach (var e in _director!.Enemies)
@@ -327,6 +332,9 @@ public partial class RuntimeIntegrationProof : SceneTree
 
             case 14:  // KILL the boss through the REAL attack path (QBossAttackLoop idiom)
                 {
+                    // MC 11294 keep-alive (see BusKillLoop): a dead farmer cannot
+                    // swing the boss down either — revive ONLY when already dead.
+                    if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
                     var boss = _director!.BossActor;
                     if (boss == null || !GodotObject.IsInstanceValid(boss))
                     { BusNextPhase(13); break; }
