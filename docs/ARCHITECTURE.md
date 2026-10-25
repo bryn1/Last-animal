@@ -634,7 +634,7 @@ than the own-leg pair keeps its zero).
    | 1-4 | MOVE/KILL/HUD/FOLLOW (positive family) | `.Chain.cs` |
    | 20-22 / 30 | `save` / `save_bad_version` | `.Save.cs` |
    | 40 / 90 | `dna_speak`,`no_interact` / `no_spawn` | `.Interact.cs` |
-   | 50 | `quest_arc`,`quest_persist`,`quest_neg` | `.Quests.cs` |
+   | 50 | `quest_arc`,`quest_persist`,`quest_neg`,`quest_mono` (MC 11295 — the monotonicity mode rides this slot: `RunQuestStage` dispatches its body; no new stage number) | `.Quests.cs` + `.QuestMono.cs` (the quest_mono body) |
    | 55 | `quest_arc2` | `.Story2.cs` |
    | 60 | `skill_use`,`skill_neg` | `.Skills.cs` |
    | 65 | `passives` | `.Passives.cs` |

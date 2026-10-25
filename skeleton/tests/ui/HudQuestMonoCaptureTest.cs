@@ -41,8 +41,12 @@ public partial class HudQuestMonoCaptureTest : SceneTree
 {
     private WorldDirector? _director;
     private double _t;
-    private int _pressStep;
+    private int _pressStep;          // travel script step (0..4), 99 = stage-0 parked
+    private bool _rowsDone;
+    private double _rowsT;           // in-process time the rows landed
+    private double _lastPressT;      // last travel press/release (bake anchor)
     private bool _edgeDone;
+    private double _edgeT;
     private bool _saved;
     private bool _loaded;
     private bool _verdictPrinted;
@@ -69,70 +73,83 @@ public partial class HudQuestMonoCaptureTest : SceneTree
     {
         _t += delta;
 
-        // t>=0.4 — drive the act-one account to the finale beat (stages 0..2;
-        // FromSaveRows is the shipped restore primitive: it sets statuses
-        // DIRECTLY and emits no Changed, so q_boss ACTIVE here is a snapshot,
-        // not an open edge).
-        if (_t >= 0.4 && Stage >= 0 && _director != null && !_director.Quests.IsArcComplete
-            && _director.Quests.Status("q_boss") != QuestStatus.Completed && _pressStep == 0)
+        // Zone-GATED phases (a zone MOUNT bakes synchronously and blocks the
+        // process loop — the clock here is in-process time, so each wait is
+        // counted AFTER the bake that blocks it; a wall-clock schedule would
+        // starve before the edge, the MC 11295 first-draft finding).
+        // P0 — boot mounted (first zone up) + 0.3 s: drive the act-one account
+        // to the finale beat (FromSaveRows is the shipped restore primitive: it
+        // sets statuses DIRECTLY and emits no Changed, so q_boss ACTIVE here is
+        // a snapshot, not an open edge).
+        if (!_rowsDone && _director != null && _director.CurrentZone != "" && _t >= 0.3)
         {
             _director.Quests.FromSaveRows(new List<string>
             {
                 "q_intro:completed", "q_speak:completed", "q_wage:completed",
                 "q_kills:completed", "q_boss:active",
             });
-            _pressStep = 1;   // stage 0 parks here (the BEFORE frame)
-            if (Stage == 0) _pressStep = 99;
+            _rowsDone = true;
+            _rowsT = _t;
+            _pressStep = (Stage == 0) ? 99 : 1;   // stage 0 parks here (BEFORE frame)
+            GD.Print($"LA_MONO: rows — act-one account parked at q_boss ACTIVE (zone={_director.CurrentZone})");
         }
 
-        // t 0.8..1.7 — two REAL travels meadow -> canyon -> ruins (press/
-        // release pairs; the shipped travel action on the input map).
-        if (Stage >= 1 && !_edgeDone)
+        // P1 (stage >= 1) — two REAL travels meadow -> canyon -> ruins (press/
+        // release pairs on the shipped travel action; the mounts serialize the
+        // presses behind their bakes by themselves).
+        if (Stage >= 1 && _rowsDone && _pressStep >= 1 && _pressStep <= 4)
         {
-            (double, bool)[] script = { (0.8, true), (1.1, false), (1.4, true), (1.7, false) };
-            while (_pressStep < script.Length && _t >= script[_pressStep].Item1)
+            (double, bool)[] script = { (0.4, true), (0.7, false), (1.2, true), (1.5, false) };
+            if (_t >= _rowsT + script[_pressStep - 1].Item1)
             {
-                if (script[_pressStep].Item2) Input.ActionPress("travel");
+                if (script[_pressStep - 1].Item2) Input.ActionPress("travel");
                 else Input.ActionRelease("travel");
+                _lastPressT = _t;
                 _pressStep++;
             }
         }
 
-        // t>=2.6 — the boss-kill beat at the ruins: the shipped Completed arm
-        // of OnQuestChanged (the act-two open edge) through the log's public
-        // transitions. MarkObjectiveMet + Complete = exactly what the BossDead
-        // provider's satisfaction does inside EvaluatePass (QuestLog
-        // EvaluatePass); the provider is a feed, the ORDERING is what's proven.
-        if (Stage >= 1 && !_edgeDone && _t >= 2.6 && _director != null)
+        // P2 (stage >= 1) — the boss-kill beat AT THE RUINS: zone-gated (waits
+        // the ruins mount out). MarkObjectiveMet + Complete fires the shipped
+        // Completed arm of OnQuestChanged — the SAME arm the live BossDead
+        // provider's satisfaction drives inside EvaluatePass; the provider is a
+        // FACT FEED, the ordering under proof is what the open edge does with it.
+        if (Stage >= 1 && _pressStep > 4 && !_edgeDone && _director != null
+            && _director.CurrentZone == "ruins" && _t >= _lastPressT + 0.8)
         {
-            if (_director.CurrentZone != "ruins")
-            {
-                GD.PrintErr($"LA_MONO: FAIL — boss-kill edge needs zone=ruins, zone={_director.CurrentZone}");
-                _verdictPrinted = true;   // named fail already printed
-                Quit(1); return false;
-            }
             var q = _director.Quests;
             q.MarkObjectiveMet("q_boss");
             q.Complete("q_boss");
             _edgeDone = true;
+            _edgeT = _t;
             GD.Print($"LA_MONO: driven — boss-kill Completed edge at zone=ruins, act2=[{string.Join(",", _director.QuestsAct2.ToSaveRows())}]");
         }
+        if (Stage >= 1 && _pressStep > 4 && !_edgeDone && _director != null
+            && _director.CurrentZone != "ruins" && _t >= _lastPressT + 15.0)
+        {
+            GD.PrintErr($"LA_MONO: FAIL — travel never reached the ruins (zone={_director.CurrentZone})");
+            _verdictPrinted = true;
+            Quit(1); return false;
+        }
 
-        // t>=3.4/3.7 — stage 2 only: save, then load, AT THE RUINS.
-        if (Stage == 2 && _edgeDone && !_saved && _t >= 3.4 && _director != null)
+        // P3 — stage 2 only: save, then load, AT THE RUINS (after the edge).
+        if (Stage == 2 && _edgeDone && !_saved && _t >= _edgeT + 0.5 && _director != null)
         {
             _director.SaveGame();
             _saved = true;
         }
-        if (Stage == 2 && _saved && !_loaded && _t >= 3.7 && _director != null)
+        if (Stage == 2 && _saved && !_loaded && _t >= _edgeT + 0.9 && _director != null)
         {
             _director.LoadGame();
             _loaded = true;
             GD.Print($"LA_MONO: loaded — act2=[{string.Join(",", _director.QuestsAct2.ToSaveRows())}] zone={_director.CurrentZone}");
         }
 
-        // t>=4.6 — the verdict (well before the helper's --wait 6 capture).
-        if (!_verdictPrinted && _t >= 4.6 && _director != null)
+        // P4 — the verdict: stage 0 reads the rows+1.5 s; stage 1 reads
+        // edge+1.6 s; stage 2 reads loaded+1.2 s (well before --wait 12).
+        double verdictAt = Stage == 0 ? _rowsT + 1.5 : (Stage == 1 ? _edgeT + 1.6 : _edgeT + 2.1);
+        bool ready = Stage == 0 ? _rowsDone : (Stage == 1 ? _edgeDone : _loaded);
+        if (!_verdictPrinted && ready && _t >= verdictAt && _director != null)
         {
             _verdictPrinted = true;
             Node? gauge = FindDeep(_director, "QuestGauge");
@@ -171,8 +188,12 @@ public partial class HudQuestMonoCaptureTest : SceneTree
             GD.Print(ok ? $"LA_MONO: PASS — {detail}" : $"LA_MONO: FAIL — {detail}");
         }
 
-        // Stay alive past the capture; the helper kills this process (leg I law).
-        if (_t >= 20.0) Quit(_verdictPrinted ? 0 : 1);
+        // Stay alive past the capture; the helper kills this process (leg I
+        // law). Zone bakes (heightfield + navmesh, ~5 s each, synchronous in
+        // the director's own travel handler) run the wall clock past _t: the
+        // full two-travel settle lands ~35 s, the verdict ~37 s, so the leg
+        // banks --wait 45 and this self-quit stays past it.
+        if (_t >= 55.0) Quit(_verdictPrinted ? 0 : 1);
         return false;
     }
 

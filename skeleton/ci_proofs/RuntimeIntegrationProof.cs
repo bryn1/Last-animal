@@ -1,4 +1,4 @@
-// SIZE: 589 l by wc AT this head (MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// SIZE: 596 l by wc AT this head (MC 11295 +7: the quest_mono mode-doc row + KnownModes/budget arms, the mode riding the stage-50 quest-family route, + the header re-measure clause — under the ceiling, NO split owed; the clause stays live for future growth; MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
 // IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
 // _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
@@ -16,10 +16,11 @@
 // header, KnownModes allow-list and dispatch (the shared fields moved VERBATIM
 // to State.cs at MC 11088 — see that header) — >400 because the 308-l mode
 // doc mode_sets_check parses (awk from '// Modes \(env' through '// Run:' this
-// commit, BOTH ends inclusive; 289 at the MC 11019 S48 head per §6.4's
-// re-measure, 162 at the S24 head; MC 11088 re-measure) and the 37-mode
-// dispatch (re-measured MC 11088 S48 BATCH-4 FIX-ROUND-1: mode_sets_check at
-// this head = 37; 35 at the MC 11019 S48 head; 33 at the MC 11018 head;
+// commit, BOTH ends inclusive; 314 at this head (MC 11295, §6.4 re-measure),
+// 289 at the MC 11019 S48 head per §6.4's
+// re-measure, 162 at the S24 head; MC 11088 re-measure) and the 38-mode
+// dispatch (MC 11295 re-measure: mode_sets_check at this head = 38; the prior
+// re-measured MC 11088 S48 BATCH-4 FIX-ROUND-1 = 37; 35 at the MC 11019 S48 head; 33 at the MC 11018 head;
 // 32-mode at the MC 10731 head) ride together here. W4 SPLIT,
 // carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)

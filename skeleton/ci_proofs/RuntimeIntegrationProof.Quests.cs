@@ -1,4 +1,4 @@
-// SIZE: >400 (~560 l) — CI proof partial (the quest stage machine), test-class ceiling 600 (MC 10029 header note; body splits owed to later waves).
+// SIZE: 560 l by wc AT this head (MC 11295 +1: the quest_mono dispatch arm — the body lives in the 241-l .QuestMono.cs partial; test-class ceiling 600, MC 10029 header note; body splits owed to later waves).
 using Godot;
 using LastAnimal.Story;
 using LastAnimal.Ui;

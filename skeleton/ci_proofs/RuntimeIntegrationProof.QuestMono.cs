@@ -61,6 +61,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _qmPhase;
     private int _qmPhaseFrames;
     private int _qmTravels;
+    private string _qmZoneAt = "";   // phase-7 zone anchor at the last pair completion
     private string _qmTrackerBefore = "";
 
     /// <summary>Stage-50 quest_mono body (called from RunQuestStage's mode switch).</summary>
@@ -204,14 +205,40 @@ public partial class RuntimeIntegrationProof : SceneTree
                     break;
                 }
 
-            case 7:   // re-entries: four wrap travels, LAST the RUINS re-entry — the seeded fact re-fires
+            case 7:   // re-entries: four zone CHANGES on the wrap, LAST the
+                     // RUINS re-entry — the seeded fact re-fires
+                // the LOAD's zone mount runs DEFERRED — its mount frame eats a
+                // press (MC 11295 first-GREEN finding: press #1 died in the
+                // load-mount frame); settle, then count ZONE CHANGES, not
+                // completed press-pairs — a pair that moves nothing is a
+                // no-op, honestly retried under the named budget.
+                if (_qmPhaseFrames < 24)
+                {
+                    _qmZoneAt = _director!.CurrentZone;   // re-arm the anchor each settle frame
+                    break;
+                }
                 if (_qmTravels < 4)
                 {
                     if (QPressTravel())
                     {
-                        _qmTravels++;
-                        GD.Print($"LA_GATE: MONO_REENTER_STEP {_qmTravels} zone={_director!.CurrentZone} act2=[{string.Join(",", _director.QuestsAct2.ToSaveRows())}]");
+                        // the move lands BETWEEN the press frame and the
+                        // release frame, so the anchor must persist ACROSS
+                        // pair completions — a same-call before/after always
+                        // matches (MC 11295 finding #2).
+                        if (_director!.CurrentZone != _qmZoneAt)
+                        {
+                            _qmTravels++;
+                            _qmZoneAt = _director.CurrentZone;
+                            GD.Print($"LA_GATE: MONO_REENTER_STEP {_qmTravels} zone={_director.CurrentZone} act2=[{string.Join(",", _director.QuestsAct2.ToSaveRows())}]");
+                        }
+                        else
+                        {
+                            GD.Print($"LA_GATE: MONO_REENTER_RETRY no-op travel pair at zone={_qmZoneAt} (retried)");
+                        }
                     }
+                    if (_qmPhaseFrames > 2400)
+                        Check("MONO_REENTER: four wrap travels complete inside the budget", false,
+                              $"travels={_qmTravels}/4 zone={_director!.CurrentZone}");
                     break;
                 }
                 {

@@ -49,6 +49,14 @@ public partial class WorldDirector
         if (_act3Opened) return;
         AdoptActThreeOpen();
         PlayActCard(QuestTable.ActThree.Id, QuestTable.ActThree.OpenNodes, "open");
+        // MC 11295: the SAME ordering, one act deeper — the act-three open
+        // edge fires when the act-two arc completes, and deep kills happen
+        // wherever the player fights: if the arc lands while already standing
+        // in the hollow, q_h_arrival (ZoneReached hollow) strands exactly
+        // like q_r_descent did. Standing-zone observation at the open, same
+        // law, same EVENT-EDGE-ONLY scope (the load's trailing _enterZone
+        // covers FreshOpen — SaveLoadController.Load order).
+        _questsAct3.ObserveZoneEntered(CurrentZone);
         _questsAct3.Start(_questsAct3.Table.Entries[0].Id);
     }
 

@@ -435,8 +435,12 @@ echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate
 # ---------------------------------------------------------------------------
 echo "UI_HUD_TEST: run K — HUD_QUEST_MONO boss-kill ordering frame bank (BEFORE / AFTER / SAVE+LOAD)"
 for MONO_ST in 0 1 2; do
+  MONO_W=8; [ "$MONO_ST" -ge 1 ] && MONO_W=45   # two REAL travels bake two zones SYNCHRONOUSLY
+  # (heightfield + navmesh, ~5 s each, inside the director's travel handler) — the
+  # AFTER stages need ~37 s wall before the verdict prints; the helper kill is the
+  # script's life-support (leg I law).
   LOGK="$("$GUI_HELPER" --cmd "LA_MONO_STAGE=$MONO_ST $GODOT --path $PROJ --script $UI_QUESTMONO > $CAPDIR/app-mono-$MONO_ST.log 2>&1" \
-          --wait 6 --out "$CAPDIR/la-mono-$MONO_ST.png" 2>&1)"
+          --wait $MONO_W --out "$CAPDIR/la-mono-$MONO_ST.png" 2>&1)"
   printf '%s\n' "$LOGK"
   [[ "$LOGK" == *'RESULT=PASS'* ]] \
     || fail "run K stage $MONO_ST: capture not RESULT=PASS (game frame did not render)"

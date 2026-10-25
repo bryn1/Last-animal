@@ -309,6 +309,23 @@ public partial class WorldDirector
         if (_act2Opened) return;
         AdoptActTwoOpen();
         PlayActCard(QuestTable.ActTwo.Id, QuestTable.ActTwo.OpenNodes, "open");
+        // MC 11295 (playthrough D3): the open edge fires when act one's arc
+        // completes — the zone boss dying — and the boss fields ONLY in the
+        // deep zones (EcosystemSpawner BossTier), so the act opens while the
+        // player ALREADY STANDS in the zone the first row waits on. The
+        // ZoneEntered fact fired BEFORE this log's feed was subscribed and
+        // nothing re-fires it while the player stays in or travels DEEPER:
+        // the row stranded ACTIVE (tracker "The Way Down — Reach ruins" at
+        // the ruins — the observed regression from "The Watcher Falls") and
+        // every save persisted that stranded state. The standing zone is an
+        // observation of the CURRENT world at the open, earned then — NOT
+        // replayed act-one evidence (act evidence still starts at the open;
+        // the DA-P1 rewind law holds: FromSaveRows clears every counter
+        // first). Restore-path arms (FreshOpen/Adopt/SilentReStart) do NOT
+        // seed: the shipped load order already delivers the SAVED zone to
+        // the subscribed feed through SaveLoadController.Load's trailing
+        // _enterZone(loaded.ZoneId) — a load stays not-a-game-beat.
+        _questsAct2.ObserveZoneEntered(CurrentZone);
         _questsAct2.Start(_questsAct2.Table.Entries[0].Id);
     }
 
