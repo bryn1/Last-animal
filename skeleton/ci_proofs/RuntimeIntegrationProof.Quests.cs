@@ -80,6 +80,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             case "quest_arc": QuestArcStage(); break;
             case "quest_persist": QuestPersistStage(); break;
             case "quest_neg": QuestNegStage(); break;
+            case "quest_mono": QuestMonoStage(); break;   // MC 11295 (body in .QuestMono.cs)
         }
     }
 

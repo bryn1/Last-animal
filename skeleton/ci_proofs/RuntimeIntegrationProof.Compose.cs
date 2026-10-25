@@ -197,8 +197,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // quest_arc / quest_persist / quest_neg (MC 3904 2c): the quest chain
         // drives its own input (teleport + interact/pay/attack/travel); skip
         // the movement press and route to stage 50 — stage bodies live in
-        // RuntimeIntegrationProof.Quests.cs.
-        if (_mode is "quest_arc" or "quest_persist" or "quest_neg")
+        // RuntimeIntegrationProof.Quests.cs. quest_mono (MC 11295) joins the
+        // SAME slot (the quest-family route; its body lives in .QuestMono.cs —
+        // no new stage number, pairing untouched).
+        if (_mode is "quest_arc" or "quest_persist" or "quest_neg" or "quest_mono")
         {
             _stage = 50;
             _stageFrames = 0;

@@ -98,7 +98,7 @@
 #       DialogueSystem/EmpathyPanel rect fix and J1 exits 1 naming the
 #       overlaps (dialogue over LifeGauge; state/summary/hint across the five
 #       other gauge rows). No save touch in either J leg.
-# The gate passes only if A–J all behave as expected.
+# The gate passes only if A–K all behave as expected.
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
@@ -118,6 +118,7 @@ UI_2F_CAPTURE="res://tests/ui/SkillsPanelCaptureTest.cs"
 UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
 UI_QUESTLINE="res://tests/ui/HudQuestAct2CaptureTest.cs"
 UI_OVERLAP="res://tests/ui/HudDialogueOverlapTest.cs"
+UI_QUESTMONO="res://tests/ui/HudQuestMonoCaptureTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
@@ -152,6 +153,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$PROJ/tests/ui/HudVignetteCaptureTest.cs" ] || fail "HudVignetteCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudQuestAct2CaptureTest.cs" ] || fail "HudQuestAct2CaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudDialogueOverlapTest.cs" ] || fail "HudDialogueOverlapTest.cs not found"
+[ -f "$PROJ/tests/ui/HudQuestMonoCaptureTest.cs" ] || fail "HudQuestMonoCaptureTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -408,5 +410,58 @@ printf '%s\n' "$LOGJ2"
   || fail "run J2: capture-run self-check marker missing (layout was not DISJOINT at capture time)"
 echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book paint on their own rects, HUD gauges never overlapped (MC 11293 D1)"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J)"
+echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J)"
+# (K) MC 11295 — HUD_QUEST_MONO: the BOSS-KILL-ORDERING quest-line frame bank
+#     (playthrough D3: "The Watcher Falls" -> back to "The Way Down — Reach
+#     ruins" AT THE RUINS, and the SAVE held it). THREE runs of tests/ui/
+#     HudQuestMonoCaptureTest.cs (LA_MONO_STAGE=0/1/2) on the REAL main.tscn
+#     (spawning off at boot — the shipped quiet gate):
+#       0 BEFORE: act-one driven to q_boss Active — tracker paints "The Watcher
+#         Falls" (the playthrough frame-22 beat).
+#       1 AFTER the boss-kill beat AT THE RUINS (two REAL travels + the shipped
+#         Completed arm of OnQuestChanged): tracker must paint the ADVANCED
+#         act-two row "The Older Tongue" — the UNFIXED product paints the
+#         REGRESSED "The Way Down — Reach ruins" and THIS run's LA_MONO marker
+#         goes RED (the leg's RED-before-fix is the product's own before-face;
+#         the banked red frame SHOWS the bug painted).
+#       2 the same drive + SaveGame/LoadGame AT THE RUINS: the tracker must
+#         STILL read advanced AND the disk rows must carry q_r_descent:completed
+#         — the saved state shown (D3's evidence class).
+#     The in-code LA_MONO markers are the semantic pins (HUD == director,
+#     no-cache law from leg I); the pixel bars corroborate (row painted +
+#     BEFORE-vs-AFTER pixels moved — on the live scene the background also
+#     moves, so the DIFF bar is corroboration, never the verdict).
+#     Runs 1-2 write user://savegame.json: gate-level SAVEGATE flock (leg I law).
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run K — HUD_QUEST_MONO boss-kill ordering frame bank (BEFORE / AFTER / SAVE+LOAD)"
+for MONO_ST in 0 1 2; do
+  LOGK="$("$GUI_HELPER" --cmd "LA_MONO_STAGE=$MONO_ST $GODOT --path $PROJ --script $UI_QUESTMONO > $CAPDIR/app-mono-$MONO_ST.log 2>&1" \
+          --wait 6 --out "$CAPDIR/la-mono-$MONO_ST.png" 2>&1)"
+  printf '%s\n' "$LOGK"
+  [[ "$LOGK" == *'RESULT=PASS'* ]] \
+    || fail "run K stage $MONO_ST: capture not RESULT=PASS (game frame did not render)"
+  [[ "$(cat "$CAPDIR/app-mono-$MONO_ST.log" 2>/dev/null)" == *'LA_MONO: PASS'* ]] \
+    || fail "run K stage $MONO_ST: LA_MONO self-check marker missing/RED (boss-kill ordering NOT advanced at stage $MONO_ST — see app-mono-$MONO_ST.log)"
+done
+# the saved state shown: stage 2 printed the DISK file's quest rows beside its frame
+grep -o 'LA_MONO: SAVEDROWS .*' "$CAPDIR/app-mono-2.log" \
+  | sed 's/^LA_MONO: SAVEDROWS //' > "$CAPDIR/la-mono-saved-rows.txt" || true
+grep -q 'q_r_descent:completed' "$CAPDIR/la-mono-saved-rows.txt" \
+  || fail "run K: the SAVED state does not carry the advanced q_r_descent:completed row (D3 is back — the save holds a regressed beat; see la-mono-saved-rows.txt)"
+grep -q 'q_r_tongue:active' "$CAPDIR/la-mono-saved-rows.txt" \
+  || fail "run K: the SAVED state does not carry q_r_tongue:active (the beat did not ADVANCE past the descent row)"
+# pixel bars: the quest row painted in the AFTER run + actually moved BEFORE->AFTER
+MJ_SD="$(convert "$CAPDIR/la-mono-1.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
+        -format '%[fx:standard_deviation]' info:)"
+MJ_COLORS="$(convert "$CAPDIR/la-mono-1.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
+echo "UI_HUD_TEST: K after-run quest-row stddev=$MJ_SD colors=$MJ_COLORS (bar: stddev>=0.02, colors>=4)"
+fnum "$MJ_SD" 0.02 || fail "run K: AFTER quest row blank-ish (stddev=$MJ_SD) — the tracker line did not paint"
+fnum "$MJ_COLORS" 4 || fail "run K: AFTER quest row has <4 colours (colors=$MJ_COLORS) — no glyph shapes present"
+MJ_DIFF_SD="$(convert "$CAPDIR/la-mono-0.png" "$CAPDIR/la-mono-1.png" -compose difference -composite \
+             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
+echo "UI_HUD_TEST: K BEFORE-vs-AFTER quest-row diff stddev=$MJ_DIFF_SD (bar: stddev>=0.01)"
+fnum "$MJ_DIFF_SD" 0.01 || fail "run K: quest row identical BEFORE/AFTER (stddev=$MJ_DIFF_SD) — the tracker did not repaint on the boss-kill beat"
+echo "UI_HUD_TEST: K ok — quest line reads Watcher Falls BEFORE, the advanced act-two row AFTER the boss-kill beat at the ruins, and the SAVED state carries the advanced rows"
+
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K)"
 exit 0

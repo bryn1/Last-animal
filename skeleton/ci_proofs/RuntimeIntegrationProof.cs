@@ -88,6 +88,12 @@ using System.Linq;
 //                     completions, the act-two save round-trip on the shipped
 //                     QuestStates wire, close card (ACT2_* + ACT_CARD markers;
 //                     RuntimeIntegrationProof.Story2.cs).
+//   quest_mono      — MC 11295 (playthrough D3): the REAL boss-kill ordering
+//                     at the RUINS — the act-two open edge must ADVANCE the
+//                     beat (no "The Way Down" regress while standing in the
+//                     ruins), the ADVANCED state round-trips save -> disk ->
+//                     load, and four zone re-entries regress nothing
+//                     (MONO_* markers; RuntimeIntegrationProof.QuestMono.cs).
 //   skill_use       — MC 3912 stage 2e: the skill economy end-to-end on the
 //                     live scene — kill gain, live unlock, armed multiplier
 //                     AT the single DealDamage site, arm consumed after one
@@ -405,7 +411,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     {
         "positive", "no_bus", "no_spawn", "no_controller", "no_dna",
         "save", "save_bad_version", "dna_speak", "no_interact",
-        "quest_arc", "quest_persist", "quest_neg", "quest_arc2",
+        "quest_arc", "quest_persist", "quest_neg", "quest_arc2", "quest_mono",
         "skill_use", "skill_neg", "passives", "calm_use", "calm_neg", "tame_use", "tame_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
@@ -478,7 +484,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "tame_use" or "tame_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "quest_mono" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "tame_use" or "tame_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
         // MC 11018 S45: the CAMERA_RIG_ISO CAPTURE arm parks the live scene
         // for the graphical-test-helper framebuffer grab — the run's external
         // timeout is its watchdog; the in-leg budget would quit before the

@@ -375,6 +375,48 @@ done
 [[ "$LOGA2" == *'ACT2_CLOSED'* ]] || fail "quest_arc2: expected ACT2_CLOSED (close card drained + uniform auto-close)"
 [[ "$LOGA2" == *'ACT_CARD act_two close'* ]] || fail "quest_arc2: expected the close ACT_CARD marker"
 
+# MC 11295 (playthrough D3, MC 11270 verdict) — QUEST BEAT MONOTONICITY.
+# The diverge-based act proofs (quest_arc2/ACT_THREE) open the act through the
+# save path IN THE MEADOW — they never drive the boss-death ORDERING: the act
+# opening while the player ALREADY STANDS in the zone the first row waits on.
+# That ordering is exactly where D3 regressed the line ("The Watcher Falls" ->
+# "The Way Down — Reach ruins" AT THE RUINS, and the SAVE held it). quest_mono
+# drives it REAL: boot facts -> interact -> wage -> four kills -> travel to the
+# RUINS -> kill the tier-2 boss -> the open edge must ADVANCE (q_r_descent met
+# at open by the standing-zone observation, tracker on "The Older Tongue"), the
+# ADVANCED rows must survive save -> DISK -> load (the disk file is the witness
+# — the D3 evidence class is saved state, not HUD staleness), and four wrap
+# travels — last the ruins RE-entry, the seeded fact re-fired — regress nothing.
+# RED-capability of THIS leg is the product's own before-face: run at the
+# pre-fix head the MONO_ADVANCE check fails BY NAME, printing the stranded
+# [q_r_descent:active] account (banked: .audits/202610251405-d3/out/red-*).
+# NO run_mode line (the SKY_STRIP raw-spawn precedent): the leg is ONE raw
+# spawn + in-line greps; the battery count is UNCHANGED at 45 = 35 + 10 by grep.
+LOGQM="$(LA_GATE_MODE=quest_mono timeout 300 "$GODOT" --headless --path "$PROJ" --script "$PROOF" 2>&1)" || true
+printf '%s\n' "$LOGQM" > "$PROJ/.tmp/quest-mono.log" 2>/dev/null || true
+for m in MONO_BOOT MONO_SPOKEN MONO_WAGE MONO_KILLS MONO_BOSS_LIVE; do
+  [[ "$LOGQM" == *"$m"* ]] || fail "quest_mono: expected $m (the pre-kill chain stalled — see .tmp/quest-mono.log)"
+done
+[[ "$LOGQM" == *'MONO_TRACKER_BEFORE'*'The Watcher Falls'* ]] \
+  || fail "quest_mono: expected MONO_TRACKER_BEFORE with the act-one finale line (the beat the regression rewound from)"
+[[ "$LOGQM" == *'MONO_ADVANCE'* ]] \
+  || fail "quest_mono: THE GATE — expected MONO_ADVANCE: the boss-kill at the ruins must ADVANCE the beat (q_r_descent met AT OPEN); the missing marker IS the D3 regression (tracker back to \"The Way Down\")"
+[[ "$LOGQM" == *'MONO_TRACKER_AFTER'*'Older Tongue'* ]] \
+  || fail "quest_mono: expected MONO_TRACKER_AFTER on the ADVANCED act-two row (the beat must read forward after the finale)"
+[[ "$LOGQM" == *'QUEST_COMPLETED q_r_descent'* ]] \
+  || fail "quest_mono: expected QUEST_COMPLETED q_r_descent (the open-edge completion rode the real bus)"
+[[ "$LOGQM" == *'REWARD_SHOWN q_r_descent '* ]] \
+  || fail "quest_mono: expected REWARD_SHOWN q_r_descent (the guarded reward-beat path, one completion one observation)"
+[[ "$LOGQM" == *'ACT_CARD act_two open'* ]] || fail "quest_mono: expected the open ACT_CARD marker (REWARD_SHOWN idiom)"
+[[ "$LOGQM" == *'MONO_SAVEDROWS'*'q_r_descent:completed'* ]] \
+  || fail "quest_mono: expected MONO_SAVEDROWS carrying q_r_descent:completed ON DISK (the D3 evidence class is the SAVED state)"
+[[ "$LOGQM" == *'MONO_PERSIST'* ]] \
+  || fail "quest_mono: expected MONO_PERSIST (load round-trips the ADVANCED beat, Adopt silent — a load is not a game beat)"
+[[ "$LOGQM" == *'MONO_REENTER —'* ]] \
+  || fail "quest_mono: expected MONO_REENTER (four wrap travels incl. the ruins re-entry regressed nothing)"
+[[ "$LOGQM" == *'LA_GATE: PASS — quest beat monotonicity'* ]] \
+  || fail "quest_mono: expected the terminal PASS marker (see .tmp/quest-mono.log)"
+
 # (P) MC 10200 Inc-4 S16 Resonance passives: ONE passive proven end-to-end
 # on the LIVE scene, band reached via REAL extracts (not a hand-fed fixture).
 # Baseline consensus width 0 = no bands + zero Manna; the FIRST real kill
