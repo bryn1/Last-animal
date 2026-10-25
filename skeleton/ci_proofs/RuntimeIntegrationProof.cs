@@ -14,7 +14,7 @@
 // cycle 1's own +17; numbers below are re-measured, never delta-summed): the
 // multi-mode harness ENTRY keeps ONLY the mode-doc
 // header, KnownModes allow-list and dispatch (the shared fields moved VERBATIM
-// to State.cs at MC 11088 — see that header) — >400 because the 308-l mode
+// to State.cs at MC 11088 — see that header) — >400 because the 314-l mode
 // doc mode_sets_check parses (awk from '// Modes \(env' through '// Run:' this
 // commit, BOTH ends inclusive; 314 at this head (MC 11295, §6.4 re-measure),
 // 289 at the MC 11019 S48 head per §6.4's
