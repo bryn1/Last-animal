@@ -51,4 +51,23 @@ public static class UiTheme
     // integer counter (CalmedWindow idiom). Visual only: the Hud's Life
     // property — the logic value every consumer reads — is never touched.
     public const int SmoothFrames = 10;
+
+    // --- panel layout fallback (MC 11293 D1) ---------------------------------
+    // The dialogue + Empathy-Book panels rect-anchor to the live viewport so
+    // they sit clear of the top-left HUD block at ANY window size. Two heads
+    // need the same fallback: the headless assert legs (a --script run
+    // reports a nominal 64x64 window — geometry must mirror the painted
+    // layout there, or an assert proves nothing about what ships) and a
+    // window too small to fit the boxes. The fallback is the shipped play
+    // window (ui_test.sh: "the project default 1152x648") — the panel
+    // rects below are measured against it byte-exactly.
+    public const int PlayVpWidth = 1152;
+    public const int PlayVpHeight = 648;
+
+    /// <summary>The viewport a panel should rect-anchor against: the real
+    /// one when it can hold the boxes, the shipped play window otherwise
+    /// (headless + tiny-window fallback, MC 11293 D1).</summary>
+    public static Vector2 PanelViewport(Vector2 measured) =>
+        measured.X >= PlayVpWidth && measured.Y >= PlayVpHeight
+            ? measured : new Vector2(PlayVpWidth, PlayVpHeight);
 }

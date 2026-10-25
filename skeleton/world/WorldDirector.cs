@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (604 l by wc AT this head = 572@MC10519/S27 head + 32 MC 11294/D2 honest-death gate: the LA_DEATH once-per-death announcement block at the tick authority (covers BOTH TakeDamage callers — enemy damage AND the Roster betrayal settle) + the ONE !IsDead guard around the attack/interact/travel polling; the mirror corpse-cast guard rides the Skills partial (7 l there) and the movement lock already lived in Player.cs — one death predicate, its guards named in every file they touch); prior reading 572 l by wc AT that head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
+// SIZE: inherited >400 (609 l by wc AT this head = 604@MC11294 + 5 MC 11293 D1: BuildUi attribution comment only, zero code — the panel-rect fix itself lives in the two panel files; prior reading 604 l by wc AT that head = 572@MC10519/S27 head + 32 MC 11294/D2 honest-death gate: the LA_DEATH once-per-death announcement block at the tick authority (covers BOTH TakeDamage callers — enemy damage AND the Roster betrayal settle) + the ONE !IsDead guard around the attack/interact/travel polling; the mirror corpse-cast guard rides the Skills partial (7 l there) and the movement lock already lived in Player.cs — one death predicate, its guards named in every file they touch); prior reading 572 l by wc AT that head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
 // lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
 // clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
 // bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
@@ -352,6 +352,11 @@ public partial class WorldDirector : Node3D
         // Dialogue + empathy panels: instanced (per the composition DoD) but
         // not force-opened on boot, so the full-width intro line does not
         // collide with the top-left HUD. They remain available to show later.
+        // MC 11293 D1: that boot-time deferral was never enough — on normal
+        // B/E use the two panels OPENED straight onto the gauge block (the
+        // MC 11270 playthrough P1). The OPEN state is now separated too: each
+        // panel carries a real viewport-anchored rect clear of the HUD block
+        // (DialogueSystem + EmpathyPanel Region idioms, UiTheme.PanelViewport).
         // MC 3900 stage 2a: inject the authored story data table into the view.
         _dialogue = new DialogueSystem { Name = "Dialogue", Table = LastAnimal.Story.DialogueTable.Default() };
         UICanvas.AddChild(_dialogue);

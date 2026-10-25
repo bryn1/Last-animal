@@ -81,10 +81,29 @@ public partial class EmpathyPanel : Control
         Visible = false;
     }
 
+    // --- the book panel rect (MC 11293 D1; SkillsPanel Region idiom) -------
+    // Right band, BELOW the HUD block: the playthrough P1 (MC 11270 D1) was
+    // the CenterRight anchor collapsing to a zero-sized Control — the state/
+    // summary/hint Labels overflow-painted at the viewport origin, directly
+    // interlaced with the Life/Manna/DNA/Hearts/Skills/Quest gauges. A REAL
+    // rect anchored top-right now: at the play window (UiTheme.PanelViewport
+    // fallback) exactly x 844..1144, y 200..400 — clear of the HUD block
+    // (ends ~y 176, x ~427), of the TAB panel (ends x 428), and of the
+    // dialogue band (starts y 540). Wrap widths grew 240 -> 280 to fill the
+    // panel instead of floating in it.
+    public const int PanelWidth = 300;
+    public const int PanelHeight = 200;
+    public const int PanelEdge = 8;      // viewport margin on the right edge
+    public const int PanelTop = 200;     // clear of the six HUD gauge rows
+
     private void BuildIfNeeded()
     {
         if (_stateLabel != null) return;
-        SetAnchorsPreset(LayoutPreset.CenterRight);
+
+        var vp = UiTheme.PanelViewport(GetViewport()?.GetVisibleRect().Size ?? Vector2.Zero);
+        Position = new Vector2(Mathf.Max(PanelEdge, (int)vp.X - PanelWidth - PanelEdge), PanelTop);
+        Size = new Vector2(PanelWidth, PanelHeight);
+        CustomMinimumSize = Size;
 
         var panel = new Panel { Name = "EmpathyPanelRoot" };
         panel.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -95,11 +114,11 @@ public partial class EmpathyPanel : Control
 
         _summaryLabel = new Label { Name = "EmpathySummary", Position = new Vector2(10, 40) };
         _summaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _summaryLabel.CustomMinimumSize = new Vector2(240, 60);
+        _summaryLabel.CustomMinimumSize = new Vector2(280, 60);
 
         _hintLabel = new Label { Name = "EmpathyHint", Position = new Vector2(10, 110) };
         _hintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _hintLabel.CustomMinimumSize = new Vector2(240, 60);
+        _hintLabel.CustomMinimumSize = new Vector2(280, 60);
 
         foreach (var label in new[] { _stateLabel, _summaryLabel, _hintLabel })
         {

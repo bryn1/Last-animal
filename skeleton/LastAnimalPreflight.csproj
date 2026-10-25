@@ -330,6 +330,12 @@
          PLACE in world/WorldDirector.DayNight.cs (the tick + the park seam).
          Appended at the ItemGroup END (precedent). -->
     <Compile Include="world/WorldDirector.SkyStrip.cs" />
+    <!-- MC 11293 D1: the HUD/dialogue/empathy OVERLAP proof + fixed-layout
+         capture script (the MC 11270 playthrough P1 — book/dialogue text
+         printed over the HUD gauge block): headless assert leg + windowed
+         capture leg, ci/ui_test.sh leg J. Appended at the ItemGroup END
+         (S2 Shake.cs precedent). -->
+    <Compile Include="tests/ui/HudDialogueOverlapTest.cs" />
   </ItemGroup>
 
 </Project>

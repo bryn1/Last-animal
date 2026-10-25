@@ -159,16 +159,40 @@ public partial class DialogueSystem : Control
     /// <summary>Is a dialogue node currently on screen?</summary>
     public bool IsOpen => ActiveNode.Length > 0;
 
+    // --- the dialogue box rect (MC 11293 D1; SkillsPanel Region idiom) -----
+    // Bottom band, RIGHT of the SkillsPanel column (its x ends at 428): the
+    // playthrough P1 (MC 11270 D1) was this box's anchors collapsing to a
+    // zero-sized Control — the Label then overflowed-painted the intro/dialogue
+    // line straight over the top-left HUD gauges, both layers unreadable. The
+    // fix gives the box a REAL rect (so the Panel paints a designed surface)
+    // anchored bottom-right of the viewport; at the play window (UiTheme.
+    // PanelViewport fallback) it sits exactly at x 440..1144, y 540..640 —
+    // disjoint from the HUD block (ends ~y 176, x ~427) AND from the TAB panel.
+    public const int BoxWidth = 704;
+    public const int BoxHeight = 100;
+    public const int BoxEdge = 8;      // viewport margin, both axes
+    public const int TextPad = 14;     // label inset inside the panel rect
+
     private void BuildIfNeeded()
     {
         if (_textLabel != null) return;
-        SetAnchorsPreset(LayoutPreset.CenterBottom);
+
+        // Fixed rect (MC 11293 D1): viewport-anchored bottom-right, with the
+        // UiTheme fallback so a headless / tiny-window geometry mirrors the
+        // shipped play window byte-exactly (see PanelViewport).
+        var vp = UiTheme.PanelViewport(GetViewport()?.GetVisibleRect().Size ?? Vector2.Zero);
+        Position = new Vector2(Mathf.Max(BoxEdge, (int)vp.X - BoxWidth - BoxEdge),
+                               Mathf.Max(BoxEdge, (int)vp.Y - BoxHeight - BoxEdge));
+        Size = new Vector2(BoxWidth, BoxHeight);
+        CustomMinimumSize = Size;
+
         var panel = new Panel { Name = "DialoguePanel" };
         panel.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(panel);
 
-        _textLabel = new Label { Name = "DialogueText" };
-        _textLabel.SetAnchorsPreset(LayoutPreset.FullRect);
+        _textLabel = new Label { Name = "DialogueText", Position = new Vector2(TextPad, 10) };
+        _textLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _textLabel.CustomMinimumSize = new Vector2(BoxWidth - 2 * TextPad, 0);
         _textLabel.AddThemeFontSizeOverride("font_size", 22);
         _textLabel.Modulate = new Color(1.0f, 1.0f, 0.9f);
         panel.AddChild(_textLabel);

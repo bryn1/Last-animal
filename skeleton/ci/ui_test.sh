@@ -78,7 +78,27 @@
 #       save round-trip writes user://savegame.json: run this gate under the
 #       SAVEGATE flock whenever other save-touching legs may run (the fleet
 #       convention, kb c8e1f2bb).
-# The gate passes only if A–I all behave as expected.
+#   (J) MC 11293 — HUD_UI_DISJOINT: the MC 11270 playthrough P1 (D1): the
+#       Empathy Book (B) and a dialogue line (E) printed their text DIRECTLY
+#       over the HUD Life/Manna/DNA/Hearts/Skills/Quest block — both layers
+#       illegible on normal use. tests/ui/HudDialogueOverlapTest.cs boots the
+#       REAL playable scene, opens BOTH surfaces through the shipped inputs,
+#       and measures the painted bounding boxes (global rect widened to the
+#       text's combined min-size — the broken layout painted from a ZERO-sized
+#       control, so a bare rect compare went green on the bug): any overlap
+#       prints a NAMED FAIL (HUD_DIALOGUE_OVERLAP / HUD_EMPATHY_OVERLAP); an
+#       unopened surface prints OVERLAP_PROOF_NOT_ARMED (the vacuous-green
+#       wall — asserts over closed panels are worthless).
+#        J1 headless assert leg -> exit 0 + the DISJOINT PASS marker;
+#        J2 windowed capture leg (graphical-test-helper) -> RESULT=PASS (the
+#           non-blank bar) + the same marker in the very log the PNG was shot
+#           from — the fixed-layout frame rides beside the pixels.
+#       PLANTED-BAD (the card's own red pair, transcript .audits/
+#       202610251405-d1/transcripts/overlap-RED-pre-fix.log): revert the
+#       DialogueSystem/EmpathyPanel rect fix and J1 exits 1 naming the
+#       overlaps (dialogue over LifeGauge; state/summary/hint across the five
+#       other gauge rows). No save touch in either J leg.
+# The gate passes only if A–J all behave as expected.
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
@@ -97,6 +117,7 @@ UI_2F_LOGIC="res://tests/ui/SkillsPanelTest.cs"
 UI_2F_CAPTURE="res://tests/ui/SkillsPanelCaptureTest.cs"
 UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
 UI_QUESTLINE="res://tests/ui/HudQuestAct2CaptureTest.cs"
+UI_OVERLAP="res://tests/ui/HudDialogueOverlapTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
@@ -130,6 +151,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$PROJ/tests/ui/SkillsPanelCaptureTest.cs" ] || fail "SkillsPanelCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudVignetteCaptureTest.cs" ] || fail "HudVignetteCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudQuestAct2CaptureTest.cs" ] || fail "HudQuestAct2CaptureTest.cs not found"
+[ -f "$PROJ/tests/ui/HudDialogueOverlapTest.cs" ] || fail "HudDialogueOverlapTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -358,5 +380,33 @@ fnum "$QL_DIFF_SD" 0.01 || fail "run I: quest row identical baseline/act-two (st
 fnum "$QL_DIFF_MEAN" 0.003 || fail "run I: quest row diff too small (mean=$QL_DIFF_MEAN) — act-two title not actually painted"
 echo "UI_HUD_TEST: I ok — tracker paints act-one title at boot, act-two title mid-arc (pixels moved)"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I)"
+# ---------------------------------------------------------------------------
+# (J) MC 11293 — HUD_UI_DISJOINT: dialogue + Empathy-Book boxes vs the HUD
+#     gauge block (the MC 11270 playthrough P1/D1). J1 is the headless assert
+#     leg (REAL scene, both surfaces OPENED through the shipped B/E inputs,
+#     painted bounding boxes DISJOINT or a named HUD_*_OVERLAP FAIL); J2 is
+#     the windowed capture leg — the fixed-layout frame beside its marker.
+#     PLANTED-BAD (red pair, .audits/202610251405-d1/transcripts/
+#     overlap-RED-pre-fix.log): revert the DialogueSystem/EmpathyPanel rect
+#     fix -> J1 exits 1 naming 1 dialogue + 8 empathy overlaps.
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run J1 — HUD_UI_DISJOINT headless assert (expect exit 0 + PASS)"
+LOGJ="$(timeout 240 "$GODOT" --headless --path "$PROJ" --script "$UI_OVERLAP" 2>&1)"
+CODEJ=$?
+printf '%s\n' "$LOGJ"
+[ "$CODEJ" -eq 0 ] || fail "run J1: overlap proof exited $CODEJ (a named HUD_*_OVERLAP / OVERLAP_PROOF_NOT_ARMED line above says which)"
+[[ "$LOGJ" == *'LA_GATE: PASS — HUD/dialogue/empathy bounding boxes DISJOINT'* ]] \
+  || fail "run J1: expected the DISJOINT PASS marker (the measure leg never ran)"
+
+echo "UI_HUD_TEST: run J2 — fixed-layout capture under Xvfb (expect RESULT=PASS + marker)"
+LOGJ2="$("$GUI_HELPER" --cmd "$GODOT --path $PROJ --script $UI_OVERLAP > $CAPDIR/app-overlap-capture.log 2>&1" \
+        --wait 10 --out "$CAPDIR/la-overlap-fixed-layout.png" 2>&1)"
+printf '%s\n' "$LOGJ2"
+[[ "$LOGJ2" == *'RESULT=PASS'* ]] \
+  || fail "run J2: fixed-layout capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-overlap-capture.log" 2>/dev/null)" == *'LA_GATE: PASS'* ]] \
+  || fail "run J2: capture-run self-check marker missing (layout was not DISJOINT at capture time)"
+echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book paint on their own rects, HUD gauges never overlapped (MC 11293 D1)"
+
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J)"
 exit 0
