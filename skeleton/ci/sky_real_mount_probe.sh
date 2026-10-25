@@ -32,6 +32,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PROJ="${1:-$(dirname "$HERE")}"
+# MC 11243 F4 pointer: PROJ is NOT absolutized here (latent style — this script passes no LA_*CAP*_PATH env to the engine, MC 11152 sibling audit); if one is ever added, adopt the MC 11152 cd-and-pwd idiom — see the PROJ= block at the top of skeleton/ci/runtime_integration_test.sh.
 : "${GODOT:?set GODOT to the engine binary (see the repo engine/PIN.txt)}"
 CAP="${LA_SKYCAP_PATH:-$PROJ/.tmp/s50-sky}"
 PROOF="res://ci_proofs/RuntimeIntegrationProof.cs"
@@ -43,9 +44,15 @@ command -v xvfb-run >/dev/null || fail "xvfb-run missing — the windowed pair c
 
 echo "SKY_REAL_MOUNT: godot=$("$GODOT" --version 2>/dev/null | tail -1)  project=$PROJ  caps=$CAP"
 
-# (1) current C# assembly through the pinned engine (the shipped PREFLIGHT law)
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
-  || fail "engine --build-solutions exited nonzero (C# build failed)"
+# (1) MC 11243 sky-probe carry — dotnet-build route (the sky wall's sanctioned
+# one-line swap, .audits/202610240905-sk13s/out/probe-dotnetbuild*.sh): the
+# engine `--build-solutions` callback hits the known editor quit-quirk SEGFAULT
+# class on its post-build scan/quit path even when the build itself printed
+# dotnet_build_project [DONE] (the C# compiled). ONLY this build line is
+# swapped — EVERY assertion below is verbatim (MC 11113 DA-wall F-1 parity
+# clause included).
+dotnet build "$PROJ/LastAnimalPreflight.sln" -c Debug \
+  || fail "dotnet build exited nonzero (C# build failed via the dotnet route)"
 
 # (2) GREEN leg — windowed real-mount probe (the battery's spawn idiom verbatim)
 LOGSKY="$(LA_SKYCAP_PATH="$CAP" LA_GATE_MODE=SKY_STRIP xvfb-run -a timeout 300 "$GODOT" --path "$PROJ" --script "$PROOF" 2>&1)" \
