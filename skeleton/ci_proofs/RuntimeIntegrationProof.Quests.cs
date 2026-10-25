@@ -1,4 +1,7 @@
-// SIZE: 560 l by wc AT this head (MC 11295 +1: the quest_mono dispatch arm — the body lives in the 241-l .QuestMono.cs partial; test-class ceiling 600, MC 10029 header note; body splits owed to later waves).
+// SIZE: 568 l by wc AT this rebased head (MC 11295 +1: the quest_mono dispatch arm — the body lives in the
+// 268-l .QuestMono.cs partial; MC 11294 grew this file +7: the keep-alive seams on QKillLoop/QBossAttackLoop
+// — revive ONLY when already dead, the honest-death agency law; test-class ceiling 600, MC 10029 header note;
+// body splits owed to later waves).
 using Godot;
 using LastAnimal.Story;
 using LastAnimal.Ui;

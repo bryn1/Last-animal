@@ -102,6 +102,12 @@ public partial class HudQuestMonoCaptureTest : SceneTree
             (double, bool)[] script = { (0.4, true), (0.7, false), (1.2, true), (1.5, false) };
             if (_t >= _rowsT + script[_pressStep - 1].Item1)
             {
+                // MC 11294 keep-alive (the Quests.cs QBossAttackLoop seam, quoted):
+                // the honest-death gate refuses TRAVEL of a corpse, and the long
+                // synchronous zone bakes leave the standing capture player
+                // exposed to the scene SpawnSet — revive ONLY when already dead;
+                // a live farmer is never touched (agency law intact).
+                if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
                 if (script[_pressStep - 1].Item2) Input.ActionPress("travel");
                 else Input.ActionRelease("travel");
                 _lastPressT = _t;
