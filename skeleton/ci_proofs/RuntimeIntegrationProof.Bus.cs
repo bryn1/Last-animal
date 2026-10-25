@@ -273,7 +273,9 @@ public partial class RuntimeIntegrationProof : SceneTree
                 if (!_busSpawnArmed)
                 {
                     _director!.SetSpawningEnabled(true);
-                    _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
+                    // MC 11301 (DA F3): ungarded entry top-up REMOVED — a live farmer's
+                    // health may never rise free; the farm keep-alive is BusKillLoop's
+                    // MC 11294 revive-if-dead seam, not a cheat at phase entry.
                     _busSpawnArmed = true;
                 }
                 if (_director!.SpokenDna.Count >= 4) { BusNextPhase(10); break; }
@@ -392,7 +394,7 @@ public partial class RuntimeIntegrationProof : SceneTree
 
             case 18:  // F-A whittle: bring the boss to ONE melee swing while it
                       // stays the NEAREST live enemy (BusBossIsNearest — the
-                      // strike must hit IT) and the player stays topped up.
+                      // strike must hit IT); the farmer revives only if dead.
                       // A boss-phase re-field swaps the reference: re-capture.
                 {
                     var boss = _director!.BossActor;
@@ -404,7 +406,10 @@ public partial class RuntimeIntegrationProof : SceneTree
                         _busFaId = boss.Ai.EntityId.ToString();
                         _busFallenFaBase = _busFallen;
                     }
-                    _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
+                    // MC 11301 (DA F3): was an ungarded per-frame full top-up — a LIVE farmer's
+                    // health rose free every frame (alive-revive cheat class). Now the MC 11294
+                    // farm idiom: revive ONLY when already dead.
+                    if (_director.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
                     Vector3 p = boss.GlobalPosition;
                     _playerBody!.GlobalPosition = new Vector3(p.X - 0.8f, p.Y, p.Z);
                     if (boss.Ai.Health <= _director.PlayerModel.MeleeDamage)
