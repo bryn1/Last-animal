@@ -38,6 +38,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PROJ="${1:-$(dirname "$HERE")}"
+# MC 11243 F4 pointer: PROJ is NOT absolutized here (latent style — this script passes no LA_*CAP*_PATH env to the engine, MC 11152 sibling audit; its PERF_LOG rides OUT_DIR, not PROJ); if one is ever added, adopt the MC 11152 cd-and-pwd idiom — see the PROJ= block at the top of skeleton/ci/runtime_integration_test.sh.
 GUI_HELPER="${GUI_HELPER:-/usr/local/bin/graphical-test-helper.sh}"
 PERF_WINDOW="${PERF_WINDOW:-60}"
 CAPTURE_WAIT="${CAPTURE_WAIT:-60}"
