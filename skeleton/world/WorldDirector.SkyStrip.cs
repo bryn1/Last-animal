@@ -68,11 +68,15 @@ public partial class WorldDirector
     /// but freed/foreign node re-resolves; no "SkyStrip" node (or no
     /// material_override) is a silent no-op — the node is the whole contract.
     /// THE WRITE IS THE ALPHA CHANNEL: (authored.RGB, authored.A × factor).
-    /// WHY alpha, measured this head (.audits/202610250848-11269/out/): the
-    /// RGB carrier dimmed the ALBEDO to the factor and the CI render's tonemap
-    /// LIFTED the blacks — measured gain 0.6381 at the factor-0.25 park
-    /// (FXSKY_GAIN line), the band read ~0.30 not ~0.19, and the mapping law
-    /// died (additive wash, shrunk spacing: margin -0.021, leg RED by name).
+    /// WHY alpha, measured this head (.audits/202610250848-11269/out/, where
+    /// the banked RED out/sky_proof_green_try2.log is the ALPHA law at the old
+    /// floor): the RGB carrier dimmed the ALBEDO to the factor and the CI
+    /// render's tonemap LIFTED the blacks — measured gain 0.6381 at the
+    /// factor-0.25 park (FXSKY_GAIN line), the band read ~0.30 not ~0.19, and
+    /// the mapping law died (additive wash, shrunk spacing: margin -0.021, leg
+    /// RED by name). That RGB failing-run transcript was NOT preserved — lost
+    /// to a same-name re-run overwrite, named at the DA gate F1; the decisive
+    /// numbers are restated here and were independently re-measured there.
     /// The alpha carrier renders mix(BG, texel, f): block spacing scales
     /// EXACTLY with f against the measured backdrop, the wash cancels per
     /// block against the strip-hidden capture, and the shipped unshaded path
@@ -104,8 +108,10 @@ public partial class WorldDirector
         }
         float f = SkyStripDayFactor(_zone, frame);
         Color a = _skyStripAuthored;
-        // The authored tscn ships TRANSPARENCY_ALWAYS (alpha ignored); the dim
-        // needs the alpha BLEND, and at noon factor==1 EXACTLY the authored
+        // The authored tscn sets NO transparency property (the shipped enum
+        // value is TRANSPARENCY_DISABLED — the banked FXSKY_DIAG2 read-back
+        // prints transparency=Disabled; alpha is ignored there). The dim needs
+        // the alpha BLEND, and at noon factor==1 EXACTLY the authored
         // tuple + mode come back byte-identical (full day UNCHANGED — the
         // DAY-band row re-proves it on pixels). f is continuous (piecewise
         // linear tables) and the blend at f≈1 paints the opaque frame anyway:
