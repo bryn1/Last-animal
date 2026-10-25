@@ -30,6 +30,12 @@ echo "EXPORT_CHECK: godot=$VER  templates=$TDIR"
 # gate runs BEFORE the export; drift exits non-zero naming the exact template.
 bash "$PROJ/tools/export_templates_guard.sh" \
   || fail "export templates mono/standard identity drift (MC 11137) — see TPL_DRIFT line(s) above; restore from checksum-verified .tpz (lineage: .audits/20261024-0528-137t/EVIDENCE.md)"
+# MC 11229: the swap gate above is swap-INVARIANT by design — corrupted or wrong-
+# version bytes on a diverged file pass both variants' equality. The hashlist-pin
+# compares BOTH variant dirs against the committed ground-truth allowlist
+# (tools/export_templates.sha256); fail closed BEFORE the export, naming the file.
+bash "$PROJ/tools/export_templates_guard.sh" --pinned \
+  || fail "export-template hashlist-pin drift (MC 11229) — see TPL_PIN_DRIFT line(s) above; restore from checksum-verified .tpz, NEVER --repin over suspected drift (lineage: .audits/20261024-0528-137t/EVIDENCE.md)"
 
 cd "$PROJ" || fail "cannot cd $PROJ"
 # Clean-export property, scoped to THIS platform (DA P3, MC 1405): a Windows

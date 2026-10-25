@@ -1,0 +1,78 @@
+# export_templates.sha256 — APPROVED sha256 allowlist of the variant-specific
+# (DIVERGED per the export_templates_guard.sh 4.7.2 baseline map) export-template
+# files, BOTH variants, engine 4.7.2.stable (engine/PIN.txt). MC 11229.
+#
+# WHY THIS FILE EXISTS: the swap-invariant guard (MC 11137) compares mono-vs-
+# standard and is swap-invariant BY DESIGN — corrupted or wrong-version bytes on
+# a DIVERGED file pass both variants' equality. This list is the ground truth the
+# swap check cannot have: guard --pinned fails closed (TPL_PIN_DRIFT <name>, non-
+# zero exit) on ANY hash mismatch, missing live file, missing pin, or malformed /
+# missing list. SHARED files (icudt_godot.dat + the 8 web_* templates) are NOT
+# listed: byte-equal mono-vs-standard upstream and covered by the swap-invariant
+# check, a pin would duplicate coverage without adding truth.
+#
+# PROVENANCE of the shipped list: generated (--repin, MC 11229) from the VM350
+# host dirs, whose every byte traces to an official checksum-verified artifact —
+# standard dir == official .tpz sha256 f298490b...48011; mono dir == official
+# mono .tpz sha256 92f8681e...15a9d + the 9 shared names == official standard
+# .tpz (lineage: .audits/20261024-0528-137t/EVIDENCE.md).
+#
+# REGENERATE (explicit auditable action, ONLY from a known-good pair — a
+# checksum-verified .tpz restore, never over suspected drift):
+#   bash tools/export_templates_guard.sh --repin
+# The repin REFUSES while the swap-invariant check is RED. Review the git diff.
+#
+# Line format: <variant> <template-file-name> <sha256-hex>; variant is mono|std,
+# naming 4.7.2.stable.mono/ vs 4.7.2.stable/ under ~/.local/share/godot/export_templates.
+mono android_debug.apk 0775f021356d68be0b3f477e0b80ab691930a4d0a0d66b87056ecc0ef3298f5a
+mono android_release.apk 2dd46d9ff13780fabf64193ee4c6135a97b5a6c92d1e2c628a04aa0f53bf28fa
+mono android_source.zip d52a3743d912857b26092e8b051d91ada4707eacaa748f521437d4e506a5190e
+mono ios.zip d72d9a103baea67b5bd1247efa3f78aa985a55e3d6b1803fad7922632c0382a8
+mono linux_debug.arm32 d144cf9da0e8c6106d2ed0f9ff31a776809fe118b3d65d41962ec180d599a394
+mono linux_debug.arm64 a8ca7be17f785b3fa43fc1fdc2bc37910dc7855e0b6b3acbb4f8e545afad4026
+mono linux_debug.x86_32 115121587013cce241fe479ba88cc93cb3e7f7c616150b26027eac5aaa0d2b7a
+mono linux_debug.x86_64 8a9423a4847500039a28cd8c631d0628dd1d58790c8e49ac7cefb44fa727af17
+mono linux_release.arm32 afcc4291bd4387aae52a0c1dd61546fbf07c66c4fea4c6051147cbd05c9fe26b
+mono linux_release.arm64 808b21e39ac2fcf0a4fe8e2284ffa84e37d496b26e2c47e08adc8202375c03bd
+mono linux_release.x86_32 bf0a3aec1385931a4592b40607a278b8a30b8c543dc5fa6d00ded215e0b27503
+mono linux_release.x86_64 d776f83ae09d82cfa1295fb3d70ad7ab8a77fe66a4cc4f9d42244fae3665d8cc
+mono macos.zip 160fbe611e016d314bed09739d0560dc83ee4227d489ae9c9860d7220d073f5e
+mono version.txt 66796c18ef62c6e4a56a5c7412735b1a1bf805b010585d54b5569642e24373e2
+mono windows_debug_arm64_console.exe c91e788a7920961a4d2bc0b5015109bde328647deff6c9746ce629267a2f3a3a
+mono windows_debug_arm64.exe 4584e7519ee2afbc353a2e29c41646a2ef429d0362a8a2fa389f2b023f1185d7
+mono windows_debug_x86_32_console.exe deb9a662c686300a6369a6a49e4bd693e6731325286511771f384d61e9a39072
+mono windows_debug_x86_32.exe dddf3e32ea028147d8d56270ca62915aaa22674ffda5fd308cb751430bf3b5f7
+mono windows_debug_x86_64_console.exe f78703ba3a05dd51a3464f8c90d4c72f54f95d5a8669993e7a5c3ce522b30c52
+mono windows_debug_x86_64.exe 4526aac3ac47c65de66f99f715f56b35a2e2e4446fcb23e6d280a830cd97fdea
+mono windows_release_arm64_console.exe 9d4ec581b00eb9e946ea6ec0bbd93cc2a5524cb5d575d854595f329a2ed05eb7
+mono windows_release_arm64.exe 0d9c9929a813e16e2a3492951ad3b1b937d94f67136759497a94e7fe6975c4f3
+mono windows_release_x86_32_console.exe 288e614b0f607d916cba1bfd136427135d7856da646acfd67bc71e5469156e36
+mono windows_release_x86_32.exe 6eaa36ae82d95c68551dcd3cbe0ca087b7ffe17ee787b7c7bf9f0ccef754bea2
+mono windows_release_x86_64_console.exe 7895a7873947deaff6c8c859c1f77be051023413035048e2db74ceba07a65017
+mono windows_release_x86_64.exe 16e0ec3cfd398b938f514de95ff2474b532b5061ada78f92226dba3f7584d55d
+std android_debug.apk 59e0073f0fa59f552684a861d8f4266b0b34b488a140d6657eac7dd70d1a0a0d
+std android_release.apk 6d1bb2cfa126a1b1c87e064a35b3cbd181bef0ec784dec1efd1d64dffa8be6cb
+std android_source.zip a15416b528efb0a19a7d187e4d9f4e5336d0689144b111329fb4bd12c4447ad3
+std ios.zip fd3280d10dc75356dded006f6f8813f40a5aebd32d128592b781256d8ffbdff4
+std linux_debug.arm32 7cce41b7d7500f53ba0d8d510e8af451174ead789e3ae24ea5fdf4d3be2f6f57
+std linux_debug.arm64 90012db01738360cd8e84f8561fc4ec59d23c3a9247d9223d4f6412238d462be
+std linux_debug.x86_32 3b52743c3968e1b1a3924983c5162a113c2bf4e187ae8c953b81e001265cba65
+std linux_debug.x86_64 1a291d3d15e4180b60b0af96cf6458f11fe143636d76575ddf1e23d1a3f24f2e
+std linux_release.arm32 fd5efa474a4b7e936e91b6cdbdfe1e94e11415377600e490209d72dd0a08ee7b
+std linux_release.arm64 f252aaad156ca8afd614ab463445c61b9d5b4daa85e058d77586c3284d300f00
+std linux_release.x86_32 9fb91a3df61c81490006b07f72f0da5468f3981865af6d3900995aeb0e07509e
+std linux_release.x86_64 d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63
+std macos.zip 88df5e2e6fee99088699be66e6d42e4da4fb0c5619d054297d755a49558a4792
+std version.txt 38885c88f75abbc797a1db7559719800279a00cfb9fa8b2e2868a7f6f84bad2e
+std windows_debug_arm64_console.exe 2b1d5d083f25ddfca3399fbe1a44543659b6e636c127da1b0837c3191e927bc6
+std windows_debug_arm64.exe 37108f059e3650e84ffef6f233ea45df765e9e9bdca1ae1199cf77b913b0228e
+std windows_debug_x86_32_console.exe c3a0a3737f0129a9081960d338ccdb92a2bd2602f2d732c9a1b2468fe40028e8
+std windows_debug_x86_32.exe 73c404c39332e12aa19725431b35f61538954a13f5bc5ff0157990f2633d9966
+std windows_debug_x86_64_console.exe 5514c7645ee897a01f540d3cf22ede5badf92394521a08bfab66a54d7369e6e6
+std windows_debug_x86_64.exe 51498b72b3a237f882ebd7d1787f06a4bc1eaf0572daab93837adcfd3cfdc107
+std windows_release_arm64_console.exe cd58b045a810019aa769d0e40d6397c30fea0dcc1f7cc707f5e6cb1a73ba8ce7
+std windows_release_arm64.exe 7a2ccd688f6c3d53d2d67878bc98a96bebe8463bf97acf986b9c2c9e1ba9a292
+std windows_release_x86_32_console.exe 15b0887cf2a87e409abce06fedc263bec8e624745c64745b7042b37386532d3e
+std windows_release_x86_32.exe 74015a09ab40dd9250ad233df883990e724a620128f03d15afc9e3b5f2a01b29
+std windows_release_x86_64_console.exe 52bdcae9068e8d23b840e5c63b0c1798ffe2cb66144e5c4bc7af11fb8c8600df
+std windows_release_x86_64.exe d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562
