@@ -78,6 +78,10 @@ public partial class MainCompositionProof : SceneTree
             return;
         }
         _main = packed.Instantiate<Node3D>();
+        // MC 11297 (D5): opt out of the production boot wild so the composition
+        // census (one camera, one player, the boot bodies) stays byte-identical;
+        // set-before-AddChild.
+        if (_main is WorldDirector d) d.SetWildSpawnEnabled(false);
         Root.AddChild(_main);
         GD.Print("MAIN_COMPOSITION_PROOF: main.tscn instantiated");
 

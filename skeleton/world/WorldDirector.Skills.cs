@@ -101,24 +101,41 @@ public partial class WorldDirector
         {
             var unlocked = PlayerMutations.Unlocked(
                 EcosystemAdaptation.ModelPlayerDna(_spokenDna));
-            if (_skills.TryInvertStrike(unlocked.InvertStrike))
+            // MC 11297 (D6 fix): a LOCKED press stays silent (the 2e idiom, and
+            // Calming Speak's locked-return) — but an UNLOCKED press refused on
+            // BALANCE now prints, mirroring the Calming Speak REFUSED line. The
+            // playthrough (MC 11270 D6) found the balance refusal SILENT: the
+            // player pressed R/F, saw nothing, nothing spent, no reason. The
+            // gate seam (PollSkillActions guard above) is off before this arm,
+            // so a seam-off press never reaches the print either.
+            if (!unlocked.InvertStrike) return;   // locked spends nothing, stays quiet
+            if (_skills.TryInvertStrike(true))
             {
                 _bus.EmitSkillUsed(new SkillId(PlayerMutations.InvertStrikeId));
                 GD.Print($"W3: skill_1 -> Invert Strike ARMED (Manna={_player.Manna})");
+            }
+            else
+            {
+                GD.Print($"W3: skill_1 -> Invert Strike REFUSED — short balance (Manna={_player.Manna}, nothing spent)");
             }
         }
         else if (Input.IsActionJustPressed("skill_2"))
         {
             var profile = EcosystemAdaptation.ModelPlayerDna(_spokenDna);
             var unlocked = PlayerMutations.Unlocked(profile);
+            if (!unlocked.Mend) return;   // locked spends nothing, stays quiet (2e idiom)
             // MC 10200 S16: the Deep Mend band read LIVE from the SAME
             // profile the unlock read uses — one modelling per press.
             var passives = PlayerMutations.Passives(profile);
-            if (_skills.TryMend(unlocked.Mend, passives.MendHealBonus))
+            if (_skills.TryMend(true, passives.MendHealBonus))
             {
                 _bus.EmitSkillUsed(new SkillId(PlayerMutations.MendId));
                 if (_hud != null) _hud.UpdateLife(_player.Health);
                 GD.Print($"W3: skill_2 -> Mend (HP={_player.Health}, Manna={_player.Manna})");
+            }
+            else
+            {
+                GD.Print($"W3: skill_2 -> Mend REFUSED — short balance (Manna={_player.Manna}, nothing spent)");
             }
         }
         else if (Input.IsActionJustPressed("skill_3"))

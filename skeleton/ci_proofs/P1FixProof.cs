@@ -90,6 +90,9 @@ public partial class P1FixProof : SceneTree
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
         _main = packed.Instantiate<Node3D>();
+        // MC 11297 (D5): opt out of the production boot wild (a stray recruit-able
+        // body would drift the wage/empathy/fall choreography); set-before-AddChild.
+        if (_main is WorldDirector d) d.SetWildSpawnEnabled(false);
         // MC 10404 fall_recovered: capture the PRISTINE scene spawn — the same
         // un-moved transform the director reads as _spawnOrigin in its _Ready
         // (physics has not ticked yet: this runs between Instantiate and

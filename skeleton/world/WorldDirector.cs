@@ -226,6 +226,14 @@ public partial class WorldDirector : Node3D
 
         InitRoster();   // MC 3943 2g: boot companion = roster[0] (Roster partial)
         EnterZone(_zone);
+        // MC 11297 (D5 fix): field the boot zone's one recruit-able wild AFTER
+        // the zone is mounted + its ground resolved (the wild co-location clamps
+        // onto the loaded ground), so the player-guide promise "recruit a wild
+        // creature" (E + first wage; Calming Speak F opens the SAME offer at cast
+        // range, wage still the only join) is REACHABLE from shipped input. The
+        // seam SpawnWildFollower and this production field both build through
+        // the shared SpawnWildNear (replace-not-add). Gated + idempotent.
+        FieldBootWild();
         GD.Print($"W3DBG: director ready (composition root) player={(Player != null)} uicanvas={(UICanvas != null)} enemies={_enemies.Count} origin={origin}");
     }
 

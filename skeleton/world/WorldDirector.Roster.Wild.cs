@@ -88,11 +88,58 @@ public partial class WorldDirector
         return true;
     }
 
+    // MC 11297 PRODUCTION gate: the shipped game field ONE recruit-able wild
+    // creature in the boot zone so the player-guide.md promise (lines 52-55:
+    // "recruit a wild creature by interacting with it (E) and paying its first
+    // wage (P)") and the Calming Speak skill (line 91: "the nearest castable
+    // wild creature … is calmed into a recruit offer") are REACHABLE from
+    // shipped input. Before this card SpawnWildNear stood behind the test seam
+    // ONLY, so F always printed REFUSED in production (MC 11270 D5). The gate
+    // mirrors SetSpawningEnabled: default ON (the product promise), one bool,
+    // every caller re-checks at delivery; proofs whose wild choreography
+    // predates this content flip it off before AddChild (the no_spawn idiom)
+    // so their hand-driven wild stays the sole target, and the tame proof
+    // leaves it ON — that IS the production path.
+    private bool _wildSpawnEnabled = true;
+    // One wild per run: fielded at the boot zone only, never re-fielded on
+    // travel/boss-re-entry (no duplicate, no zone-clear interaction with the
+    // enemy set). The recruit join already removes the body from _wild.
+    private bool _wildFielded;
+
+    /// <summary>Gate seam (design §4.2, SetSpawningEnabled idiom): disable the
+    /// production wildlife fielding so a proof's own SpawnWildFollower seam is
+    /// the sole wild. Off means a wild exists ONLY where a proof puts one.</summary>
+    public void SetWildSpawnEnabled(bool enabled) => _wildSpawnEnabled = enabled;
+
+    /// <summary>PRODUCTION field (MC 11297, the D5 fix): called from _Ready AFTER
+    /// EnterZone (so the zone is mounted + its ground resolved and the wild's
+    /// co-location clamps onto loaded ground), fields the zone's single recruit-able wild through the
+    /// SHARED SpawnWildNear path — the seam and production are the only two
+    /// wild composers and both build through it (replace-not-add). Idempotent:
+    /// the flag makes boot the sole field point.</summary>
+    private void FieldBootWild()
+    {
+        if (!_wildSpawnEnabled || _wildFielded) return;
+        _wildFielded = true;
+        SpawnWildNear(_spawnOrigin);
+    }
+
     /// <summary>TEST SEAM (design §4.2 idiom): spawn a WILD creature near the
-    /// player — interact offers, pay_wage recruits. Content wiring (wild spawn
-    /// from the ecosystem table) is a later card; the roster mechanic is proven
-    /// through this seam exactly as a player drives it (in-play input).</summary>
+    /// player — interact offers, pay_wage recruits. The roster mechanic is
+    /// proven through this seam exactly as a player drives it (in-play input);
+    /// MC 11297 wired the PRODUCTION path (FieldBootWild) through the SAME
+    /// SpawnWildNear, so the seam is the shared code path, not a parallel one.</summary>
     public void SpawnWildFollower()
+    {
+        Vector3 p = Player?.GlobalPosition ?? Vector3.Zero;
+        SpawnWildNear(p + new Vector3(2.5f, 0f, 0f));
+    }
+
+    /// <summary>The ONE wild-body composer (the shared code path): builds a
+    /// WILD CompanionFollowBody at <paramref name="anchor"/>, ground-clamped
+    /// (Target null → stands its ground). Both the test seam (SpawnWildFollower)
+    /// and production (FieldBootWild) enter here — one implementation.</summary>
+    private void SpawnWildNear(Vector3 anchor)
     {
         int eid = _nextWildEntityId++;
         var comp = new LastAnimal.Npc.CompanionComponent { Id = eid };
@@ -110,15 +157,14 @@ public partial class WorldDirector
             EntityId = eid,
             BoundFollower = follower,
         };
-        Vector3 p = Player?.GlobalPosition ?? Vector3.Zero;
         AddChild(body);                              // enters the tree FIRST (Godot 4.7: GlobalPosition requires it)
-        // MC 10420 (10026.29): the co-location lands ON the ground — this seam
+        // MC 10420 (10026.29): the co-location lands ON the ground — this site
         // placed wild id 24 18 m past the meadow edge during calm_use's off-
         // edge choreography, and every later co-location onto that body dragged
         // the player below the plane (the 2 census FALL_RECOVERED the MC 10423
         // reason line names). The SAME ClampToGround bound that owns enemy
         // MOTION bounds this placement — one mechanism.
-        body.GlobalPosition = ClampToGround(p + new Vector3(2.5f, 0f, 0f));
+        body.GlobalPosition = ClampToGround(anchor);
         // MC 10420 c2 F-DA1: WireFollowClamp is UNGATED at every body spawn
         // site (boot, restored, this wild one), so the GroundClamp delegate is
         // LIVE here from the spawn — a wild body merely lacks a Target, and

@@ -130,6 +130,18 @@ public partial class RuntimeIntegrationProof : SceneTree
             dsky.SetSpawningEnabled(false);
             dsky.SetDayNightPaused(true);
         }
+        // MC 11297 (D5 fix): the production path now fields ONE recruit-able
+        // wild at boot (FieldBootWild), gated behind SetWildSpawnEnabled — the
+        // shipped game leaves it ON (the player-guide recruit promise); this
+        // proof harness turns it OFF for EVERY mode except the tame proof, so
+        // every pre-existing leg keeps its exact wild-free boot (byte-identical
+        // choreography: a boot wild would otherwise become the nearest interact/
+        // calm target — calm_use's "+60 m then E re-offers" leg is the proof).
+        // tame_use is the ONE mode that leaves it ON — that IS the production
+        // path; tame_neg opts out too (its "REFUSED — no castable target" is
+        // the before-fix transcript the negative control names). Set BEFORE
+        // AddChild (the no_spawn idiom: the director fields in _Ready at AddChild).
+        if (_mode != "tame_use" && main is WorldDirector dwild) dwild.SetWildSpawnEnabled(false);
         Root.AddChild(main);
 
         _main = main;

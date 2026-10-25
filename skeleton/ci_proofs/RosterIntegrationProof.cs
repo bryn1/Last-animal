@@ -102,6 +102,11 @@ public partial class RosterIntegrationProof : SceneTree
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
         _main = packed.Instantiate<Node3D>();
+        // MC 11297 (D5): production now fields a boot wild; this proof drives
+        // its OWN wild through the SpawnWildFollower seam (the public seam is
+        // unaffected by this gate), so opt out of the production field to keep
+        // the roster choreography byte-identical (set-before-AddChild).
+        if (_main is WorldDirector d) d.SetWildSpawnEnabled(false);
         Root.AddChild(_main);
     }
 

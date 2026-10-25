@@ -104,6 +104,8 @@ using System.Linq;
 //                     load-cleared (RuntimeIntegrationProof.CalmingSpeak.cs).
 //   calm_neg        — the same seam off: a funded unlocked calm press leaks
 //                     nothing (NEG_CALM), exit non-zero.
+//   tame_use        — MC 11297 D5+D6: boot wild tamed via the calm→offer→first-wage join, NO seam (TAME_RECRUITED); D6 Mend short-balance PRINTS (MEND_REFUSAL_PRINTED). Tame.cs stage 110.
+//   tame_neg        — MC 11297: wild gate OFF (before-fix) — the press finds no castable target, leaks nothing (NEG_TAME), exit non-zero.
 //   bus_emit        — MC 10098 Inc-3 S0: the four CONSUMER-FACING presentation
 //                     emits (DialogueShown/DialogueClosed/PlayerHurt/
 //                     BossFallen) fire EXACTLY ONCE per edge on the live
@@ -404,7 +406,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "positive", "no_bus", "no_spawn", "no_controller", "no_dna",
         "save", "save_bad_version", "dna_speak", "no_interact",
         "quest_arc", "quest_persist", "quest_neg", "quest_arc2",
-        "skill_use", "skill_neg", "passives", "calm_use", "calm_neg",
+        "skill_use", "skill_neg", "passives", "calm_use", "calm_neg", "tame_use", "tame_neg",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
         "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
@@ -476,7 +478,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         _stageFrames++;
         // quest_arc runs the full 5-quest arc (wage grace clock + kill farm +
         // boss): it needs the larger budget defined in the Quests partial.
-        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
+        int budget = _mode is "quest_arc" or "quest_persist" or "quest_arc2" or "ACT_THREE" or "skill_use" or "skill_neg" or "calm_use" or "calm_neg" or "tame_use" or "tame_neg" or "bus_emit" or "passives" or "BOSS_FRAME" ? QuestFrameBudget : FrameBudget;
         // MC 11018 S45: the CAMERA_RIG_ISO CAPTURE arm parks the live scene
         // for the graphical-test-helper framebuffer grab — the run's external
         // timeout is its watchdog; the in-leg budget would quit before the
@@ -590,6 +592,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             // MC 11088 S48 FIX-ROUND-1 (DA F1): sky-strip render probe (stage 109 —
             // UNIQUE number; body lives in RuntimeIntegrationProof.SkyStrip.cs).
             case 109: RunSkyStripStage(); break;
+            case 110: RunTameStage(); break;
         }
         return false;
     }

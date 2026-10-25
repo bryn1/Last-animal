@@ -270,6 +270,21 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // tame_use / tame_neg (MC 11297 D5+D6): the PRODUCTION tame chain —
+        // farm to unlock, tame the boot-zone wild (FieldBootWild, the D5 fix)
+        // via the PRODUCTION calm→offer→wage join (no test seam), then prove
+        // the Mend short-balance refusal PRINTS (D6). Routes after the enemy
+        // guard (it farms the live meadow set). tame_use is the ONLY mode that
+        // leaves the production wild gate ON (InitializeBootGates). Stage body
+        // lives in RuntimeIntegrationProof.Tame.cs.
+        if (_mode is "tame_use" or "tame_neg")
+        {
+            _stage = 110;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (tame mode) — enemies={_enemies.Count} manna={_director.PlayerModel.Manna} wilds={_director.WildBodies.Count}");
+            return;
+        }
+
         // JUICE_HITFLASH (MC 10120 S1): the juice stage drives its own single
         // hit (frozen target, one attack press on the real wire); route to
         // stage 95 — stage body lives in RuntimeIntegrationProof.Juice.cs.

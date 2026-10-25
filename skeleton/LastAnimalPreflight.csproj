@@ -336,6 +336,13 @@
          capture leg, ci/ui_test.sh leg J. Appended at the ItemGroup END
          (S2 Shake.cs precedent). -->
     <Compile Include="tests/ui/HudDialogueOverlapTest.cs" />
+    <!-- MC 11297 (D5+D6): the PRODUCTION tame proof partial (modes tame_use /
+         tame_neg, stage 110 — UNIQUE number): tame the boot-zone wild through the
+         real calm→offer→first-wage join with NO test seam (the D5 production field,
+         FieldBootWild behind SetWildSpawnEnabled), + the D6 short-balance Mend
+         refusal-witness (emits nothing, spends nothing, the named director line on
+         the wire). Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.Tame.cs" />
   </ItemGroup>
 
 </Project>

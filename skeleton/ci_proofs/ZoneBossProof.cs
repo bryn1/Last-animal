@@ -87,6 +87,9 @@ public partial class ZoneBossProof : SceneTree
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
         _main = packed.Instantiate<Node3D>();
+        // MC 11297 (D5): opt out of the production boot wild (a stray recruit-able
+        // body would drift the boss/threshold + travel counts); set-before-AddChild.
+        if (_main is WorldDirector d) d.SetWildSpawnEnabled(false);
         Root.AddChild(_main);
     }
 

@@ -132,6 +132,9 @@ public partial class BridgeMvpProof : SceneTree
         var packed = GD.Load<PackedScene>("res://main.tscn");
         if (packed == null) { Fail("cannot load res://main.tscn"); return; }
         Node3D main = packed.Instantiate<Node3D>();
+        // MC 11297 (D5): opt out of the production boot wild (the MVP bridge's
+        // enemy/kill counts stay byte-identical); set-before-AddChild.
+        if (main is WorldDirector d) d.SetWildSpawnEnabled(false);
         Root.AddChild(main);
         _main = main;
     }
