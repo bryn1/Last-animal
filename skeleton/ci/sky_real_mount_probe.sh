@@ -31,8 +31,8 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-PROJ="${1:-$(dirname "$HERE")}"
-# MC 11243 F4 pointer: PROJ is NOT absolutized here (latent style — this script passes no LA_*CAP*_PATH env to the engine, MC 11152 sibling audit); if one is ever added, adopt the MC 11152 cd-and-pwd idiom — see the PROJ= block at the top of skeleton/ci/runtime_integration_test.sh.
+PROJ="$(cd "${1:-$(dirname "$HERE")}" && pwd)"
+# MC 11243 F-DA1 fix (P2): PROJ is ABSOLUTIZED here with the MC 11152 cd-and-pwd idiom (as in skeleton/ci/runtime_integration_test.sh's PROJ= block). Unlike the ci siblings this probe DOES pass LA_SKYCAP_PATH to the engine AND -s-checks it shell-side; the engine chdirs to the project dir for --path, so a relative PROJ made the capture land DOUBLED under the project while the shell checked the un-doubled path (the MC 11152 class, LIVE here under a relative project arg). Closure pair: .audits/202610250915-1243/out/f_da1_*.log.
 : "${GODOT:?set GODOT to the engine binary (see the repo engine/PIN.txt)}"
 CAP="${LA_SKYCAP_PATH:-$PROJ/.tmp/s50-sky}"
 PROOF="res://ci_proofs/RuntimeIntegrationProof.cs"
@@ -55,6 +55,11 @@ dotnet build "$PROJ/LastAnimalPreflight.sln" -c Debug \
   || fail "dotnet build exited nonzero (C# build failed via the dotnet route)"
 
 # (2) GREEN leg — windowed real-mount probe (the battery's spawn idiom verbatim)
+# MC 11243 F3 symmetry (P3, fix round): pre-spawn rm of EACH capture target,
+# BESIDE the -s checks below — the proof re-creates the dir (SkyStrip.cs
+# Directory.CreateDirectory), so the rm cannot strand a write; closes the
+# stale-plate class on a re-run of this probe (same law as the battery's rm lines).
+rm -rf "$CAP"
 LOGSKY="$(LA_SKYCAP_PATH="$CAP" LA_GATE_MODE=SKY_STRIP xvfb-run -a timeout 300 "$GODOT" --path "$PROJ" --script "$PROOF" 2>&1)" \
   || { printf '%s\n' "$LOGSKY" | tail -30 >&2; fail "SKY_STRIP: the windowed real-mount probe exited nonzero (named FAIL lines above)"; }
 [[ "$LOGSKY" == *'FXSKY_RENDERER method=gl_compatibility'* ]] \
@@ -84,6 +89,7 @@ echo "SKY_REAL_MOUNT: green pair OK (captures: $(ls -la "$CAP" | awk 'NR>1{print
 # (3) RED pair — planted alpha-0 PRODUCT material (gate-red law; the plant is
 # a RUNTIME override swap inside the mounted scene; the scene file is never written)
 PLRC=0
+rm -rf "$CAP-red"  # MC 11243 F3 symmetry: pre-spawn rm of the red-leg capture target (see the green-leg note)
 LOGPL="$(LA_SKYCAP_PATH="$CAP-red" LA_GATE_MODE=SKY_STRIP_PLANT xvfb-run -a timeout 300 "$GODOT" --path "$PROJ" --script "$PROOF" 2>&1)" || PLRC=$?
 [[ $PLRC -ne 0 ]] || { printf '%s\n' "$LOGPL" | tail -20 >&2; fail "SKY_STRIP_PLANT: the planted-bad leg EXITED GREEN — the checks are VACUOUS (a transparent product strip cannot pass the paint gate)"; }
 [[ "$LOGPL" == *'SKY_STRIP_RENDER_FAIL'* && "$LOGPL" == *'FXSKY_PLANT_RED'* ]] \
