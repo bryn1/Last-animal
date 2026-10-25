@@ -203,6 +203,7 @@ public partial class WorldDirector
                 _dayNightLight, _dayNightWorldEnv);
             _dayNightAppliedFrame = _dayNightNextFrame;
         }
+        SkyStripDimApply(_dayNightNextFrame);   // MC 11269: the strip follows the parked row too
     }
 
     // The world tick: fixed 60 Hz physics (F4 — integer ticks, never delta
@@ -224,6 +225,9 @@ public partial class WorldDirector
             _dayNightLight, _dayNightWorldEnv);
         _dayNightAppliedFrame = _dayNightNextFrame;
         _dayNightNextFrame = (_dayNightNextFrame + 1) % DayNightTuning.DayLengthFrames;
+        // MC 11269 S51-SKY-DIM: the canyon strip rides the SAME row the sky +
+        // light were just written from (world/WorldDirector.SkyStrip.cs).
+        SkyStripDimApply(_dayNightAppliedFrame);
     }
 
     // Resolve the SHIPPED zone nodes (S15: nothing new in scenes — the tscn
