@@ -1,4 +1,4 @@
-// SIZE: 568 l by wc AT this rebased head (MC 11295 +1: the quest_mono dispatch arm — the body lives in the
+// SIZE: 571 l by wc AT this rebased head (the SIZE header re-wrap itself is +3 — self-correction: the rebase-payoff commit message said 568, the wc AT this head is 571) (MC 11295 +1: the quest_mono dispatch arm — the body lives in the
 // 268-l .QuestMono.cs partial; MC 11294 grew this file +7: the keep-alive seams on QKillLoop/QBossAttackLoop
 // — revive ONLY when already dead, the honest-death agency law; test-class ceiling 600, MC 10029 header note;
 // body splits owed to later waves).
