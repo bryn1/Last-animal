@@ -16,6 +16,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PROJ="${1:-$(dirname "$HERE")}"
+# MC 11243 F4 pointer: PROJ is NOT absolutized here (latent style — this script passes no LA_*CAP*_PATH env to the engine, MC 11152 sibling audit); if one is ever added, adopt the MC 11152 cd-and-pwd idiom — see the PROJ= block at the top of skeleton/ci/runtime_integration_test.sh.
 : "${GODOT:?set GODOT to the engine binary (see engine/PIN.txt)}"
 
 fail() { echo "SMOKE: FAIL: $*" >&2; exit 1; }
