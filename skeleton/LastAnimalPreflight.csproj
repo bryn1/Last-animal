@@ -319,6 +319,17 @@
          moved VERBATIM here — zero behaviour change; the entry keeps the mode
          doc, KnownModes, the mode read + fail-safe guard and the dispatch. -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.State.cs" />
+    <!-- MC 11269 / 10026.44.19 S51-SKY-DIM: the canyon strip dim driver —
+         PRESENTATION-ONLY partial riding the EXISTING day-night clock (reads
+         DayNightClock.Evaluate; factor = row LightEnergy / the zone's NOON
+         row: 1.0 EXACT at full day, canyon night floor 0.35/1.40 = 0.25;
+         continuous — no popping). Writes ONLY the mounted SkyStrip
+         material_override albedo (authored cached at bind); self-heals across
+         mount swaps (IsInstanceValid idiom, MC 10519 S27); zero new clock,
+         zero save fields (R7), zero bus signals. Two call lines added IN
+         PLACE in world/WorldDirector.DayNight.cs (the tick + the park seam).
+         Appended at the ItemGroup END (precedent). -->
+    <Compile Include="world/WorldDirector.SkyStrip.cs" />
   </ItemGroup>
 
 </Project>

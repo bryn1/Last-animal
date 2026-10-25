@@ -1,11 +1,14 @@
 using Godot;
 using LastAnimal.World;
 
-// SIZE reason (file hygiene law): 581 l by wc AT this head (the MC 11113
-// REAL-MOUNT rewrite grew the 11088 leg's 382 — travel choreography, the
-// two-pass wash-measured point selector and the plant-after-selection machine
-// are all ONE stage body): splitting a stage body mid-leg has no pairing-gate
-// precedent (body == arm, MC 10218).
+// SIZE reason (file hygiene law): 581 -> 713 l by wc AT this head (+132,
+// MC 11269 S51-SKY-DIM: the clock factor print, the delta-space wash law +
+// gain guard, the SKY_DIM read-back marker and the plant comment — all the
+// ONE stage body's own verdict law, not splittable; the MC 11113 REAL-MOUNT
+// rewrite grew the 11088 leg's 382 — travel
+// choreography, the two-pass wash-measured point selector and the
+// plant-after-selection machine are all ONE stage body): splitting a stage
+// body mid-leg has no pairing-gate precedent (body == arm, MC 10218).
 //
 // Last Animal — MC 11113 / 10026.44.12 S50-SKY: the SKY_STRIP leg UPGRADED IN
 // PLACE from the 11088 CI-side proxy to a REAL-MOUNT assertion. Option (b)
@@ -70,6 +73,20 @@ using LastAnimal.World;
 //         canyon's fog + tonemap/adjust grade lands near its bytes; the wash
 //         margin is printed either way).
 // Non-vacuous (gate-red law): SKY_STRIP_PLANT replaces the REAL backdrop's
+//     material_override with an alpha-0 copy (the FX_GLCOMPAT_PLANT mechanism
+//     applied to the PRODUCT mount — a TRANSPARENT shipped strip — whose RGB
+//     holds the DAY brightness the MC 11269 gate names as the plant: the NEW
+//     SKY_DIM read-back must print its named FAIL at the parked NIGHT anchor
+//     too, red beside green). MC 11269 law (world/WorldDirector.SkyStrip.cs):
+//     the shipped strip dims THROUGH ALPHA at night (albedo (authored.RGB,
+//     authored.A × factor), factor = evaluated row LightEnergy / zone NOON
+//     row — 1.0 EXACT at full day, canyon night floor 0.25); the wash law
+//     below therefore measures on-minus-base DELTAS (backdrop cancels per
+//     block, spacing scales with the factor EXACTLY) against f-scaled asset
+//     colors, with the render's own delta-gain guarded against the clock
+//     prediction. The RGB carrier measured dead this head (tonemap lift, gain
+//     0.6381 at factor 0.25 — transcript banked, alpha replaced it in the
+//     SAME card, the owner law unchanged).
 // material_override with an alpha-0 copy (the FX_GLCOMPAT_PLANT mechanism
 // applied to the PRODUCT mount — a TRANSPARENT shipped strip), the verdict
 // must print SKY_STRIP_RENDER_FAIL at the SAME points (marker FXSKY_PLANT_RED)
@@ -99,10 +116,18 @@ public partial class RuntimeIntegrationProof : SceneTree
                                                     // measured green transcript AT this head (the
                                                     // REAL-mount run: fog wash at ~48 m is <=0.10 of
                                                     // the fog color + the shipped tonemap/adjust grade)
-    private const float SkyMinPairwise = 0.15f;     // floor: three smooth DISTINCT asset colors, else
+    private const float SkyMinPairwise = 0.06f;     // floor: three smooth DISTINCT asset colors, else
                                                     // the mapping check proves nothing (a strip cannot
-                                                    // lie about its own palette)
-    private const float SkyMinMargin = 0.02f;       // TWO-PASS law (this head): for every ORDERED pair
+                                                    // lie about its own palette). MC 11269 restamp
+                                                    // 0.15->0.06: pairwise now compares DELTAS (the
+                                                    // per-block backdrop subtracts), and at the night
+                                                    // factor the whole palette scales — measured best
+                                                    // triple 0.241 this head (green transcript), the
+                                                    // original law's measured 0.159 sat just over the
+                                                    // old floor; 0.06 keeps the floor honest at the
+                                                    // scaled operating point (same law: restamp FROM
+                                                    // the measured margins, never pre-guess).
+    private const float SkyMinMargin = 0.004f;      // TWO-PASS law (this head): for every ORDERED pair
                                                     // of the selected triple, |rigPatch_i - asset_j| -
                                                     // |rigPatch_i - asset_i| >= margin — the DECISION
                                                     // ITSELF predicted from the deterministic skyrig
@@ -115,6 +140,12 @@ public partial class RuntimeIntegrationProof : SceneTree
                                                     // from this head's green transcript (best triple's
                                                     // render margin 0.035 under the NIGHT wash; restamp
                                                     // from the measured margins, the SkyMatchThr law).
+                                                    // MC 11269 restamp 0.02->0.004: the law is unchanged
+                                                    // but rides the DELTA space at the NIGHT factor,
+                                                    // where spacings carry the factor — measured best
+                                                    // margin 0.009 this head (green transcript; 4.5x the
+                                                    // settle tolerance 0.002 — decided, not vacuous; the
+                                                    // margin re-prints every run BY this law).
     private const int SkyAssetR = 32;               // asset-space footprint of the painted 7x7 screen patch
     private const float SkyFlatMax = 0.04f;         // HONEST-POINT law: keep only locally-flat asset blocks
     private const int SkyPressFrames = 6;           // the shipped travel press-settle window (ZmPressFrames)
@@ -137,6 +168,8 @@ public partial class RuntimeIntegrationProof : SceneTree
     private Camera3D? _skyLiveCam;                  // the shipped rig the probe mirrors
     private float _skyQuadW, _skyQuadH;             // read from the mounted QuadMesh
     private bool _skyPlant;
+    private float _skyDimF = 1f;                // MC 11269: the clock factor at the parked anchor (FXSKY_DIM) — the alpha law's expectation scale
+    private const float SkyDimGainTol = 0.08f;  // MC 11269: delta-gain vs clock-prediction tolerance — DOCUMENTED from this head's green transcript (the backdrop term of the alpha blend; restamp by the same measured-margin law as SkyMatchThr)
     private readonly System.Collections.Generic.List<(float U, float V, Color Asset)> _skyPts = new();
 
     // skyrig FIRST: the product as authored (strip VISIBLE) — the wash MEASUREMENT
@@ -289,6 +322,21 @@ public partial class RuntimeIntegrationProof : SceneTree
         { Fail($"SKY_STRIP: the NIGHT park did not land on the exact anchor row (top={skyMat.SkyTopColor} want={key.SkyTop}, horizon={skyMat.SkyHorizonColor} want={key.SkyHorizon}) — the captured clock is not the asserted one"); return; }
         GD.Print($"LA_GATE: FXSKY_CLOCK_PARKED frame={DayNightClock.NightFrame} top={key.SkyTop} horizon={key.SkyHorizon} — procedural sky ALIVE under the strip (DayNight kept; option (b) ruling)");
 
+        // 5b. MC 11269 / 10026.44.19 S51-SKY-DIM: the shipped strip now DIMS
+        // with this SAME clock (world/WorldDirector.SkyStrip.cs — factor = the
+        // evaluated row's LightEnergy normalised by the zone's NOON row, the
+        // product's own formula re-derived here from the shipped pure clock,
+        // zero new mechanism). At the parked NIGHT anchor canyon sits at
+        // 0.35/1.40 = 0.25 of authored brightness, so the painted-vs-asset
+        // expectations below are asset × factor: the leg still measures
+        // PAINTED-AT-RUN-DERIVED-POINTS and MAPPED-AS-AUTHORED (the existing
+        // markers' semantics are UNCHANGED), only the authored reference
+        // color now carries the clock law. The material WRITE itself is read
+        // back by name in SkyVerdicts (marker SKY_DIM, planted pair included).
+        _skyDimF = DayNightClock.Evaluate("canyon", DayNightClock.NightFrame).LightEnergy
+                 / DayNightClock.Evaluate("canyon", DayNightClock.NoonFrame).LightEnergy;
+        GD.Print($"LA_GATE: FXSKY_DIM factor={_skyDimF:0.0000} — strip brightness rides the parked clock ON THE ALPHA CHANNEL (MC 11269: night row LightEnergy / NOON row; the shipped strip renders mix(backdrop, texel, factor), so the wash law measures on-minus-base DELTAS with f-scaled asset expectations; the marker greps unchanged)");
+
         // 6. Points are selected AFTER the skyrig capture (two-pass, wash-aware —
         // the render itself scores the candidates); the asset bytes are kept.
         _skyAssetImg = img;
@@ -336,7 +384,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     /// or SkyMinMargin the leg FAILS LOUD: a strip that cannot show three
     /// smooth, render-distinct colors cannot prove a mapping, and the lie would
     /// be the probe's, not the asset's.</summary>
-    private bool SkySelectPoints(Image img, Image rig)
+    private bool SkySelectPoints(Image img, Image rig, Image baseImg)
     {
         int W = img.GetWidth(), H = img.GetHeight();
         var cand = new System.Collections.Generic.List<(float U, float V, Color C, Color Patch, float Wash)>();
@@ -354,10 +402,46 @@ public partial class RuntimeIntegrationProof : SceneTree
                 var sp = SkyScreen(SkyWorld(u, v));
                 if (sp.X < SkyPatchR + 2 || sp.Y < SkyPatchR + 2 || sp.X > 640 - SkyPatchR - 2 || sp.Y > 360 - SkyPatchR - 2) continue;   // out of the shipped view — cannot be pixel-checked
                 var pc = SkyPatchMean(rig, sp, SkyPatchR);
-                cand.Add((u, v, c, pc, SkyColorDist(pc, c)));
+                cand.Add((u, v, c, pc, 0f));
             }
         if (cand.Count < 3)
         { Fail($"SKY_STRIP: RUN-derived sample points are NOT honest — only {cand.Count} flat, in-view candidates: this strip cannot offer three smooth sampleable colors, so a render verdict here would be vacuous (named, not silently passed)"); return false; }
+        // MC 11269 S51-SKY-DIM — the wash law in the ALPHA-DELTA space. The
+        // shipped product dims the strip at NIGHT through the alpha channel
+        // (world/WorldDirector.SkyStrip.cs: albedo (authored.RGB, ×factor) on
+        // the ALPHA-blended unshaded quad), so the painted frame reads
+        // mix(bg, texel, f) — the ABSOLUTE-space wash is dominated by the
+        // backdrop at the dimmed brightness (measured with the RGB carrier
+        // this head: tonemap lifted albedo-0.25 to gain 0.6381, mapping margin
+        // -0.021, leg RED by name — the transcript of that dead end is banked
+        // at out/sky_proof_green.log). The delta against the SAME view with
+        // the strip HIDDEN — d = on − base, exactly what the PAINT check (a)
+        // already measures — cancels the per-block backdrop and scales with f
+        // EXACTLY: expectations ride f × the shipped asset colors, wash and
+        // margins are decided in that space, and the render's own effective
+        // gain over the deltas is GUARDED against the clock prediction (the
+        // fit never replaces the law; alpha 0.5 measured the delta gain
+        // ~0.43 — the residual backdrop term is why the guard is a tolerance,
+        // not an equality).
+        var deltas = new System.Collections.Generic.List<(float U, float V, Color C, Color D)>();
+        foreach (var cd in cand)
+        {
+            var bp = SkyPatchMean(baseImg, SkyScreen(SkyWorld(cd.U, cd.V)), SkyPatchR);
+            deltas.Add((cd.U, cd.V, cd.C, new Color(cd.Patch.R - bp.R, cd.Patch.G - bp.G, cd.Patch.B - bp.B)));
+        }
+        float num = 0f, den = 0f;
+        foreach (var dl in deltas)
+        {
+            num += dl.D.R * dl.C.R + dl.D.G * dl.C.G + dl.D.B * dl.C.B;
+            den += dl.C.R * dl.C.R + dl.C.G * dl.C.G + dl.C.B * dl.C.B;
+        }
+        float gd = den > 0f ? num / den : 0f;
+        GD.Print($"LA_GATE: FXSKY_GAIN delta-space={gd:0.0000} predicted={_skyDimF:0.0000} (least-squares gain of the on-minus-base block deltas over the shipped bytes, all {deltas.Count} flat blocks — the RENDER owns the measurement; the parked clock GUARDS it, MC 11269 alpha law)");
+        if (Mathf.Abs(gd - _skyDimF) > SkyDimGainTol)
+        { Fail($"SKY_STRIP: the rendered strip's own delta gain {gd:0.0000} deviates from the clock-predicted factor {_skyDimF:0.0000} by more than {SkyDimGainTol} — the product is NOT dimming to the day-night clock factor (MC 11269 guard: the fit rides the clock law, it never replaces it)"); return false; }
+        cand.Clear();
+        foreach (var dl in deltas)
+            cand.Add((dl.U, dl.V, dl.C, dl.D, SkyColorDist(dl.D, SkyDim(dl.C))));   // wash = |d − f×asset| (delta space)
         // Margin-maximizing triple over ALL flat in-view candidates (brute force,
         // one-shot ~8M ops — and NEVER pre-filter by wash: sorting ascending by
         // |patch-asset| pre-selects the DARK MUTED blocks whose pairwise spread
@@ -365,9 +449,9 @@ public partial class RuntimeIntegrationProof : SceneTree
         // the honest pool needs its high-contrast blocks in the scoring).
         int k = cand.Count;
         float bestScore = float.MinValue; int bi = 0, bj = 0, bk = 1;
-        static float ordMargin((float U, float V, Color C, Color Patch, float Wash) i,
-                               (float U, float V, Color C, Color Patch, float Wash) j)
-            => SkyColorDist(i.Patch, j.C) - i.Wash;   // >0: painted i is nearer its own block than j's
+        float ordMargin((float U, float V, Color C, Color Patch, float Wash) i,
+                        (float U, float V, Color C, Color Patch, float Wash) j)
+            => SkyColorDist(i.Patch, SkyDim(j.C)) - i.Wash;   // >0: delta-painted i is nearer its own block than j's (MC 11269: Patch carries the on-minus-BLOCK-REGION delta here; f-scaled expectations — a uniform scale cannot flip a nearest-own verdict, the mapping law is unchanged)
         for (int i = 0; i < k; i++)
             for (int j = i + 1; j < k; j++)
             {
@@ -450,19 +534,40 @@ public partial class RuntimeIntegrationProof : SceneTree
             _skyCaps[done] = _skyCapA;
             if (done == "skyrig")
             {
-                if (!SkySelectPoints(_skyAssetImg!, _skyCapA)) return;
-                // THE PLANT lands only AFTER the honest wash capture + selection —
-                // points are chosen against the product AS AUTHORED, never against
-                // the planted state (that would rig the red pair's own gate).
+                // MC 11269: the base (strip-HIDDEN) capture now rides BEFORE
+                // selection — the wash law measures d = on − base per block.
+                // No plant has landed yet; the plant still lands only AFTER
+                // the honest selection (points are chosen against the product
+                // AS SHIPPED, never against the planted state — that would
+                // rig the red pair's own gate).
+                _skyCapIdx++;
+                SkyStartCapture();
+                return;
+            }
+            if (done == "skybase")
+            {
+                if (!SkySelectPoints(_skyAssetImg!, _skyCaps["skyrig"], _skyCaps["skybase"])) return;
                 if (_skyPlant)
                 {
                     var plant = new StandardMaterial3D
                     {
                         ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
                         CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+                        // MC 11269: the plant rides the SAME channel as the
+                        // shipped dim law (alpha): RGB STAYS AT FULL authored
+                        // brightness — the plant IS the "night factor forced
+                        // to hold full brightness" plant the card's gate
+                        // names — while alpha 0 makes the strip vanish, so
+                        // the PAINT check keeps printing SKY_STRIP_RENDER_FAIL
+                        // (battery contract) AND the NEW SKY_DIM read-back
+                        // prints SKY_DIM_FAIL by name (alpha 0 ≠ clock factor
+                        // 0.25). Alpha mode (not the old ALWAYS blend): an
+                        // ALWAYS quad with alpha 0 may discard early at this
+                        // renderer and read as the ABSENT strip (delta 0,
+                        // paint FAIL) instead of the full-brightness plant.
                         Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
                         AlbedoTexture = GD.Load<Texture2D>("res://resources/generated/sky/canyon_sky_v1.png"),
-                        AlbedoColor = new Color(1f, 1f, 1f, 0f),   // alpha FORCED 0
+                        AlbedoColor = new Color(1f, 1f, 1f, 0f),   // alpha FORCED 0, RGB FULL
                     };
                     _skyBackdrop!.MaterialOverride = plant;
                     GD.Print("LA_GATE: FXSKY_PLANT APPLIED — the REAL mount's material_override is now an alpha-0 copy (a TRANSPARENT shipped strip in the mounted product scene; the scene file is never written)");
@@ -499,11 +604,13 @@ public partial class RuntimeIntegrationProof : SceneTree
             var (u, v, asset) = _skyPts[i];
             var sp = SkyScreen(SkyWorld(u, v));
             float delta = FxPatchDelta(on, base0, sp, SkyPatchR);
-            var paint = SkyPatchMean(on, sp, SkyPatchR);
-            float match = SkyColorDist(paint, asset);
+            var onP = SkyPatchMean(on, sp, SkyPatchR);
+            var bsP = SkyPatchMean(base0, sp, SkyPatchR);
+            var paint = new Color(onP.R - bsP.R, onP.G - bsP.G, onP.B - bsP.B);   // MC 11269: the DELTA patch (on − hidden-strip backdrop) — the backdrop the alpha blend mixes toward cancels per block
+            float match = SkyColorDist(paint, SkyDim(asset));   // MC 11269: delta-space expectation = factor × asset (see SkyDim)
             float cross = float.MaxValue;
             for (int j = 0; j < _skyPts.Count; j++)
-                if (j != i) cross = Mathf.Min(cross, SkyColorDist(paint, _skyPts[j].Asset));
+                if (j != i) cross = Mathf.Min(cross, SkyColorDist(paint, SkyDim(_skyPts[j].Asset)));
             bool painted = delta > SkyInThr, nearer = match < cross, within = match < SkyMatchThr;
             allPainted &= painted; allNearer &= nearer; allWithin &= within;
             GD.Print($"LA_GATE: SKY_STRIP measured pt{i} uv=({u:0.00},{v:0.00}) painted-delta={delta:0.0000} (thr>{SkyInThr}) match={match:0.0000} (thr<{SkyMatchThr}) cross={cross:0.0000} -> {(painted && nearer && within ? "OK" : "FAIL")}");
@@ -515,6 +622,23 @@ public partial class RuntimeIntegrationProof : SceneTree
 
         SaveSkyCaptures();
         if (_failed) return;
+
+        // MC 11269 / 10026.44.19: the DIM read-back — a NEW named marker, all
+        // existing marker lines above byte-unchanged. The shipped driver's
+        // per-tick/park write (world/WorldDirector.SkyStrip.cs) must leave the
+        // mounted strip's material albedo AT the clock factor at this parked
+        // NIGHT anchor. SKY_STRIP_PLANT's alpha-0 copy holds the strip at
+        // FULL RGB brightness — the plant must print SKY_DIM_FAIL by name
+        // (the gate proves it can go RED; the red leg then ends RED through
+        // the existing FXSKY_PLANT path, red riding beside green).
+        var dimAlb = (_skyBackdrop.MaterialOverride as StandardMaterial3D)?.AlbedoColor
+                     ?? new Color(-1f, -1f, -1f, -1f);
+        bool dimOk = dimAlb.A >= 0f
+            && Mathf.Abs(dimAlb.A - _skyDimF) <= 1e-4f
+            && Mathf.Abs(dimAlb.R - 1f) <= 1e-4f && Mathf.Abs(dimAlb.G - 1f) <= 1e-4f && Mathf.Abs(dimAlb.B - 1f) <= 1e-4f;
+        GD.Print($"LA_GATE: SKY_DIM factor={_skyDimF:0.0000} strip-albedo=({dimAlb.R:0.0000},{dimAlb.G:0.0000},{dimAlb.B:0.0000},{dimAlb.A:0.0000}) -> {(dimOk ? "SKY_DIM_OK — the mounted strip dims on the ALPHA channel TO the clock floor at the NIGHT anchor, RGB authored-white KEPT (MC 11269: alpha factor = night row LightEnergy / NOON row, the shipped clock law)" : "SKY_DIM_FAIL — the strip does NOT carry the clock alpha factor at the NIGHT anchor (full-alpha plant holding DAY brightness, RGB-carrier drift, or dead code)")}");
+        if (!dimOk && !_skyPlant)
+        { Fail("SKY_DIM: the clock-dim alpha write is NOT on the mounted strip's material at the parked NIGHT anchor — the MC 11269 taste fix is dead code (named FAIL, never silent)"); return; }
 
         if (_skyPlant)
         {
@@ -536,6 +660,15 @@ public partial class RuntimeIntegrationProof : SceneTree
     // a (2r+1)^2 box; asset colors are block means of the shipped bytes) ----
     private static float SkyColorDist(Color a, Color b) =>
         (Mathf.Abs(a.R - b.R) + Mathf.Abs(a.G - b.G) + Mathf.Abs(a.B - b.B)) / 3f;
+
+    // MC 11269: the clock-scaled authored color — the expectation for an
+    // on-minus-BLOCK-REGION delta (see SkySelectPoints: on − HIDDEN-STRIP
+    // backdrop = f × (asset − backdrop), whose backdrop term is bounded at the
+    // night anchor while the ASSET colors carry the mapping identity).
+    // Uniform RGB scale by the parked clock factor; alpha is the product's,
+    // untouched. Every painted-vs-asset comparison uses it.
+    private Color SkyDim(Color asset) =>
+        new(asset.R * _skyDimF, asset.G * _skyDimF, asset.B * _skyDimF);
 
     private static Color SkyAssetMean(Image img, int cx, int cy, int r)
     {
