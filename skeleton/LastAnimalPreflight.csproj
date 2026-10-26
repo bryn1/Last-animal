@@ -343,6 +343,15 @@
          refusal-witness (emits nothing, spends nothing, the named director line on
          the wire). Appended at the ItemGroup END (S2 Shake.cs precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.Tame.cs" />
+    <!-- MC 11296 / playthrough D4 (MC 11270): the opening-grace OBSERVER —
+         PRINT-ONLY partial: samples player Life once per whole second over
+         the first 20 s of the opening zone and prints the LA_GATE:
+         OPENING_GRACE lines the card's floor gate greps (print-only idiom,
+         MC 11037 GROUNDTEX precedent). Zero gameplay behavior; the fix
+         itself is the spawner's OpeningRing radius knob. Two call lines
+         added IN PLACE in world/WorldDirector.cs (the tick + the arm).
+         Appended at the ItemGroup END (precedent). -->
+    <Compile Include="world/WorldDirector.Grace.cs" />
   </ItemGroup>
 
 </Project>

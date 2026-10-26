@@ -160,6 +160,12 @@ public partial class RuntimeIntegrationProof : SceneTree
                     // Press attack 2 frames, release 2, repeat: the director's
                     // attack path fires on IsActionJustPressed with the player
                     // in range.
+                    // MC 11296: re-aim every 30 frames — the D4 grace ring
+                    // fields the camp at 12 m, so the target is still walking
+                    // at stage entry and the once-per-stage teleport raced its
+                    // settling. Choreography only; the input->kill assert is
+                    // unchanged; prints nothing (see Harness RepositionIntoRange).
+                    if (_stageFrames % 30 == 0) RepositionIntoRange();
                     _attackToggle++;
                     if (_attackToggle % 4 == 1) Input.ActionPress("attack");
                     else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");

@@ -96,8 +96,11 @@ public class EcosystemSpawner
     /// is "adapted enough" to field a boss in a deep zone.</summary>
     public const int BossThreshold = 4;
 
-    // Zone denizen tables: base enemy type, a fixed denizen count, and a boss
-    // tier (0 = none). meadow is the shallowest, hollow the deepest. (Zone ids
+    // Zone denizen tables: base enemy type, a fixed denizen count, a boss
+    // tier (0 = none), and an opening ring radius (0 = the standard 2 m-entry
+    // ring; > 0 fields THIS zone's denizens starting at that radius + slot —
+    // the MC 11296 grace knob, see ZoneTable.OpeningRing). meadow is the
+    // shallowest, hollow the deepest. (Zone ids
     // match the M07 zone scenes: zones/{meadow,canyon,ruins}/{zone}.tscn;
     // MC 10216 S18 APPENDS "hollow" as the deepest zone — table-only, no new
     // scene: the zone is the travel cycle + denizen table + day-night keyframes
@@ -109,7 +112,16 @@ public class EcosystemSpawner
     private static readonly IReadOnlyDictionary<string, ZoneTable> Tables =
         new Dictionary<string, ZoneTable>
         {
-            ["meadow"] = new ZoneTable(EnemyAI.Type.Goblin, 3, 0),
+            // MC 11296 (playthrough D4): the boot camp stood ON the spawn point
+            // (ring 2/3/4 m, INSIDE the goblin ChaseRange 5.0 in EnemyAI.cs) and
+            // an UNATTENDED fresh boot lost Life 100 -> 15-20 in ~15 s before the
+            // player could act. Tuned on THIS existing radius knob (no new AI):
+            // meadow's denizens field at 12/13/14 m — outside the 5 m aggro ring,
+            // so boot spawns patrol until the player walks INTO the camp (or the
+            // patrol random-walk drifts in, measured >= ~20 s unattended). The
+            // boss spawn point is a separate constant (MakeBoss) — the canyon
+            // boss is byte-identical, and canyon/ruins/hollow keep the 2 m ring.
+            ["meadow"] = new ZoneTable(EnemyAI.Type.Goblin, 3, 0, openingRing: 12f),
             ["canyon"] = new ZoneTable(EnemyAI.Type.Orc,    4, 1),
             ["ruins"]  = new ZoneTable(EnemyAI.Type.Skeleton, 5, 2),
             ["hollow"] = new ZoneTable(EnemyAI.Type.Wraith, 6, 3),
@@ -155,7 +167,7 @@ public class EcosystemSpawner
         for (int i = 0; i < count; i++)
         {
             var type = Escalate(table.BaseType, adaptation, i, count);
-            enemies.Add(MakeEnemy(type, adaptation, table.Depth, i));
+            enemies.Add(MakeEnemy(type, adaptation, table.Depth, i, table.OpeningRing));
         }
 
         if (table.BossTier > 0 && observed >= BossThreshold)
@@ -168,7 +180,8 @@ public class EcosystemSpawner
         return set;
     }
 
-    private SpawnedEnemy MakeEnemy(EnemyAI.Type type, float adaptation, int depth, int slot)
+    private SpawnedEnemy MakeEnemy(EnemyAI.Type type, float adaptation, int depth, int slot,
+                                   float openingRing = 0f)
     {
         var baseStats = StatsOf(type);
         int entityId = _nextEntityId++;
@@ -179,7 +192,7 @@ public class EcosystemSpawner
             health: (int)Math.Round(baseStats.Health * adaptation) + (depth * 5),
             damage: (int)Math.Round(baseStats.Damage * adaptation),
             speed: baseStats.Speed,
-            position: SlotPosition(slot),
+            position: SlotPosition(slot, openingRing),
             isBoss: false,
             entityId: entityId);
     }
@@ -238,15 +251,19 @@ public class EcosystemSpawner
         _ => (100, 25, 1.0f), // Demon
     };
 
-    private CombatVec3 SlotPosition(int slot)
+    private CombatVec3 SlotPosition(int slot, float openingRing = 0f)
     {
         // Ring of spawn points around the zone's entry so enemies are spread,
-        // not stacked. Deterministic from the slot index.
+        // not stacked. Deterministic from the slot index. MC 11296: the ring
+        // BASE is a per-zone tunable (ZoneTable.OpeningRing) — 0 keeps the
+        // 2.0 m entry ring (all shipped zones except meadow); meadow fields
+        // its opening camp outside the goblin aggro ring (see the Tables row).
         float angle = slot * 1.7f;
+        float radius = (openingRing > 0f ? openingRing : 2.0f) + slot;
         return new CombatVec3(
-            (float)Math.Cos(angle) * (2.0f + slot),
+            (float)Math.Cos(angle) * radius,
             0f,
-            (float)Math.Sin(angle) * (2.0f + slot));
+            (float)Math.Sin(angle) * radius);
     }
 
     private sealed class ZoneTable
@@ -255,12 +272,21 @@ public class EcosystemSpawner
         public int Denizens { get; }
         public int Depth { get; }
         public int BossTier { get; }
-        public ZoneTable(EnemyAI.Type baseType, int denizens, int bossTier)
+        /// <summary>MC 11296 opening-grace ring base (m). 0 = the standard
+        /// 2.0 m entry ring. Meadow alone raises it (12 m): the boot camp is
+        /// fielded OUTSIDE the base type's aggro (ChaseRange) ring so a fresh
+        /// boot cannot be mauled unattended (playthrough D4, measured Life
+        /// curves in .audits/202610251405-d4/). Slot spacing (+1 m/slot) and
+        /// the ring FORM are unchanged — this is the existing radius knob,
+        /// not a new mechanism.</summary>
+        public float OpeningRing { get; }
+        public ZoneTable(EnemyAI.Type baseType, int denizens, int bossTier, float openingRing = 0f)
         {
             BaseType = baseType;
             Denizens = denizens;
             Depth = denizens;   // depth tracks the denizen count (shallowest->deepest)
             BossTier = bossTier;
+            OpeningRing = openingRing;
         }
     }
 }

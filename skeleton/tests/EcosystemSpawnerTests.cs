@@ -16,6 +16,9 @@ using Xunit;
 //   Boss — a deep zone + adapted profile spawns a single IsBoss enemy whose
 //     stats are strictly greater than the base table.
 //   Determinism — same seed + same profile = identical spawn set.
+//   MC 11296 D4 pins — the boot camp fields outside the aggro ring (meadow
+//     OpeningRing 12 m + slot) while the deep-zone rings + boss spawn point
+//     stay byte-identical.
 //   Keystone sim — the spawner's output feeds M08 EnemyAI/CombatSystem in a
 //     headless N-frame run that ends in a kill -> DnaExtracted, proving the
 //     M12 -> M08 wire produces a playable, testable fight.
@@ -174,6 +177,61 @@ public class EcosystemSpawnerTests
             Assert.Equal(a.Enemies[i].Damage, b.Enemies[i].Damage);
             Assert.Equal(a.Enemies[i].Type, b.Enemies[i].Type);
             Assert.Equal(a.Enemies[i].IsBoss, b.Enemies[i].IsBoss);
+        }
+    }
+
+    // =====================================================================
+    // MC 11296 (playthrough D4, MC 11270) — the opening-grace radius knob
+    // pins. The boot camp must be fielded OUTSIDE the aggro ring (the AI's
+    // own ChaseRange), and the grace is meadow-only: the deep zones' rings
+    // and the boss spawn point are byte-identical to the pre-card table.
+    // =====================================================================
+
+    [Fact]
+    public void Meadow_SpawnCamp_FieldedOutsideAggroRing_D4Pin()
+    {
+        var spawner = new EcosystemSpawner(seed: 7);   // the director's boot seed
+        var set = spawner.OnZoneEnter("meadow", NewProfile(observed: 0));
+        Assert.Equal(3, set.Count);
+        int slot = 0;
+        foreach (var sp in set.Enemies)
+        {
+            Assert.False(sp.IsBoss);
+            // The aggro radius the runtime AI actually reads (EnemyAI.cs C11):
+            var ai = new EnemyAI(sp.Position, sp.EntityId, sp.Type, seed: sp.EntityId);
+            Assert.True(sp.Position.Length() > ai.ChaseRange,
+                $"D4 regressed: boot slot r={sp.Position.Length():0.##} stands inside " +
+                $"the {sp.Type} aggro ring (ChaseRange {ai.ChaseRange})");
+            // Exact ring pin (versioned truth: the tuned OpeningRing 12 m + slot):
+            Assert.Equal(12f + slot, sp.Position.Length(), 3);
+            slot++;
+        }
+    }
+
+    [Fact]
+    public void DeepZones_RingByteIdentical_BossSpawnPointUnmoved_D4Pin()
+    {
+        var spawner = new EcosystemSpawner(seed: 11);
+        var profile = NewProfile(observed: EcosystemSpawner.BossThreshold);
+        foreach (var (zone, denizens) in new[] { ("canyon", 4), ("ruins", 5), ("hollow", 6) })
+        {
+            var set = spawner.OnZoneEnter(zone, profile);
+            int slot = 0;
+            foreach (var sp in set.Enemies)
+            {
+                if (sp.IsBoss)
+                {
+                    // MakeBoss's constant spawn point — the canyon boss is NOT
+                    // weakened by the grace (it never rode the denizen ring).
+                    Assert.Equal(8f, sp.Position.X, 3);
+                    Assert.Equal(4f, sp.Position.Z, 3);
+                    continue;
+                }
+                Assert.True(slot < denizens);
+                Assert.Equal(2.0f + slot, sp.Position.Length(), 3);   // the old ring, pinned
+                slot++;
+            }
+            Assert.Equal(denizens, slot);
         }
     }
 

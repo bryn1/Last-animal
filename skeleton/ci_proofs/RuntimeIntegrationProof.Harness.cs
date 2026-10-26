@@ -52,6 +52,24 @@ public partial class RuntimeIntegrationProof : SceneTree
         GD.Print($"LA_GATE: player teleported into attack range of {target.Name} at ({e.X:0.##},{e.Y:0.##},{e.Z:0.##})");
     }
 
+    /// <summary>MC 11296: silent re-aim of the SAME placement TeleportIntoRange
+    /// makes, for the attack loops. Why: the opening camp now fields at the
+    /// 12 m D4 grace ring, so at stage-2 time the goblins are still walking/
+    /// settling (they engaged the player long ago under the old 2 m ring);
+    /// the once-per-stage teleport raced that settling (battery round 1: the
+    /// target slid out of the 1.5 m melee sphere AFTER the teleport -> kill
+    /// budget expired). Re-aiming every 30 frames is choreography only — the
+    /// assert under test (attack INPUT -> director -> CombatSystem kill) is
+    /// unchanged — and prints nothing (determinism streams (i)/(ii) see no
+    /// new lines).</summary>
+    private void RepositionIntoRange()
+    {
+        EnemyActor? target = FirstLiveEnemy();
+        if (target == null) return;
+        Vector3 e = target.GlobalPosition;
+        _playerBody!.GlobalPosition = new Vector3(e.X - 0.8f, e.Y, e.Z);
+    }
+
     private void Check(string what, bool ok, string detail)
     {
         GD.Print($"LA_GATE: check: {what}: {(ok ? "ok" : "FAIL")} {detail}");

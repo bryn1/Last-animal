@@ -1,4 +1,4 @@
-// SIZE: inherited >400 (609 l by wc AT this head = 604@MC11294 + 5 MC 11293 D1: BuildUi attribution comment only, zero code — the panel-rect fix itself lives in the two panel files; prior reading 604 l by wc AT that head = 572@MC10519/S27 head + 32 MC 11294/D2 honest-death gate: the LA_DEATH once-per-death announcement block at the tick authority (covers BOTH TakeDamage callers — enemy damage AND the Roster betrayal settle) + the ONE !IsDead guard around the attack/interact/travel polling; the mirror corpse-cast guard rides the Skills partial (7 l there) and the movement lock already lived in Player.cs — one death predicate, its guards named in every file they touch); prior reading 572 l by wc AT that head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
+// SIZE: inherited >400 (622 l by wc AT this head — MC 11296 +5 over 617@the merged 6d0913a head: the TickOpeningGrace call after the damage site + the ArmOpeningGrace call at the tail of ApplySpawnSet with its 3-line why-comment (behind the spawn gate — a spawn-off quiet boot stays silent); the window body lives in the new 80-l world/WorldDirector.Grace.cs partial, the MC 10404 one-concern split idiom; prior reading 617 l by wc AT that 6d0913a head — the header stamp there read 609 (= 604@MC11294 + 5 MC 11293 D1 BuildUi attribution comment; true at d2e8913, where wc measured 609), the MC 11297 tame field then added its 8-line FieldBootWild block + attribution at _Ready WITHOUT a restamp — the stale stamp is NAMED here, not silently rewritten (this card touches the file, the honest wc rides along); MC 11293 D1: BuildUi attribution comment only, zero code — the panel-rect fix itself lives in the two panel files; prior reading 604 l by wc AT the MC 11294/D2 head = 572@MC10519/S27 head + 32 MC 11294/D2 honest-death gate: the LA_DEATH once-per-death announcement block at the tick authority (covers BOTH TakeDamage callers — enemy damage AND the Roster betrayal settle) + the ONE !IsDead guard around the attack/interact/travel polling; the mirror corpse-cast guard rides the Skills partial (7 l there) and the movement lock already lived in Player.cs — one death predicate, its guards named in every file they touch; prior reading 572 l by wc AT that head = 562@MC10516 + 10 MC 10519/S27: the MountZoneScene call at EnterZone's top + the S27 attribution comment block — ZERO logic here, the route lives in the 104-l WorldDirector.Mount.cs partial; prior reading 562 = 553@MC10420 + 9 MC 10516/S38: the KILL_PLANE_RESCUE zone+reason print + the one-mechanism attribution comment at the ONE guarantee site; prior reading 573@MC10404 − 48
 // lines moved OUT to the WorldDirector.Ground.cs partial (floor plane + extent
 // clamp, the MC 10080 Roster/Wild pure-move precedent) + 28 in: the spawn-time
 // bounds injection and the EnterZone resolve-before-spawn reorder; prior chain
@@ -306,6 +306,7 @@ public partial class WorldDirector : Node3D
             _hud.UpdateLife(_player.Health);
             PlayerHurtMotion();   // MC 10198 S14: flash+punch on the player VISUAL root at the real damage site (presentation-only)
         }
+        TickOpeningGrace(delta);   // MC 11296: print-only Life sampler over the opening window (world/WorldDirector.Grace.cs)
 
         // MC 3943 stage 2g: the companion loop (M03 -> M05) MOVED to
         // world/WorldDirector.Roster.cs as TickRoster — per follower over the
@@ -419,6 +420,10 @@ public partial class WorldDirector : Node3D
             _zoneEnemies.Add(actor);
             if (spawned.IsBoss) _boss = actor;
         }
+        // MC 11296: the camp was applied — arm the print-only opening observer
+        // (meadow only; world/WorldDirector.Grace.cs). BEHIND the spawn gate on
+        // purpose: a spawn-off quiet boot (bus_emit idiom) stays silent.
+        ArmOpeningGrace(set);
     }
 
     /// <summary>Despawn the previous zone's SpawnSet enemies before re-fielding

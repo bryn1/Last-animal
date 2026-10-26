@@ -64,6 +64,8 @@ public partial class RuntimeIntegrationProof : SceneTree
         // path: a second kill bumps DnaMeter + _spokenDna past the
         // saved values; loyalty is drained directly.
         _attackToggle++;
+        // MC 11296: same silent re-aim as the RunKillStage loop (12 m camp).
+        if (_stageFrames % 30 == 0) RepositionIntoRange();
         if (_attackToggle % 4 == 1) Input.ActionPress("attack");
         else if (_attackToggle % 4 == 3) Input.ActionRelease("attack");
         if (_hud!.DnaMeter > _dnaMeterBeforeSave && _director!.SpokenDna.Count > _spokenDnaBeforeSave)

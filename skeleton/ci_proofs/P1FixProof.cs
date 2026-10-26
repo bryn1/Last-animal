@@ -179,8 +179,15 @@ public partial class P1FixProof : SceneTree
                     // Leave the corpse's neighbourhood: no OTHER enemy may reach
                     // the player during the watch window, so any further damage
                     // can only come from the corpse.
-                    Vector3 p = _playerBody.GlobalPosition;
-                    _playerBody.GlobalPosition = new Vector3(p.X + 40f, p.Y, p.Z + 40f);
+                    // MC 11296: the escape target is ORIGIN-relative, NOT
+                    // player-relative. The D4 grace ring fields meadow at 12 m,
+                    // so the old p+(40,0,40) landed at (51.4,*,40.3) — OFF the
+                    // floor — and tripped the below-plane guarantee every run
+                    // (FALL_RECOVERED census 3 vs baseline 2). The fixed (41,*,40)
+                    // IS the baseline landing column (verified: the old enemy sat
+                    // at ring 2 -> p.X≈1.2 -> land ≈41.2); distance from the camp
+                    // grows to 41+ m, still total isolation.
+                    _playerBody.GlobalPosition = new Vector3(41f, _playerBody.GlobalPosition.Y, 40f);
                     _healthAtKill = _director.PlayerModel.Health;
                     GD.Print($"LA_GATE: victim killed on its attack frame (frozen damage {_victimDamage}); watching {WatchFrames} frames from health {_healthAtKill}");
                     _stage = 11;
