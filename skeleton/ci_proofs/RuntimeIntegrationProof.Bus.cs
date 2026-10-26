@@ -1,3 +1,16 @@
+// SIZE reason (over the 600-l proof ceiling at 685 l by wc AT the MC 11320 head —
+// 676 pre-rebase; +5 as the MC 11301 alive-revive normalization rebased under this
+// card at 4a36611, its case-9 removal + case-18 revive-if-dead guard riding the same
+// file with DISJOINT hunks, KEEP-BOTH; +4 this header's own restamp lines — the
+// arith named per the never-delta-sum discipline, all measured by wc AT this head):
+// the stage machine is ONE leg matrix — S0 four-edge proofs + F-A + F-B share
+// one phase switch, one bus-subscription set and one settle-cadence (the
+// battery-matrix class; prior reading 574 l by wc AT the MC 11294 head, +102 AT
+// this head = L1 exit-tracker assert, L2 keep-alive seam, L3 roster-silence
+// step + their attribution comments). 11301's "split-owed if it grows further"
+// clause FIRES: the F-A/F-B bodies are the named split carry into
+// RuntimeIntegrationProof.Bus.{FA,FB}.cs partials — a mechanism move OUT of
+// this re-cert card's scope, no behavior rides it, file stays whole here.
 using Godot;
 using LastAnimal.Save;
 using LastAnimal.World;
@@ -14,10 +27,17 @@ using LastAnimal.World;
 //   PlayerHurt      — PlayerController.TakeDamage DECREASE only; a restore
 //                     (health UP) may not emit; a second decrease emits once.
 //   BossFallen      — fields the zone boss, then (a) FALSE-EMIT GUARD (F-2,
-//                     DA-c3): zone-exit with the boss ALIVE nulls _boss
-//                     (ClearZoneEnemies, WorldDirector.cs:342) — a
-//                     HasLiveBoss flip-detector emits here, the tracker must
-//                     NOT; (b) re-field the boss, kill it through the REAL
+//                     DA-c3; restamped honest by MC 11320 L1): zone-exit with
+//                     the boss ALIVE drops that boss from the tracker
+//                     (ClearZoneEnemies) while the ENTERED zone may re-field
+//                     its OWN boss in the SAME travel tick (ApplySpawnSet's
+//                     `if (spawned.IsBoss) _boss = actor`) — so HasLiveBoss
+//                     can legitimately be TRUE right after the exit (ruins →
+//                     hollow re-fields; the old `!HasLiveBoss` proxy rotted
+//                     then and lied RED deterministically). The assert is the
+//                     exit-tracked actor left the tracker AND nothing emitted:
+//                     a flip-detector would emit here, the tracker must NOT.
+//                     (b) re-field the boss, kill it through the REAL
 //                     attack path, assert the emit lands once and only once.
 // Markers print only after their assertion passes (harness contract).
 //
@@ -32,6 +52,22 @@ using LastAnimal.World;
 // BUS_FALLEN_SWAP), phase 23 F-B (loading a lower-HP save lowers Health with
 // NO PlayerHurt edge — restore is not damage; markers BUS_SAVE_OWNED /
 // BUS_NO_LOAD_HURT).
+//
+// MC 11320 RE-CERT (this leg was DEAD CI CODE at head — never a battery leg,
+// last honest green 2026-10-05; findings L1/L2/L3 named by MC 11301, evidence
+// .audits/202610251700-d31): L1 — the F-2 exit proxy `!HasLiveBoss` rotted
+// when the ENTERED zone began re-fielding its own boss on the SAME travel
+// tick (ruins -> hollow); the assert is now the EXIT-TRACKED actor leaving
+// the tracker (phase 11), the no-emit half stays the phase-12 window. L2 —
+// the travel waits run inside the live spawn set, so BusPressTravel carries
+// the MC 11294 farm keep-alive (revive-if-dead ONLY, the quoted seam);
+// without it the 11294 death gate starves the leg at the F-A re-field
+// (measured at this head: named LA_DEATH then "boss never re-fielded").
+// L3 — phase 23 sub -1 silences the roster betrayal settle, the damage
+// source the clean window missed (window FAIL 5/7 without it,
+// out/TIP-measure-run*.log), through the SHIPPED book/break_bond inputs
+// before ANY F-B window opens; marker BUS_FB_QUIET_ROSTER. The leg rides the
+// battery as a NAMED leg from this card (count restamp in the battery).
 public partial class RuntimeIntegrationProof : SceneTree
 {
     private int _busPhase;
@@ -46,6 +82,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     private int _busTravelToggle, _busAttackToggle;
     private int _busShownBase, _busClosedBase, _busHurtBase, _busFallenBase;
     private string _busZoneBeforeExit = "";
+    private EnemyActor? _busBossBeforeExit;   // MC 11320 L1: the actor the tracker held when the F-2 exit began
 
     private const int BusProbeDwellFrames = 240;      // DialogueSystem.RewardLineFrames
     private const int BusRepollFrames = 30;           // re-poll guard window
@@ -57,6 +94,7 @@ public partial class RuntimeIntegrationProof : SceneTree
     private string _busFaId = "", _busFaZoneBefore = "";
     private int _busFallenFaBase, _busHurtFbBase, _busSavedHealth;
     private int _busFbSub;
+    private int _busSilenceStep;   // MC 11320 L3: roster-silence press cadence (F-B pre-window)
 
     private bool BusSubscribe()
     {
@@ -70,11 +108,29 @@ public partial class RuntimeIntegrationProof : SceneTree
         return true;
     }
 
+    // Fresh release-then-press tap (the pay_wage idiom: ActionPress on a HELD
+    // action produces no edge) — used by the phase-23 roster-silence presses
+    // (book / break_bond / cycle_follower), each polled on the next tick.
+    private static void BusTap(string action)
+    {
+        Input.ActionRelease(action);
+        Input.ActionPress(action);
+    }
+
     // One bus-travel press per cycle with the ZoneBossProof re-arm idiom: the
     // just-pressed stamp is written only on the released->pressed edge, so a
     // cycle left held must release AND restart the toggle.
     private bool BusPressTravel()
     {
+        // MC 11320 L2: EVERY travel wait in this mode runs inside the live
+        // spawn set — waiting for the boss pool to cycle IS farm time, not a
+        // death test (MC 11294's law, quoted from BusKillLoop below). Under
+        // the 11294 gate a DEAD farmer's travel press is REFUSED outright, so
+        // a seam-free travel wait starves the leg — measured at this head:
+        // "LA_GATE: FAIL — bus_emit F-A: boss never re-fielded for the swap
+        // leg" after a named LA_DEATH. Revive ONLY when already dead, through
+        // the same shipped model seam the F9 load uses.
+        if (_director!.PlayerModel.IsDead) _director.PlayerModel.RestoreHealth(50);
         _busTravelToggle++;
         if (_busTravelToggle == 1) Input.ActionPress("travel");
         if (_busTravelToggle >= 8)
@@ -289,6 +345,7 @@ public partial class RuntimeIntegrationProof : SceneTree
                     GD.Print($"LA_GATE: BUS_BOSS_LIVE zone={_director.CurrentZone} — boss tracked by the seam");
                     _busFallenBase = _busFallen;
                     _busZoneBeforeExit = _director.CurrentZone;
+                    _busBossBeforeExit = _director.BossActor;   // MC 11320 L1: the F-2 exit must drop THIS actor
                     BusNextPhase(11);
                 }
                 else
@@ -299,12 +356,21 @@ public partial class RuntimeIntegrationProof : SceneTree
                 break;
 
             case 11:  // F-2 GUARD (planted-bad pair): leave the zone while the
-                      // boss is ALIVE — ClearZoneEnemies nulls _boss; a flip
-                      // detector would emit a FALSE BossFallen here. Must not.
+                      // boss is ALIVE — ClearZoneEnemies drops it from the
+                      // tracker; a flip detector would emit a FALSE BossFallen
+                      // here (asserted in the phase-12 settle window). Must
+                      // not. MC 11320 L1 re-cert: the ENTERED zone re-fields
+                      // its own boss in the SAME travel tick when the DNA
+                      // threshold is met, so the old `!HasLiveBoss` proxy is
+                      // no longer the contract — the tracker must have DROPPED
+                      // the exit-tracked actor (an empty tracker OR a
+                      // re-fielded NEW actor both satisfy it; the planted
+                      // still-tracked boss goes RED by name).
                 if (BusPressTravel() && _director!.CurrentZone != _busZoneBeforeExit)
                 {
-                    Check("zone exit left no live boss tracked",
-                          !_director.HasLiveBoss, $"zone={_director.CurrentZone}");
+                    Check("zone exit dropped the exit-tracked boss (a re-field in the entered zone is a NEW actor)",
+                          !ReferenceEquals(_director.BossActor, _busBossBeforeExit),
+                          $"zone={_director.CurrentZone} reFielded={_director.HasLiveBoss}");
                     if (_failed) return;
                     BusNextPhase(12);
                 }
@@ -491,20 +557,60 @@ public partial class RuntimeIntegrationProof : SceneTree
                           $"fallen={_busFallen - _busFallenFaBase}");
                     if (_failed) return;
                     GD.Print("LA_GATE: BUS_FALLEN_SWAP — F-A closed: a death riding a swap still emits once");
-                    _busFbSub = 0;
+                    _busFbSub = -1;   // MC 11320 L3: silence the roster settle FIRST (sub -1), then the five F-B steps
                     BusNextPhase(23);
                 }
                 break;
 
-            case 23:  // MC 10103 F-B, five sub-steps. The poll samples at the
-                      // FRAME BOUNDARY (F4), so the sequence must spread over
-                      // ticks: 0 own the save (MC 3910 delete) + top up + step
-                      // out of reach; 1 clean window -> TRUE decrease (stamps
-                      // the lower HP, visible across a boundary); 2 true edge
-                      // landed -> save + restore HP UP; 3 after >=2 polls saw
-                      // the HIGH value, press load_game; 4 settle — the load
-                      // lowers Health with NO PlayerHurt edge.
-                if (_busFbSub == 0)
+            case 23:  // MC 10103 F-B, sub -1 (MC 11320 L3, below) + five sub-steps.
+                      // The poll samples at the FRAME BOUNDARY (F4), so the
+                      // sequence must spread over ticks: -1 silence the roster
+                      // settle (L3 — the clean window's "teleport + spawn-off"
+                      // missed the betrayal-settle caller); 0 own the save
+                      // (MC 3910 delete) + top up + step out of reach; 1 clean
+                      // window -> TRUE decrease (stamps the lower HP, visible
+                      // across a boundary); 2 true edge landed -> save +
+                      // restore HP UP; 3 after >=2 polls saw the HIGH value,
+                      // press load_game; 4 settle — the load lowers Health
+                      // with NO PlayerHurt edge.
+                if (_busFbSub == -1)
+                {
+                    // MC 11320 L3 (re-cert): the F-B clean window can be entered
+                    // while a roster betrayal bond is still LIVE — the betrayal
+                    // settle (TickRoster's C7 ExecuteBetrayal, PlayerController.
+                    // TakeDamage's SECOND caller) ignores the teleport AND the
+                    // spawn-off (it is wage mechanics, not a melee chase).
+                    // Measured on this head WITHOUT the silence: the window
+                    // check went FAIL in 5 of 7 runs (out/TIP-measure-run*.log;
+                    // each stray PlayerHurt is named in-transcript behind its
+                    // 'fired "betrayal"' SFX line). Silenced with the SHIPPED
+                    // inputs — book open, break_bond per follower (cycle pages
+                    // the selection), book close — a broken bond makes
+                    // CheckBetrayal permanently false (HasCompanion), so no
+                    // settle re-arms inside ANY F-B window. The break damage
+                    // lands BEFORE the top-up and the baseline stamp below —
+                    // the window contract itself is UNCHANGED, and this stays
+                    // honest because the settle would ALSO corrupt the load
+                    // window (sub 4): silence-at-source is the only complete
+                    // fix, not a re-baseline.
+                    int n = _director!.RosterView.Count;
+                    if (_frames - _busPhaseStamp < 2) return;   // one press per 2 frames — the director polls the NEXT tick
+                    _busPhaseStamp = _frames;
+                    int step = _busSilenceStep++;
+                    if (step == 0)
+                        GD.Print($"LA_GATE: BUS_FB_QUIET_ROSTER n={n} — breaking live bonds before the clean window (L3 settle class)");
+                    if (n == 0) { _busSilenceStep = 0; _busFbSub = 0; return; }   // empty roster: nothing to silence
+                    if (step == 0) BusTap("book");                               // open the Empathy Book (poll is outside the death gate)
+                    else if (step <= 2 * n - 1)
+                    {
+                        if (step % 2 == 1) BusTap("break_bond");                 // ExecuteBetrayal on the SELECTED follower
+                        else BusTap("cycle_follower");                           // page to the next one
+                    }
+                    else if (step == 2 * n) BusTap("book");                      // close it again
+                    if (step >= 2 * n + 1) { _busSilenceStep = 0; _busFbSub = 0; }
+                    return;
+                }
+                if (_busFbSub == 0 && _frames - _busPhaseStamp >= 2)
                 {
                     _director!.SetSpawningEnabled(false);   // load re-entry fields nobody
                     _director.PlayerModel.RestoreHealth(_director.PlayerModel.MaxHealth);
