@@ -20,6 +20,7 @@ Verified against the `[input]` map in `project.godot`:
 | Move | `W`/`A`/`S`/`D` or arrow keys |
 | Attack | `Space` or left mouse button |
 | Interact | `E` |
+| Speak to a creature | `V` |
 | Travel to next zone | `T` |
 | Pay companion wage | `P` |
 | Empathy Book | `B` |
@@ -103,6 +104,12 @@ per-kill gain — live in `src/skills/SkillState.cs`, the cap in
   save/load clears it, and an `E` offer outlives the window). A press that
   finds no castable wild, or cannot pay, spends NOTHING. `F` never recruits:
   the first wage (`P`) still does the joining.
+
+- **Speak** (`V`, free): you say a phrase in your learned tongue toward the
+  nearest creature inside talk reach (follower or wild — a dead bond is not a
+  creature you talk to) and it answers in its own, rendered as creature text in
+  the dialogue band. Needs the same learning as Calming Speak (3 positions);
+  refusals print their reason — band busy, out of reach, tongue unknown.
 
 You unlock skills by learning DNA: each extraction teaches the ecosystem's
 language a counter, and the learned positions open the skills

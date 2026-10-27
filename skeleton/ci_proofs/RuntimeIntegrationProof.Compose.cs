@@ -287,6 +287,19 @@ public partial class RuntimeIntegrationProof : SceneTree
             return;
         }
 
+        // DNA_TALK (MC 11493): the talk-to-creatures chain drives its own REAL
+        // speak presses (refusals + farm-to-unlock + the exchange); routes after
+        // the enemy guard like tame (it farms live extracts). DNA_TALK is the
+        // second mode leaving the production wild gate ON (InitializeBootGates)
+        // — the boot wild IS the talk target. Body: RuntimeIntegrationProof.DnaTalk.cs.
+        if (_mode == "DNA_TALK")
+        {
+            _stage = 111;
+            _stageFrames = 0;
+            GD.Print($"LA_GATE: composed (dna_talk mode) — enemies={_enemies.Count} wilds={_director.WildBodies.Count}");
+            return;
+        }
+
         // JUICE_HITFLASH (MC 10120 S1): the juice stage drives its own single
         // hit (frozen target, one attack press on the real wire); route to
         // stage 95 — stage body lives in RuntimeIntegrationProof.Juice.cs.

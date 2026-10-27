@@ -141,7 +141,10 @@ public partial class RuntimeIntegrationProof : SceneTree
         // path; tame_neg opts out too (its "REFUSED — no castable target" is
         // the before-fix transcript the negative control names). Set BEFORE
         // AddChild (the no_spawn idiom: the director fields in _Ready at AddChild).
-        if (_mode != "tame_use" && main is WorldDirector dwild) dwild.SetWildSpawnEnabled(false);
+        // MC 11493: DNA_TALK joins tame_use — the boot-zone wild IS the talk
+        // target (the exchange proof, DnaTalk.cs); every other mode keeps its
+        // exact wild-free boot (byte-identical choreography).
+        if (_mode != "tame_use" && _mode != "DNA_TALK" && main is WorldDirector dwild) dwild.SetWildSpawnEnabled(false);
         Root.AddChild(main);
 
         _main = main;

@@ -1,4 +1,4 @@
-// SIZE reason: 599 l by wc AT this fourth-merge head (keyword repair MC 11431 R1: opener word only, stamp text kept; the MC 11297 merge left the entry AT the ceiling, 600; this card's quest_mono arms landed 602 and were PAID IN-CARD AGAIN the MC 11019 FIX-ROUND-1 re-word precedent — mode-doc row to the tame-mode 1-l idiom + the card's own re-measure clauses folded, all re-word cuts inside this card's own text; the earlier MC 11294-base crossing at 604 paid the same way; UNDER the ceiling, NO split owed; the clause stays live for future growth; MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
+// SIZE reason: 601 l by wc at the MC 11493 additions, PAID IN-CARD to 600 by the MC 11019 reword-fold precedent (the DNA_TALK doc row + the case-111 arm; the W4-SPLIT clause folded one line, zero content lost — MC 11295/11320 same-duty precedent; AT this head the mode doc is 317 l and the dispatch 41 modes, MC 11493; prior 599 l by wc AT this fourth-merge head (keyword repair MC 11431 R1: opener word only, stamp text kept; the MC 11297 merge left the entry AT the ceiling, 600; this card's quest_mono arms landed 602 and were PAID IN-CARD AGAIN the MC 11019 FIX-ROUND-1 re-word precedent — mode-doc row to the tame-mode 1-l idiom + the card's own re-measure clauses folded, all re-word cuts inside this card's own text; the earlier MC 11294-base crossing at 604 paid the same way; UNDER the ceiling, NO split owed; the clause stays live for future growth; MC 11088 S48 BATCH-4 FIX-ROUND-1: the card's +22 (SKY_STRIP mode-doc rows + the stage-109 arm) crossed the ceiling at 620 and was PAID IN-CARD by the MC 10218 verbatim-move split — the shared machine fields + consts moved to the 70-l RuntimeIntegrationProof.State.cs, zero behaviour change; prior MC 11019 S48 FIX-ROUND-1 −1: the two FXGL mode-doc rows reworded at net −1 to name the widened plant + gates IN-CARD — ceiling still honored; prior MC 11019 S48 STEP-0 NET −10 over the 609 at S45: the card's +32 paid
 // IN-CARD by a double verbatim-move split — chain case 0/5/6 bodies -> Chain.cs (MC 10098 precedent) +
 // _Finalize -> Harness.cs (MC 10218 precedent) — plus the S45 owed 9-l remainder: 600 ceiling RESTORED; prior S45 SPLIT + restamp: NET −28
 // over the 637 re-measured at the MC 10731 head — the +40 the CAMERA_RIG_ISO card
@@ -18,8 +18,7 @@
 // doc mode_sets_check parses (awk from '// Modes \(env' through '// Run:' this
 // commit, BOTH ends inclusive; 316 at this head (MC 11295 re-measure at the fourth-merge head; prior 315 at the d2e8913 head, 289 at MC 11019 S48, 162 at the S24 head) and the 40-mode
 // dispatch (MC 11295 re-measure at the fourth-merge head = 40; MC 11297 added tame_use+tame_neg; 37 at MC 11088 S48 BATCH-4; 35 at the MC 11019 S48 head; 32-mode at the MC 10731
-// head) ride together here. W4 SPLIT,
-// carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
+// head) ride together here. W4 SPLIT, carded MC 10218 (the 814-l stamp at 6ad4007 was the MC 10212 finding) — PAID here:
 // _ComposeDeferred moved VERBATIM to the 334-l RuntimeIntegrationProof.Compose.cs (270-l at the a3a3c2f split; re-measured by wc at this head, MC 11018)
 // (per-mode compose routing) and Fail/Check/FirstLiveEnemy/TeleportIntoRange/
 // ReleaseHeldRefsBeforeQuit to the 70-l RuntimeIntegrationProof.Harness.cs — zero
@@ -105,6 +104,7 @@ using System.Linq;
 //                     nothing (NEG_CALM), exit non-zero.
 //   tame_use        — MC 11297 D5+D6: boot wild tamed via the calm→offer→first-wage join, NO seam (TAME_RECRUITED); D6 Mend short-balance PRINTS (MEND_REFUSAL_PRINTED). Tame.cs stage 110.
 //   tame_neg        — MC 11297: wild gate OFF (before-fix) — the press finds no castable target, leaks nothing (NEG_TAME), exit non-zero.
+//   DNA_TALK        — MC 11493 talk-to-creatures (owner: "I want tall to creature to be implemented since it is built"): REAL speak-key presses — band-busy/out-of-range/locked named refusals (zero emits), 3 real extracts unlock, the exchange renders the Counter/Extract codon reply in the dialogue band (one DnaSpoken, talk_ node, HUD-disjoint). DnaTalk.cs stage 111.
 //   bus_emit        — MC 10098 Inc-3 S0: the four CONSUMER-FACING presentation
 //                     emits (DialogueShown/DialogueClosed/PlayerHurt/
 //                     BossFallen) fire EXACTLY ONCE per edge on the live
@@ -405,7 +405,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         "positive", "no_bus", "no_spawn", "no_controller", "no_dna",
         "save", "save_bad_version", "dna_speak", "no_interact",
         "quest_arc", "quest_persist", "quest_neg", "quest_arc2", "quest_mono",
-        "skill_use", "skill_neg", "passives", "calm_use", "calm_neg", "tame_use", "tame_neg",
+        "skill_use", "skill_neg", "passives", "calm_use", "calm_neg", "tame_use", "tame_neg", "DNA_TALK",
         "bus_emit", "JUICE_HITFLASH", "JUICE_SHAKE", "DISSOLVE_SUPPRESS",
         "DAYNIGHT_STATE", "CHAR_MOTION", "CAMERA_KILL_PULSE", "BOSS_FRAME",
         "ZONE4", "BARK", "ACT_THREE", "GROUND_CLAMP", "FLOOR_TRUST", "ZONE_VISUAL_MOUNT",
@@ -592,6 +592,7 @@ public partial class RuntimeIntegrationProof : SceneTree
             // UNIQUE number; body lives in RuntimeIntegrationProof.SkyStrip.cs).
             case 109: RunSkyStripStage(); break;
             case 110: RunTameStage(); break;
+            case 111: RunDnaTalkStage(); break;   // MC 11493 DNA_TALK — body in DnaTalk.cs
         }
         return false;
     }

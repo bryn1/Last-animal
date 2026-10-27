@@ -12,6 +12,9 @@ using System.Collections.Generic;
 // order (a new beat takes a mid-read head, which re-queues for a full dwell);
 // EVERY line — beat or direct — auto-closes after its dwell ("All dialogue
 // lines"). No wallclock; queue never persisted (R9 resets presentation on load).
+// MC 11493: ShowText paints CALLER-COMPOSED text (a live DNA creature reply,
+// talk-to-creatures) through the SAME band, rect and dwell — the MC 11293
+// layout is untouched; the View still authors nothing, the caller supplies text.
 //
 // C13 (PHASE0.md line 382): `DialogueSystem.Show(nodeId)`.
 // The dialogue box view: a Godot Control that, given a node id, shows that
@@ -103,6 +106,26 @@ public partial class DialogueSystem : Control
             return;
         }
         _pending.Add(nodeId);   // R5 behind a FRESH direct line: append only (F-2 clobber guard)
+    }
+
+    /// <summary>
+    /// MC 11493 (talk-to-creatures): paint CALLER-SUPPLIED text into the SAME
+    /// band with the SAME direct-line semantics as R1 — the View renders text
+    /// gameplay asks it to show and still owns no dialogue authoring; only here
+    /// the CALLER composes the text (a live creature reply), so no node id is
+    /// authored in the table. ActiveNode mirrors nodeId (the proofs' node-keyed
+    /// reads keep working), the auto-close dwell applies ("All dialogue lines").
+    /// </summary>
+    public void ShowText(string nodeId, string text)
+    {
+        ActiveNode = nodeId ?? string.Empty;
+        ActiveNodeIsReward = false;
+        BuildIfNeeded();
+        EnsureVisible();
+        _textLabel!.Text = text;
+        _displayedIsQueued = false;
+        _dwell = 0;
+        _paintedHere = true;
     }
 
     /// <summary>Paint _pending[0] flagged reward; reset the dwell (§2).</summary>

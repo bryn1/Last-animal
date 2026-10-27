@@ -3,9 +3,12 @@
 #   KIND path-or-name  reason   (matcher: whitespace-split, FIRST TWO tokens)
 # ORPHAN-MODULE/DRIVERLESS rows match the reported rel-path; UNCALLED-FN rows
 # match the method NAME (path:line drifts, names don't). Every row names why.
-# NOT allowed on purpose: the DNA message subsystem (src/dna) — its 5 unwired
-# methods are a PARKED owner keep/retire question, LEDGER row MC 11433 CC-16;
-# triage there must re-read the ruling, not this file.
+# DNA message subsystem (src/dna): the MC 11433 CC-16 keep/retire PARK is
+# RETIRED by MC 11493 — owner ruling 2026-10-27 verbatim "I want tall to
+# creature to be implemented since it is built" — the 5 previously-unwired
+# methods (LanguageSignature.Generate + DnaLanguage Extract/Speak/Counter/
+# ExtractCodon/Parse) gained LIVE callers in world/WorldDirector.Talk.cs (the
+# speak-key exchange, battery mode DNA_TALK); they must NOT reappear here.
 
 # CC-18: documented manual asset-pipeline CLI route (docs/ARCHITECTURE.md §18/§19) —
 # operator-run tools, never battery-driven; zero in-repo driver is the design.

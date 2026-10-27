@@ -101,6 +101,7 @@ public partial class RuntimeIntegrationProof : SceneTree
         Input.ActionRelease("skill_3");      // MC 10031: the calming-speak arm
         Input.ActionRelease("pay_wage");     // MC 3904 2c release idiom (harmless pre-2c)
         Input.ActionRelease("bark");         // MC 10131 S8: the bark press arm
+        Input.ActionRelease("speak");        // MC 11493: the speak-key arm (DNA_TALK)
         if (!_asserted && !_failed && _mode is "positive" or "save")
             GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
     }
