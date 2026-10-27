@@ -4,8 +4,10 @@
 
 ## Install steps
 
-1. Get `LastAnimal-windows-x86_64.zip` (the distributable produced by
-   `tools/export_windows.sh`; see [build-and-run.md](build-and-run.md)).
+1. Get `LastAnimal-windows-x86_64.zip` from the latest GitHub release of
+   `bryn1/Last-animal` (the distributable produced by
+   `tools/export_windows.sh` + the release leg; see
+   [build-and-run.md](build-and-run.md)).
 2. Right-click → **Extract All…** (or unzip with any tool) — extract the WHOLE
    zip, not just the .exe — into a folder you can write to, e.g.
    `C:\Games\LastAnimal`.
@@ -13,9 +15,13 @@
    installer wizard and no registry writes. The zip also contains
    `data_LastAnimalPreflight_windows_x86_64/`, the .NET assemblies the game
    loads at startup: that folder must stay beside the .exe, so do not move or
-   delete it.
+   delete it. The zip additionally carries **`preflight.exe`** — a standalone
+   hardware/render check (the v0.4.1 asset layout): run it first if
+   `LastAnimal.exe` itself will not open.
 
-Expected first run: a window opens with the game world (meadow zone), the HUD
+Expected first run: a window opens with the game world (meadow zone) in the
+**isometric view** — the boot default since v0.5.0; launch with `--classic-cam`
+to get the old follow camera. The HUD
 shows Life / Manna / DNA meter / companion hearts, and background music plays.
 If Windows SmartScreen warns about an unsigned binary, choose **More info →
 Run anyway** (the build is not code-signed; `codesign/enable=false` in the
@@ -36,6 +42,10 @@ Deleting that file resets the save. UNVERIFIED on a real Windows machine —
 the path mapping is the standard Godot 4 `user://` behaviour, not something
 this build could execute.
 
+Death is real since v0.5.0: at Life 0 you stay down — no attacking,
+interacting, travelling or casting as a corpse. The revive is `F9`: load your
+last save (or start fresh).
+
 ## Requirements
 
 - Windows 10 or 11, x86_64.
@@ -46,14 +56,16 @@ this build could execute.
 
 ## Known limitation
 
-The packaged binary has not been launch-smoked to green: the build host has a
-broken Wine 9.0 (no `wine32`, no X driver) under which `LastAnimal.exe` crashes
-at startup, and no Windows machine — so the exe HAS been executed under wine,
-but it has never rendered on a working desktop. The export
-gate proves the binary is a valid PE carrying the C# assembly; it does not
-prove the game renders on your desktop. If it does not start, report the exact
-error text — do not assume the zip is bad before checking SmartScreen (and
-check that the `data_…` folder is still beside the .exe).
+The packaged binary gets no automated render smoke on the Linux build host:
+**wine is not installed there** (the previous build host vm105 had a broken
+Wine 9.0 under which `LastAnimal.exe` crashed at startup — history, the host
+is retired; see [build-and-run.md](build-and-run.md)). The executed evidence
+for the binary is the export gate's PE-magic + embedded-C#-assembly checks;
+what the gate does NOT prove is that the game renders on your desktop — the
+runtime evidence is owner playtesting of the published zips on real Windows
+machines since v0.4.0. If it does not start, run `preflight.exe` first, then
+report the exact error text — do not assume the zip is bad before checking
+SmartScreen (and check that the `data_…` folder is still beside the .exe).
 
 ## Install on Linux
 
@@ -78,7 +90,9 @@ assemblies the game loads at startup: that folder must stay beside the binary,
 so do not move or delete it. No Godot installation and no .NET SDK are needed
 on the player machine — the .NET runtime ships in the data dir.
 
-Expected first run: a window opens with the game world (meadow zone) and the
+Expected first run: a window opens with the game world (meadow zone) in the
+**isometric view** — the boot default since v0.5.0; run with `--classic-cam`
+for the old follow camera. The
 HUD shows Life / Manna / DNA meter / companion hearts. Saves work the same as
 on Windows (`user://savegame.json`, on Linux resolving under
 `~/.local/share/godot/app_userdata/Last Animal/`).

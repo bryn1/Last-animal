@@ -15,12 +15,18 @@ not a leftover preflight build.
 
 | File | What it is |
 |---|---|
-| `build/LastAnimal.exe` | Windows x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck (`binary_format/embed_pck=true`), ~109 MB. |
-| `build/data_LastAnimalPreflight_windows_x86_64/` | The .NET assemblies the .exe loads at startup (`coreclr.dll`, `hostfxr.dll`, `GodotSharp.dll`, `LastAnimalPreflight.dll`, …), ~80 MB. Must sit beside the .exe. |
-| `build/LastAnimal-windows-x86_64.zip` | Distributable zip containing the .exe AND that data dir, ~73 MB. |
-| `build/LastAnimal.x86_64` | Linux x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck, ~76 MB. |
+| `build/LastAnimal.exe` | Windows x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck (`binary_format/embed_pck=true`). |
+| `build/data_LastAnimalPreflight_windows_x86_64/` | The .NET assemblies the .exe loads at startup (`coreclr.dll`, `hostfxr.dll`, `GodotSharp.dll`, `LastAnimalPreflight.dll`, …). Must sit beside the .exe. |
+| `build/preflight.exe` | The M00 hardware/render preflight check (preset `Windows-preflight`), produced by `ci/export_check.sh Windows-preflight build/preflight.exe`; the release leg ships it inside the published Windows zip (v0.4.1 asset layout). |
+| `build/LastAnimal-windows-x86_64.zip` | Distributable zip containing the .exe AND that data dir (the release-published zip additionally carries `preflight.exe`). |
+| `build/LastAnimal.x86_64` | Linux x86_64 release export of the full game (main scene `res://main.tscn`), embedded pck. |
 | `build/data_LastAnimalPreflight_linuxbsd_x86_64/` | The .NET assemblies the Linux binary loads at startup. Must sit beside the binary. |
-| `build/LastAnimal-linux-x86_64.zip` | Distributable zip containing the Linux binary AND that data dir, ~63 MB. |
+| `build/LastAnimal-linux-x86_64.zip` | Distributable zip containing the Linux binary AND that data dir. |
+
+Sizes and hashes are per-export by design (the binary is rebuilt every time);
+the published per-asset numbers live on the GitHub release asset list and in
+each release's evidence dir under `.audits/` — not in this doc (de-staled at
+v0.5.0, MC 11399; the old ~-MB figures here were the M00-era build).
 
 All three are produced by one command from `skeleton/` (the project root —
 the script lives in `skeleton/tools/`, not at the repo root):
@@ -49,11 +55,13 @@ The script runs three steps and fails loudly on any of them:
    - **wine absent** → prints `wine UNAVAILABLE ... NOT run (not faked)` and
      exits 0, with the step-1 checks as the executed evidence.
    - **wine present and working** → the smoke runs and must exit 0.
-   - **wine present but broken** (the current build host vm105, Wine 9.0:
-     `wine32` missing, no X driver — see "Known issue" below) → the smoke
+   - **wine present but broken** (historically the vm105 build host, Wine
+     9.0 — that host is retired 2026-10-14; see "Known issue" below) → the smoke
      launches, the exe crashes at startup, and the script exits non-zero.
      That red exit is correct behaviour, not a build defect; the exe itself
      still passes the step-1 PE + embedded-assembly checks.
+   - The CURRENT build host (vm350) has **no wine installed** — the "wine
+     absent" branch above is the one that executes on every release leg.
 
 ## Linux export
 
@@ -98,7 +106,8 @@ Requirements:
   binary is vendored one level above the repo — see
   `/srv/workspace/last-animal/engine/PIN.txt` and
   `SHA512-SUMS.txt` in the same directory.
-- **.NET SDK 8.x** (the pinned line; the build host has 8.0.131).
+- **.NET SDK 8.x** (the pinned line; the build host has 8.0.132 — restamped
+  by `dotnet --version` at the v0.5.0 release leg, MC 11399).
 
 Steps:
 
@@ -149,13 +158,19 @@ C#/.NET assemblies are NOT embedded: the mono template writes them to
 embedded error string is "Unable to find the .NET assemblies directory.").
 The zip ships both, and they must stay side by side after extraction. The
 player machine still needs **no Godot editor and no .NET SDK** — the .NET
-runtime ships in the data dir — UNVERIFIED on a clean Windows machine: no
-Windows host was available this run, and the build host's Wine 9.0 is broken
-for this exe (see "Known issue" below). If the game fails to start
+runtime ships in the data dir — UNVERIFIED on a clean Windows machine: the
+owner's playtesting of the published zips (since v0.4.0) ran on his own
+Windows machines, not a clean test host, and the current build host has no
+wine to test with (see "Known issue" below). If the game fails to start
 on a player machine, check first that the data dir is beside the .exe, then
 try installing the .NET 8 desktop runtime.
 
 ## Known issue: Wine 9.0 startup crash
+
+> History (de-staled at v0.5.0, MC 11399): this documents the **vm105** build
+> host, retired/destroyed 2026-10-14. The current build host (vm350) has no
+> wine installed at all, so `tools/export_windows.sh` executes its
+> "wine UNAVAILABLE ... NOT run (not faked)" branch on every release leg.
 
 `LastAnimal.exe` crashes at startup under Wine 9.0 on the build host (vm105),
 while Wine itself works (`cmd.exe` runs). Signature: a null-pointer read

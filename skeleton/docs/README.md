@@ -3,7 +3,7 @@
 Last Animal is a desktop 3D ARPG built with Godot 4.7.2 (mono/C#). It ships as
 native Windows and Linux x86_64 binaries; there is **no web host and no web publishing** for this
 project — the web-host DoD item is deliberately SKIPPED and that skip is
-explicit, per PHASE0.md. The deliverable is a Windows .exe/.zip you run locally.
+explicit, per PHASE0.md. The deliverable is a Windows/Linux zip you run locally.
 
 ## What is in this directory
 
@@ -12,53 +12,54 @@ explicit, per PHASE0.md. The deliverable is a Windows .exe/.zip you run locally.
 | [player-guide.md](player-guide.md) | How to play: controls, core loop, systems. |
 | [build-and-run.md](build-and-run.md) | How the shipped artifact is built, and how to build it from source. |
 | [install.md](install.md) | How a player installs and first-runs the game (Windows and Linux). |
+| [release-notes/](release-notes/) | Per-version release notes, committed at the tag (v0.5.0+; earlier versions' notes lived only on the GitHub release page). |
 
-## The delivered artifact (M00-chain build, verified 2026-09-25 — superseded, see note below)
+## The delivered artifact (v0.5.0 era — what the GitHub release carries)
 
-- `build/LastAnimal.exe` — Windows x86_64 release export of the full game
-  (`res://main.tscn`), ~111 MB (111,300,152 bytes for the build verified
-  2026-09-25, sha256 `db3adac29ac0a3b451f6a5572a608fe13f95453b9166f6f0a98b97df049b6076`).
-  The binary is rebuilt on every export, so its hash changes;
-  the hash of the delivered build is recorded in the run's evidence file
-  (MC 1344), not here.
-- `build/LastAnimal-windows-x86_64.zip` — the distributable package containing
-  that .exe and the `data_LastAnimalPreflight_windows_x86_64/` assemblies dir
-  beside it, ~73 MB (73,339,834 bytes for the build verified 2026-09-25).
+The published assets of each release are exactly:
 
-- `build/LastAnimal.x86_64` — Linux x86_64 release export of the full game
-  (`res://main.tscn`), ~76 MB, plus `build/LastAnimal-linux-x86_64.zip`
-  (~63 MB) containing the binary and the
-  `data_LastAnimalPreflight_linuxbsd_x86_64/` assemblies dir. Produced by
-  `bash tools/export_linux.sh`; launch-smoked natively under Xvfb
-  (RESULT=PASS, non-blank framebuffer, 2026-09-25).
+- `LastAnimal-linux-x86_64.zip` — Linux x86_64 distributable: `LastAnimal.x86_64`
+  (full-game `res://main.tscn` release export, pck embedded) +
+  `data_LastAnimalPreflight_linuxbsd_x86_64/` (the .NET assemblies the binary
+  loads at startup — must stay beside it). Produced by `bash tools/export_linux.sh`
+  from `skeleton/`; packaged smoke proof is the non-blank Xvfb render bar
+  `LAUNCH_LINUX_SMOKE: RESULT=PASS`.
+- `LastAnimal-windows-x86_64.zip` — Windows x86_64 distributable: `LastAnimal.exe`
+  (full-game release export) + `data_LastAnimalPreflight_windows_x86_64/` +
+  `preflight.exe` (the standalone hardware/render preflight check, v0.4.1 asset
+  layout — run it first if the game itself will not open). Produced by
+  `ci/export_check.sh` (both Windows presets) + `bash tools/export_windows.sh`,
+  then the release leg folds `build/preflight.exe` into the published zip.
 
-Both are produced by `bash tools/export_windows.sh` / `bash tools/export_linux.sh`
-from `skeleton/` (the scripts live in `skeleton/tools/`); see
+Exact byte sizes and sha256 per asset are recorded on each release's asset list
+(GitHub API) and in that release's evidence dir under `.audits/` — per doctrine
+the hashes live in the evidence, not in the docs. The binaries are rebuilt on
+every export, so their hashes change by design.
+
+Both are produced from `skeleton/` (the scripts live in `skeleton/tools/`); see
 [build-and-run.md](build-and-run.md).
 
-> **Superseded (MC 10059, 2026-10-04; closes the F7 "per-run byte counts" register row):** the
-> sizes and hashes above are the **2026-09-25 M00-chain build** and no longer describe today's
-> export — Increments 1-2 (graphics, story, quests, skills, roster) rebuilt it. Latest executed
-> evidence: `tools/export_linux.sh` PASS at the Increment-1 exit sweep (~81 MB zip, LEDGER
-> "INCREMENT 1 EXIT CRITERION MET" row) and the MC 10030 clean-clone sweep (20d3bf1) re-ran
-> export_check + export green. Re-run the export scripts for current numbers; the binary is
-> rebuilt on every export, so its hash changes by design.
+> **History note (replaces the old superseded sizes block, MC 10059 → de-staled
+> at the v0.5.0 release, MC 11399):** the per-build byte counts and hashes this
+> section carried were the 2026-09-25 M00-chain build and stopped describing
+> the export after Increments 1-2. The live truth is the release asset list.
 
 ## Known limitation (stated, not hidden)
 
-The packaged Windows binary cannot be launch-smoked to green on the build
-host: Wine 9.0 is installed there, but it is broken for this exe (`wine32`
-missing, no X driver) and the exe crashes at startup under it — see the
-"Known issue" section below and [build-and-run.md](build-and-run.md). The
-export script runs the wine smoke when wine is present and fails loudly
-(non-zero exit) when the exe crashes; it never fakes a launch. The executed
-evidence for the binary is the export gate's PE-magic check plus
-its embedded-C#-assembly checks (`ci/export_check.sh`).
+The packaged Windows binary gets no automated render smoke on the Linux build
+host: **wine is not installed** on the current build host (vm350), and it was
+broken on the previous build host (vm105, Wine 9.0 — see the history note
+below). `tools/export_windows.sh` states `wine UNAVAILABLE ... NOT run (not
+faked)` on stdout and relies on the executed evidence that IS run: the export
+gate's PE-magic + embedded-C#-assembly checks (`ci/export_check.sh`). The
+runtime evidence for Windows is owner playtesting of the published zips
+(since v0.4.0), not a build-host launch. It never fakes a launch.
 
-## Known issue: Wine 9.0 startup crash
-
-`LastAnimal.exe` crashes at startup under Wine 9.0 on the build host (null-pointer
-read before any log line; identical with the OpenGL compatibility renderer and
-`--headless`; likeliest the bundled .NET 8 host). Workaround: the native Linux
-build or a real Windows machine. Full write-up:
-[build-and-run.md](build-and-run.md#known-issue-wine-90-startup-crash).
+> **History (v0.5.0 de-stale, MC 11399):** the old build host vm105 (destroyed
+> 2026-10-14) had a broken Wine 9.0 under which `LastAnimal.exe` crashed at
+> startup (null-pointer read before any log line; identical with the OpenGL
+> compatibility renderer and `--headless`; likeliest the bundled .NET 8 host).
+> The current build host has no wine at all, so the script takes its
+> "wine absent" branch. Workaround either way: the native Linux build or a
+> real Windows machine. Full write-up:
+> [build-and-run.md](build-and-run.md#known-issue-wine-90-startup-crash).

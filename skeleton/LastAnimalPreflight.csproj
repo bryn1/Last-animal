@@ -355,9 +355,9 @@
     <!-- MC 11295 (playthrough D3 fix): the quest-beat MONOTONICITY proof
          partial (mode quest_mono, rides the quest-family stage-50 slot — no
          new stage number, so pairing stays balanced) + the HUD boss-kill-
-         ordering capture script (ui_test.sh leg J frame bank: BEFORE / AFTER /
-         SAVE+LOAD, saved state shown). Appended at the ItemGroup END
-         (S2 Shake.cs precedent). -->
+         ordering capture script (ui_test.sh leg K frame bank — J re-lettered K by
+         MC 11293 upstream): BEFORE / AFTER / SAVE+LOAD, saved state shown).
+         Appended at the ItemGroup END (S2 Shake.cs precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.QuestMono.cs" />
     <Compile Include="tests/ui/HudQuestMonoCaptureTest.cs" />
   </ItemGroup>

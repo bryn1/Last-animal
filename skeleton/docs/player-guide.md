@@ -4,6 +4,13 @@ Last Animal is a single-player 3D ARPG about understanding creatures through a
 spoken DNA language. You explore zones, fight or befriend what lives there,
 raise a companion, and talk to the ecosystem in its own language.
 
+The game boots into a **fixed isometric view** (the default since v0.5.0,
+owner ruling "Iso,"); run the binary with `--classic-cam` to opt back into the
+classic follow camera (a session-only launch flag, nothing saved). The world's
+light follows an in-game day/night clock — dusk warms and night dims the mood,
+including the canyon horizon strip (VERIFIED against
+`world/WorldDirector.DayNight.cs` and the DAYNIGHT/SKY_STRIP battery legs).
+
 ## Controls
 
 Verified against the `[input]` map in `project.godot`:
@@ -52,7 +59,9 @@ load — nothing refills it for free. The skills and their keys are under
 3. **Companions.** You can lead a roster of up to **three** followers
    (`CompanionRoster`, MC 3943): recruit a wild creature by interacting with it
    (`E`) and paying its first wage (`P`) — Calming Speak (`F`) can open that
-   same offer at cast range, but the wage remains the only way to join. Each
+   same offer at cast range, but the wage remains the only way to join. The
+   wild in the boot zone is a real recruit target since v0.5.0 (MC 11297):
+   calm it, take the offer, pay the wage, it follows. Each
    follower follows you (`CompanionFollowBody`), has its
    own needs (`CompanionNeeds`) and its own loyalty (`LoyaltyChanged` per
    follower; the HUD shows the mean). Loyalty moves with how you treat each
@@ -98,7 +107,9 @@ per-kill gain — live in `src/skills/SkillState.cs`, the cap in
 You unlock skills by learning DNA: each extraction teaches the ecosystem's
 language a counter, and the learned positions open the skills
 (`src/dna/PlayerMutations.cs`) — the first extractions are enough. A press
-while locked or short of Manna spends nothing.
+while locked or short of Manna spends nothing, and since v0.5.0 a refused
+press says WHY on screen (the named refusal line, MC 11297) instead of
+failing silently.
 
 ## Dialogue
 
@@ -140,11 +151,16 @@ enemy ring — note that load does **not** reposition your player character
 (zone travel with `T` does); you load wherever you were standing. The saved
 emotion label is written but is not restored on load.
 
+**Death is real** (since v0.5.0, MC 11294): at Life 0 you go down and stay
+down — the corpse cannot attack, interact, cast, travel or bank Manna. There
+is no respawn button: the revive IS the save system — press `F9` to load your
+last save, or delete it and start fresh.
+
 ---
 Claim labels: controls, HUD, systems, save/load behaviour and save path are
 VERIFIED against the source files named above. The moment-to-moment feel
-(difficulty, pacing) is UNVERIFIED — no human has played the packaged Windows
-build yet (wine 9.0 IS installed on the build host vm105, but the packaged
-`LastAnimal.exe` crashes at startup under it — null-pointer read, no log line,
-both renderers and `--headless`; likeliest the bundled .NET 8 host under Wine
-9.0 — see [build-and-run.md](build-and-run.md)).
+(difficulty, pacing) is UNVERIFIED. Windows runtime truth comes from owner
+playtesting of the published zips on real Windows machines (since v0.4.0 —
+his reports drove the v0.5.0 death/HUD/quest fixes); the Linux build host
+has no wine installed, so no automated Windows render smoke exists — stated,
+not faked (see [build-and-run.md](build-and-run.md)).
