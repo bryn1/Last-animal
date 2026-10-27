@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06).
+# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): 471 l by wc AT this head, past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave).
 #
 # The Phase-11 DoD (PHASE0.md Phase 11, C13):
 #   "headless render of the HUD scene is non-blank with all bound values

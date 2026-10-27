@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""mode_sets_check.py — MC 10210 (W2 tail): the LA_GATE_MODE vocabulary drift gate.
+"""mode_sets_check.py — MC 10210 (W2 tail): the LA_GATE_MODE vocabulary drift gate. SIZE reason (file hygiene law, MC 11431 R1): 424 l by wc AT this head, past 400 — ONE-leg CI gate kept whole; the stage-pairing leg splits to a sibling only if the file grows (CC-1, comment-only wave).
 
 Every LA_GATE_MODE-dispatching proof carries its mode vocabulary in up to
 THREE places that must never disagree:

@@ -9,7 +9,7 @@ using LastAnimal.Core;
 // playtest build +11 to 331 l by wc AT this head (the ONE boot rig line — a
 // print of the already-decided Rig, no new state). MC 11189 default flip
 // +14 to 345 l by wc AT this head (comment-carried rulings; the switch
-// itself inverted ONE read: default FixedIso, opt-out flag --classic-cam).
+// itself inverted ONE read: default FixedIso, opt-out flag --classic-cam). MC 11431 R1 wc check (CC-9): the LIVE claim is this 345 == wc AT this head — the 192 -> 320 and -> 331 clauses above are head-scoped ledger history, the live claim NEVER broke (the audit row fired on the instrument's first-claim read, not on drift).
 
 // Last Animal — W3-fix composition (MC 1123.10, artemis, 2026-09-08).
 //

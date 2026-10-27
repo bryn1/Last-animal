@@ -1,4 +1,4 @@
-// SIZE: proof partial (~230 l NEW, MC 11295), test-class ceiling 600.
+// SIZE reason: proof partial 268 l by wc AT this head (the ~230 l NEW estimate lagged its landing — restamped from wc AT the MC 11431 R1 head, CC-9; the entry RIP.cs header's "the 268-l .QuestMono.cs partial" cite agrees), test-class ceiling 600.
 using Godot;
 using LastAnimal.Story;
 using LastAnimal.World;

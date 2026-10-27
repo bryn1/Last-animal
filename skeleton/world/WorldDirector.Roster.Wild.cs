@@ -1,4 +1,4 @@
-// SIZE: 171 l measured by wc AT this head (MC 10420 c3 F-E: the c2 "169/+5" stamp was
+// SIZE: 217 l measured by wc AT this head (MC 11431 R1 wc restamp: the 171 stamp lagged the +46 that landed at 6d0913a (MC 11297); earlier chain: MC 10420 c3 F-E: the c2 "169/+5" stamp was
 // delta-summed off pre-c2 164; real growth was +7 — WireFollowClamp call + note; delta
 // arithmetic dies here, MC 3895 idiom) — WILD-side half of the stage 2g roster
 // wiring (MC 10080 split of WorldDirector.Roster.cs: every member below moved VERBATIM, pure move).

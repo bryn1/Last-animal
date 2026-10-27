@@ -1,3 +1,5 @@
+// SIZE reason: 458 l by wc AT this head incl. this 2-l opener (456 + 2) — CI proof harness, test-class
+// ceiling 600: the MC 1348 P1 regression legs kept whole; the MC 11430 audit flags its deep nesting if the file is touched again (MC 11431 R1, CC-4, comment-only wave).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core;

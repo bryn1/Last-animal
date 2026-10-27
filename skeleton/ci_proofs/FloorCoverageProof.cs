@@ -1,3 +1,5 @@
+// SIZE reason: 530 l by wc AT this head incl. this 2-l opener (528 + 2) — CI proof harness, test-class
+// ceiling 600: the ONE floor-coverage leg kept whole (MC 10404); a per-floor leg split is owed if it grows (MC 11431 R1, CC-3, comment-only wave).
 using Godot;
 using System.Collections.Generic;
 

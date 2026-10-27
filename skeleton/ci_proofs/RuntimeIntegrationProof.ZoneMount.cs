@@ -1,3 +1,5 @@
+// SIZE reason: 474 l by wc AT this head incl. this 2-l header (472 + 2) — CI proof harness, test-class
+// ceiling 600: the MC 11037 battery-header intent ("still under the 600 ceiling so no SIZE header there") is PROMOTED here into this header so gate rule (h1) passes whole (MC 11431 R1, CC-5, comment-only wave).
 using Godot;
 using LastAnimal.World;
 using System.Collections.Generic;
