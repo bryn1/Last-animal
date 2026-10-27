@@ -567,8 +567,8 @@ Fail(unknown mode …)`. Vocabulary drift across
 the battery is itself gated by `ci/mode_sets_check.sh` (header-doc ==
 allow-list == dispatch arms per proof; red-capable `--selftest`).
 The battery gate `ci/runtime_integration_test.sh` is the outer guard: at tip it runs
-**48 `run_mode` legs = 37 positive + 11 negative** (restamped MC 11320 FIX-ROUND from the
-anchored grep AT this head — MC 11297's tame_use/tame_neg pair grew 45→47 [their card restamped
+**49 `run_mode` legs = 38 positive + 11 negative** (restamped MC 11493 FIX-ROUND from the anchored grep AT this head — the DNA_TALK leg grew 48->49; the 48/37 present-tense twin this round names was true AT the MC 11320 head; restamped MC 11320 FIX-ROUND from the
+anchored grep AT that head — MC 11297's tame_use/tame_neg pair grew 45→47 [their card restamped
 the battery BANNER but not this row — the stale present-tense twin DA F-1 named] and this card's
 bus_emit section-(Y) leg grew 47→48; the prior reading 45 = 35 + 10 was restamped MC 11088/S48
 BATCH-4 FIX-ROUND-1 from the grep AT that head — count UNCHANGED from the
