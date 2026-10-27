@@ -1,5 +1,5 @@
-// SIZE reason: 458 l by wc AT this head incl. this 2-l opener (456 + 2) — CI proof harness, test-class
-// ceiling 600: the MC 1348 P1 regression legs kept whole; the MC 11430 audit flags its deep nesting if the file is touched again (MC 11431 R1, CC-4, comment-only wave).
+// SIZE: 383 l by wc AT this head after the MC 11432 R2 VERBATIM-move split — under the 400 l target, no SIZE-reason owed; test-class
+// ceiling 600: the ONE stage machine + mode vocabulary stay whole (MC 3895 DA P2-1); the live-scene seam + verdict/quit primitives moved VERBATIM to P1FixProof.Harness.cs (CC-4's deep-nesting flag rides the stage machine itself — the machine is not splittable; MC 11431 R1 CC-4 lineage; restamped from wc AT the MC 11432 R2 head).
 using Godot;
 using LastAnimal.Companion;
 using LastAnimal.Core;
@@ -103,22 +103,6 @@ public partial class P1FixProof : SceneTree
         // so matching it is the traversal, not the input.
         _homePos = _main.GetNodeOrNull<Node3D>("Player")?.GlobalPosition ?? Vector3.Zero;
         Root.AddChild(_main);
-    }
-
-    private bool Compose()
-    {
-        _bus = Root.GetNodeOrNull<EventBus>("/root/EventBus");
-        _director = _main as WorldDirector;
-        _playerBody = _director?.GetNodeOrNull<CharacterBody3D>("Player");
-        _empathy = _main?.GetNodeOrNull<EmpathyPanel>("UI/Empathy");
-        if (_bus == null) { Fail("EventBus autoload not present"); return false; }
-        if (_director == null) { Fail("main.tscn root is not WorldDirector"); return false; }
-        if (_playerBody == null) { Fail("Player node not found"); return false; }
-        if (_empathy == null) { Fail("EmpathyPanel not found at UI/Empathy"); return false; }
-        _bus.Betrayal += (_, _) => _betrayalCount++;
-        _bus.EmpathyBookOpened += () => _bookOpenedCount++;
-        GD.Print($"LA_GATE: composed — zone={_director.CurrentZone} enemies={_director.Enemies.Count}");
-        return true;
     }
 
     public override bool _Process(double delta)
@@ -396,63 +380,4 @@ public partial class P1FixProof : SceneTree
         return false;
     }
 
-    private void TeleportToNearestLiveEnemy()
-    {
-        EnemyActor? target = null;
-        float best = float.MaxValue;
-        foreach (var e in _director!.Enemies)
-        {
-            if (e.IsDead || !IsInstanceValid(e)) continue;
-            float d = e.GlobalPosition.DistanceTo(_playerBody!.GlobalPosition);
-            if (d < best) { best = d; target = e; }
-        }
-        if (target == null) { Fail("no live enemy to engage"); return; }
-        Vector3 p = target.GlobalPosition;
-        _playerBody!.GlobalPosition = new Vector3(p.X - 0.8f, p.Y, p.Z);
-        _victim = target;
-        GD.Print($"LA_GATE: player teleported into range of {target.Name} at ({p.X:0.##},{p.Y:0.##},{p.Z:0.##})");
-    }
-
-    /// <summary>
-    /// MC 10117 (10026.13.5): same latent class as MC 10112's BridgeMvpProof fix —
-    /// the proof is the C# MainLoop; its live-scene fields root the scene's C#
-    /// wrappers past native teardown and their finalizers hit freed ObjectDB
-    /// entries ("Leaked unsafe reference", exit 134/139, detection ~1/4 — TEST
-    /// T-1). Release + flush finalizers BEFORE every PASS Quit while the ObjectDB
-    /// is alive. All four modes root these fields at their Quit (see evidence
-    /// citations). Idiom REUSED from BridgeMvpProof.ReleaseHeldRefsBeforeQuit.
-    /// </summary>
-    private void ReleaseHeldRefsBeforeQuit()
-    {
-        _victim = null;
-        _bootEnemies.Clear();
-        _bus = null; _director = null; _playerBody = null;
-        _empathy = null; _main = null;
-        System.GC.Collect();
-        System.GC.WaitForPendingFinalizers();
-        System.GC.Collect();
-    }
-
-    private void Check(string what, bool ok, string detail)
-    {
-        GD.Print($"LA_GATE: check: {what}: {(ok ? "ok" : "FAIL")} {detail}");
-        if (!ok) Fail(what);
-    }
-
-    private void Fail(string why)
-    {
-        Input.ActionRelease("book");
-        Input.ActionRelease("travel");
-        _failed = true;
-        GD.PrintErr($"LA_GATE: FAIL — {why}");
-        Quit(1);
-    }
-
-    public override void _Finalize()
-    {
-        Input.ActionRelease("book");
-        Input.ActionRelease("travel");
-        if (!_asserted && !_failed)
-            GD.PrintErr("LA_GATE: FAIL — finished without asserting all stages");
-    }
 }

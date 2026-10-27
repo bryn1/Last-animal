@@ -360,6 +360,19 @@
          Appended at the ItemGroup END (S2 Shake.cs precedent). -->
     <Compile Include="ci_proofs/RuntimeIntegrationProof.QuestMono.cs" />
     <Compile Include="tests/ui/HudQuestMonoCaptureTest.cs" />
+    <!-- MC 11432 CLEAN-CODE R2 proof-file splits (audit MC 11430 CC-3/4/5/8
+         remainders): four VERBATIM-move partial halves — FloorCoverageProof.
+         Trust (the FLOOR_TRUST leg), P1FixProof.Harness (live-scene seam +
+         verdict/quit primitives), ZoneBossProof.Harness (press/farm
+         choreography + quit primitives), RuntimeIntegrationProof.ZoneMountChecks
+         (the mount CHECK instruments). ZERO behaviour change: each entry file
+         keeps its mode vocabulary and stage machine (all four moved verbatim,
+         lossless-reassembly checked). Appended at the ItemGroup END
+         (S2 Shake.cs precedent). -->
+    <Compile Include="ci_proofs/FloorCoverageProof.Trust.cs" />
+    <Compile Include="ci_proofs/P1FixProof.Harness.cs" />
+    <Compile Include="ci_proofs/ZoneBossProof.Harness.cs" />
+    <Compile Include="ci_proofs/RuntimeIntegrationProof.ZoneMountChecks.cs" />
   </ItemGroup>
 
 </Project>
