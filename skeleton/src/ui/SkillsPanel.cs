@@ -83,11 +83,7 @@ public partial class SkillsPanel : Control
 
     public override void _ExitTree()
     {
-        if (_bus != null)
-        {
-            DisconnectBus(_bus);
-            _bus = null;
-        }
+        _bus = BusTeardown.ExitAndUnhook(_bus, DisconnectBus);   // MC 11433 CC-12: one home
         base._ExitTree();
     }
 

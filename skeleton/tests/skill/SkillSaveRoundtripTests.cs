@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
 using LastAnimal.Combat;
@@ -67,26 +66,11 @@ public class SkillSaveRoundtripTests
     // ---- N2 MIRROR PIN (DA-c3 P3-2) ---------------------------------------
     // SaveLoadController is engine-side and deliberately NOT compiled into
     // this assembly (see the csproj), so type reflection cannot reach it —
-    // the pin reads the production SOURCE through the RepoFile idiom the
-    // 2d cross-check demonstrates (tests/story/QuestArcCrossCheckTests.cs).
+    // the pin reads the production SOURCE through the shared TestPaths.RepoFile
+    // util (tests/shared/TestPaths.cs, MC 11433 CC-13 — one home).
     // The guard test below fails loud on any drift: a rename or signature
     // change of either private, or any change to the algorithm the mirrors
     // reproduce, turns it RED naming both files.
-
-    /// <summary>Locate a repo file relative to the skeleton dir by walking up
-    /// from the test assembly output (QuestBusContractTests.RepoFile idiom —
-    /// robust for any bin/Depth and any checkout location).</summary>
-    private static string RepoFile(string relPath)
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, relPath);
-            if (File.Exists(candidate)) return File.ReadAllText(candidate);
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"source not found from {AppContext.BaseDirectory}: {relPath}");
-    }
 
     /// <summary>The braced body of the first method matching declaration
     /// (brace-matched substring). Fails loudly if the declaration shape
@@ -114,8 +98,8 @@ public class SkillSaveRoundtripTests
     [Fact]
     public void N2_mirror_pinned_to_SaveLoadController_privates()
     {
-        var prod = RepoFile("world/SaveLoadController.cs");
-        var mirror = RepoFile("tests/skill/SkillSaveRoundtripTests.cs");
+        var prod = TestPaths.RepoFile("world/SaveLoadController.cs");
+        var mirror = TestPaths.RepoFile("tests/skill/SkillSaveRoundtripTests.cs");
 
         // Leg 1 — the mirrored privates still exist with the pinned names
         // and signatures (rename / reshape = RED).

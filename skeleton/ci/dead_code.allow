@@ -1,0 +1,29 @@
+# dead_code.allow — repo-owned allow list for the fleet coding-discipline
+# dead_code.py re-runs (MC 11430 audit CC-18; landed MC 11433). Format:
+#   KIND path-or-name  reason   (matcher: whitespace-split, FIRST TWO tokens)
+# ORPHAN-MODULE/DRIVERLESS rows match the reported rel-path; UNCALLED-FN rows
+# match the method NAME (path:line drifts, names don't). Every row names why.
+# NOT allowed on purpose: the DNA message subsystem (src/dna) — its 5 unwired
+# methods are a PARKED owner keep/retire question, LEDGER row MC 11433 CC-16;
+# triage there must re-read the ruling, not this file.
+
+# CC-18: documented manual asset-pipeline CLI route (docs/ARCHITECTURE.md §18/§19) —
+# operator-run tools, never battery-driven; zero in-repo driver is the design.
+ORPHAN-MODULE skeleton/ci/seam_check.py documented manual asset-pipeline seam checker (ARCH §18/§19)
+ORPHAN-MODULE skeleton/ci/seam_fix.py documented manual asset-pipeline seam fixer (ARCH §18/§19)
+ORPHAN-MODULE skeleton/ci/edge_clamp.py documented manual asset-pipeline edge clampler (ARCH §18/§19)
+ORPHAN-MODULE skeleton/ci/asset_finalize.py documented manual asset-pipeline finalizer (ARCH §18/§19)
+DRIVERLESS animation_pipeline/tools/retarget_bake.sh documented manual retarget-bake route (ARCH §18/§19)
+
+# CC-17: legitimate test seams — public surface whose ONLY consumer is the
+# named suite; deleting them deletes the tests' window into the module.
+UNCALLED-FN SetBossStance test seam, tests/AudioTest.cs only (MC 11430 CC-17 keep-and-allow)
+UNCALLED-FN IsUnlocked test seam, tests/skill/PlayerMutationsTests.cs only (CC-17)
+UNCALLED-FN FindTitle test seam, tests/ui/HudQuestAct2CaptureTest.cs only (CC-17)
+UNCALLED-FN CalculateSalary test seam, tests/NpcEmotionTests.cs only (CC-17)
+UNCALLED-FN IsAvailable test seam, tests/story/DialogueTableTests.cs only (CC-17)
+UNCALLED-FN FindIdByObjectiveKind test seam, 4 test suites (CC-17)
+UNCALLED-FN RewriteSavedVersionForTest name IS the test seam (MC 11430 sweep-4 triage, ALLOWED there)
+
+# Triage-resolved, kept for deterministic re-runs (MC 11430 sweep-4):
+ORPHAN-MODULE skeleton/ci/mode_sets_check.py driven BY NAME — ci/mode_sets_check.sh exec line + battery section (audit triage: not dead)

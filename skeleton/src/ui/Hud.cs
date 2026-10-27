@@ -155,14 +155,10 @@ public partial class Hud : Control
         Redraw();
     }
 
-    /// <summary>Unsubscribe from the bus on teardown.</summary>
+    /// <summary>Unsubscribe from the bus on teardown (BusTeardown idiom, MC 11433 CC-12).</summary>
     public override void _ExitTree()
     {
-        if (_bus != null)
-        {
-            DisconnectBus(_bus);
-            _bus = null;
-        }
+        _bus = BusTeardown.ExitAndUnhook(_bus, DisconnectBus);
         base._ExitTree();
     }
 

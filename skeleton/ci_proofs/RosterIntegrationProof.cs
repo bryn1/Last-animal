@@ -1,4 +1,4 @@
-// SIZE reason: 310 l measured by wc AT this head (MC 11431 R1 wc restamp: the 305 stamp lagged the +5 that landed at 6d0913a (MC 11297); MC 10255 restamp: 278 l at the MC 10036 split, +7 l by the S17/MC 10201 trait rows; the 298 stamp lagged)
+// SIZE reason: 313 l measured by wc AT this head (MC 11433 CC-14 deliberate-2-copy note +3; MC 11431 R1 wc restamp: the 305 stamp lagged the +5 that landed at 6d0913a (MC 11297); MC 10255 restamp: 278 l at the MC 10036 split, +7 l by the S17/MC 10201 trait rows; the 298 stamp lagged)
 // — MC 3943 2g roster proof (DA W5 F1 + W5 c3 F-A oversized-save trim leg). MC 10036 split (was 600 l, AT the ceiling): the roster_follow arc
 // moved VERBATIM to RosterIntegrationProof.Follow.cs (partial half); this file
 // keeps the mode router, the shared helpers and the roster_neg leg.
@@ -92,6 +92,9 @@ public partial class RosterIntegrationProof : SceneTree
     private int _payToggle, _interactToggle, _bookToggle, _cycleToggle, _breakToggle;
     private const int BootEntityId = 7;   // the boot follower's authored bond id
 
+    // MC 11433 (audit MC 11430 CC-14): this boot is a DELIBERATE 2-COPY with ZoneBossProof._Initialize
+    // (NEAR-dup 0.87 — differs only in the default mode + comment prose); a shared BootProof helper would
+    // fork the ONE-SceneTree-state-machine-per-proof law (MC 3895 DA P2-1), so the pair stays, named here.
     public override void _Initialize()
     {
         GD.Print("LA_GATE: start");

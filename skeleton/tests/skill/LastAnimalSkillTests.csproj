@@ -53,6 +53,8 @@
          the ONE S16 tuning block + the two shipped write seams). -->
     <Compile Include="ResonancePassiveTests.cs" />
     <Compile Include="SkillHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
+    <!-- MC 11433 CLEAN-CODE R3 (audit CC-13): ONE home for the RepoFile idiom — tests/shared/TestPaths.cs, both verbatim clones + the origin copy deleted, all callers rewired. Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="../shared/TestPaths.cs" />
   </ItemGroup>
 
 </Project>

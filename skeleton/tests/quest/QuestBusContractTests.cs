@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -38,20 +37,9 @@ public class QuestBusContractTests
         "DialogueShown", "DialogueClosed", "PlayerHurt", "BossFallen",
     };
 
-    private static string RepoFile(string relPath)
-    {
-        // Locate the skeleton dir (the csproj's own dir) from the test
-        // assembly's output path — walk up until the file exists. Robust for
-        // any bin/Depth and any checkout location.
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, relPath);
-            if (File.Exists(candidate)) return File.ReadAllText(candidate);
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"bus source not found from {AppContext.BaseDirectory}: {relPath}");
-    }
+    // RepoFile moved to the shared util tests/shared/TestPaths.cs (MC 11433,
+    // audit MC 11430 CC-13: this was the origin copy; the failure-path message
+    // word "bus" folded into the shared wording, same trigger + same exception).
 
     private static List<string> BusSignalNames(string source)
     {
@@ -64,7 +52,7 @@ public class QuestBusContractTests
     [Fact]
     public void EventBus_CarriesExactlyFiveNewQuestSignals_NoSixth()
     {
-        var names = BusSignalNames(RepoFile("autoload/EventBus.cs"));
+        var names = BusSignalNames(TestPaths.RepoFile("autoload/EventBus.cs"));
         Assert.Equal(15, names.Count);   // 6 pre-2c + the 5-row batch + the 4
                                          // ratified S0 signals. A sixth non-
                                          // ratified batch signal trips this.
@@ -79,7 +67,7 @@ public class QuestBusContractTests
     [Fact]
     public void EventBus_AllQuestSignalsAreStringIdPerGd0202()
     {
-        var source = RepoFile("autoload/EventBus.cs");
+        var source = TestPaths.RepoFile("autoload/EventBus.cs");
         foreach (var s in QuestBatchSignals)
         {
             var m = Regex.Match(source,
@@ -95,7 +83,7 @@ public class QuestBusContractTests
     [Fact]
     public void EventBus_QuestBatchEmitHelpersTakeTheCarriers()
     {
-        var source = RepoFile("autoload/EventBus.cs");
+        var source = TestPaths.RepoFile("autoload/EventBus.cs");
         foreach (var (emit, carrier) in new[]
         {
             ("EmitQuestStarted", "QuestId"), ("EmitQuestObjective", "QuestId"),
@@ -108,7 +96,7 @@ public class QuestBusContractTests
     [Fact]
     public void FrameworkTypes_AuthorsTheQuestIdAndSkillIdCarriers()
     {
-        var source = RepoFile("autoload/FrameworkTypes.cs");
+        var source = TestPaths.RepoFile("autoload/FrameworkTypes.cs");
         Assert.Contains("public partial class QuestId : Resource", source);
         Assert.Contains("public partial class SkillId : Resource", source);
     }

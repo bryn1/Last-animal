@@ -1,4 +1,4 @@
-// SIZE reason: >400 (450 l by wc AT this head after the MC 11432 R2 VERBATIM-move split — the MC 10218 verbatim-move debt this header's ceiling clause owed is PAID: the press/farm choreography (PressTravel/KillLoop/NearestLiveEnemy/XzDist), the scaled-stats witness (AnyScaledEnemy/DescribeEnemies/BaseHealth) and the verdict/release/quit-cleanup primitives moved VERBATIM to ZoneBossProof.Harness.cs as a partial half; the ONE SceneTree state machine + the mode vocabulary stay here) — CI proof harness, test-class ceiling 600, ONE SceneTree state machine per MC 3895 DA P2-1. History (replace-not-delete): 460@MC10255 + 137 MC 11294/D2 (the death_load corpse-agency extension) + 3 MC 11297@6d0913a (the +3 put the file AT the 600 ceiling, the 597 stamp lagged it — CC-8 restamp at the MC 11431 R1 head); MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 the rooted-fields release +22 l; MC 10210 the unknown-mode dispatch switch +18 l; MC 10216 S18 the BaseHealth row +1 l.
+// SIZE reason: >400 (451 l by wc AT this head, +1 MC 11433 CC-14 deliberate-2-copy note, after the MC 11432 R2 VERBATIM-move split — the MC 10218 verbatim-move debt this header's ceiling clause owed is PAID: the press/farm choreography (PressTravel/KillLoop/NearestLiveEnemy/XzDist), the scaled-stats witness (AnyScaledEnemy/DescribeEnemies/BaseHealth) and the verdict/release/quit-cleanup primitives moved VERBATIM to ZoneBossProof.Harness.cs as a partial half; the ONE SceneTree state machine + the mode vocabulary stay here) — CI proof harness, test-class ceiling 600, ONE SceneTree state machine per MC 3895 DA P2-1. History (replace-not-delete): 460@MC10255 + 137 MC 11294/D2 (the death_load corpse-agency extension) + 3 MC 11297@6d0913a (the +3 put the file AT the 600 ceiling, the 597 stamp lagged it — CC-8 restamp at the MC 11431 R1 head); MC 3910 added the death_load save-ownership leg to the 397-l file; MC 10126 the rooted-fields release +22 l; MC 10210 the unknown-mode dispatch switch +18 l; MC 10216 S18 the BaseHealth row +1 l.
 using Godot;
 using LastAnimal.Combat;
 using LastAnimal.Core;
@@ -77,6 +77,7 @@ public partial class ZoneBossProof : SceneTree
     private EnemyActor? _reviveTarget;
     private int _reviveHp0, _reviveDna0;
 
+    // MC 11433 (audit CC-14): DELIBERATE 2-COPY with RosterIntegrationProof._Initialize — law + note there (MC 3895 DA P2-1).
     public override void _Initialize()
     {
         GD.Print("LA_GATE: start");

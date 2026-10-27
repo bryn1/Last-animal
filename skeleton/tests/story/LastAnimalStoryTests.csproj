@@ -42,6 +42,8 @@
     <Compile Include="DialogueTableTests.cs" />
     <Compile Include="QuestArcCrossCheckTests.cs" />
     <Compile Include="StoryHarnessSelfTest.cs" Condition=" '$(IncludeHarness)' != 'false' " />
+    <!-- MC 11433 CLEAN-CODE R3 (audit CC-13): ONE home for the RepoFile idiom — tests/shared/TestPaths.cs, both verbatim clones + the origin copy deleted, all callers rewired. Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="../shared/TestPaths.cs" />
   </ItemGroup>
 
 </Project>

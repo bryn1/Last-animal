@@ -373,6 +373,8 @@
     <Compile Include="ci_proofs/P1FixProof.Harness.cs" />
     <Compile Include="ci_proofs/ZoneBossProof.Harness.cs" />
     <Compile Include="ci_proofs/RuntimeIntegrationProof.ZoneMountChecks.cs" />
+    <!-- MC 11433 CLEAN-CODE R3 (audit CC-12): src/ui/BusTeardown.cs — the ONE home for the UI bus-unhook teardown idiom; the verbatim Hud.cs = SkillsPanel.cs _ExitTree copies moved in and both consumers rewired (zero behavior change). Appended at the ItemGroup END (S2 Shake.cs precedent). -->
+    <Compile Include="src/ui/BusTeardown.cs" />
   </ItemGroup>
 
 </Project>

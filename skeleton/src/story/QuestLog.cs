@@ -171,12 +171,6 @@ public sealed class QuestLog
         EvaluatePass();
     }
 
-    public void ObserveDialogueShown(string nodeId)
-    {
-        if (!string.IsNullOrEmpty(nodeId)) _nodesSeen.Add(nodeId);
-        EvaluatePass();
-    }
-
     /// <summary>One wage settle, keyed by the quest id it serves (WagePaid wire).
     /// Settles naming other/unknown ids are counted, never guessed onto a row.</summary>
     public void ObserveWagePaid(string questId)

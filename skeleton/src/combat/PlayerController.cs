@@ -111,9 +111,6 @@ public class PlayerController
         if (!IsDead && CurrentState == State.Dead) CurrentState = State.Idle;
     }
 
-    /// <summary>Track that an enemy is within melee reach (engaged).</summary>
-    public void EngageEnemy(int entityId) => _engaged.Add(entityId);
-
     /// <summary>Number of enemies currently engaged in melee reach.</summary>
     public int EngagedCount => _engaged.Count;
 }

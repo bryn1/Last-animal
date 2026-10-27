@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
 using LastAnimal.Story;
@@ -41,26 +40,11 @@ public class QuestArcCrossCheckTests
     /// resolves every card node of every card.</summary>
     private static ActCard[] Cards() => new[] { QuestTable.ActTwo, QuestTable.ActThree };
 
-    /// <summary>Locate a repo file relative to the skeleton dir by walking up
-    /// from the test assembly output (QuestBusContractTests.RepoFile idiom —
-    /// robust for any bin/Depth and any checkout location).</summary>
-    private static string RepoFile(string relPath)
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, relPath);
-            if (File.Exists(candidate)) return File.ReadAllText(candidate);
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"source not found from {AppContext.BaseDirectory}: {relPath}");
-    }
-
     /// <summary>Canonical zone ids, parsed off the spawner's ZoneIds line
     /// (EcosystemSpawner.cs). Fails loudly if the shape ever changes.</summary>
     private static List<string> SpawnerZoneIds()
     {
-        var src = RepoFile("src/ecosystem/EcosystemSpawner.cs");
+        var src = TestPaths.RepoFile("src/ecosystem/EcosystemSpawner.cs");
         var m = Regex.Match(src, @"ZoneIds\s*=\s*\{([^}]*)\}");
         Assert.True(m.Success,
             "could not locate the ZoneIds literal in src/ecosystem/EcosystemSpawner.cs — " +
