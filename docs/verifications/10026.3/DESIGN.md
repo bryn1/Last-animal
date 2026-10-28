@@ -5,7 +5,9 @@ findings implemented, DA verified fixed; c2 verdict `DA-verdict-c2.md` b44daf94 
 `ClearCalmWindows()` re-pinned to the END of `RestoreFollowers` — the in-`Load()` restore
 callback hit by BOTH load entries (the player `load_game` key bypasses proof-only `LoadGame()`;
 F-3c moot); F-2 PB-PRESS-ORDER detector → CALM_REFUSE_STANDING's zero-delta assert; F-3a pair
-clause; F-3b §5 header aligned). Repo `/home/svarkor/last-animal`, branch `vm350/last-animal`,
+clause; F-3b §5 header aligned). Repo `last-animal` (the old seat-host absolute path removed
+by MC 10103 — that host is destroyed; the checkout is reproducible from the repo itself),
+branch `vm350/last-animal`,
 gate base HEAD `3514d92d2e7c2985c6c0d3b7117bc8682b24334f`. Author: `plan` profile child. This
 is a DESIGN — it names code, it does not contain it.
 

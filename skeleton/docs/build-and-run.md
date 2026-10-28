@@ -102,10 +102,14 @@ res://assets/audio/music_theme.ogg` at startup).
 Requirements:
 
 - **Godot 4.7.2-stable mono** plus the matching **mono export templates**
-  (installed to `~/.local/share/godot/export_templates/`). The pinned engine
-  binary is vendored one level above the repo — see
-  `/srv/workspace/last-animal/engine/PIN.txt` and
-  `SHA512-SUMS.txt` in the same directory.
+  (installed to `~/.local/share/godot/export_templates/`). The engine binary
+  is **not in git** (MC 10103, clean-clone truth): the `engine/Godot_v4.7.2-*`
+  directories are gitignored, and a clean clone carries only the pin and the
+  checksums — `engine/PIN.txt`, `engine/SHA512-SUMS.txt` and
+  `engine/local.sha512`. Fetch the pinned official zip, verify its SHA512
+  against `engine/local.sha512`, and extract it beside the clone at
+  `engine/Godot_v4.7.2-stable_mono_linux_x86_64/` (the location
+  `ci/toolchain.sh` looks for), or just export `GODOT=/path/to/godot`.
 - **.NET SDK 8.x** (the pinned line; the build host has 8.0.132 — restamped
   by `dotnet --version` at the v0.5.0 release leg, MC 11399).
 
@@ -119,8 +123,10 @@ bash ci/export_check.sh         # full-game export gate (preset "Windows")
 bash tools/export_windows.sh    # gate + zip + (optional) wine smoke
 ```
 
-`ci/toolchain.sh` resolves `GODOT` to the vendored engine binary; override it
-by exporting `GODOT=/path/to/godot` before sourcing.
+`ci/toolchain.sh` resolves `GODOT` to the pinned binary at the `engine/`
+location above **if you restored it there** — it warns on stderr when that
+binary is missing, because a clean clone never contains it. Either way,
+exporting `GODOT=/path/to/godot` before sourcing overrides the lookup.
 
 ## Building on Windows from source
 

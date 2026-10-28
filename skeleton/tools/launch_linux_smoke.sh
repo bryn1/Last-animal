@@ -9,22 +9,42 @@
 # packaged game actually boots and renders. The capture PNG is written into
 # this run's audit dir as evidence (override with SMOKE_OUT_DIR).
 #
-# Usage:  bash tools/launch_linux_smoke.sh
+# MC 10103: the SMOKE_OUT_DIR default used to be a hardcoded stale run dir, so
+# a bare run silently overwrote that run's captured evidence (gitignored bytes,
+# lost once). A bare run now derives a FRESH run-unique dir under $PROJ/.audits/
+# — the repo's mktemp idiom (the mktemp pattern at ci/smoke.sh:74, the -d form
+# at ci/ui_test.sh:235), no host path in any default — and NO run, default or
+# SMOKE_OUT_DIR, overwrites an existing capture unless SMOKE_FORCE=1 says so.
+#
+# Usage:  bash tools/launch_linux_smoke.sh                       # fresh run-unique evidence dir
+#         SMOKE_OUT_DIR=<dir> bash tools/launch_linux_smoke.sh  # explicit capture dir (unchanged)
+#         SMOKE_FORCE=1 bash tools/launch_linux_smoke.sh        # allow overwriting an existing capture
 set -euo pipefail
+
+fail() { echo "LAUNCH_LINUX_SMOKE: FAIL: $*" >&2; exit 1; }
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PROJ="$(cd "$HERE/.." && pwd)"
 OUT_EXE="$PROJ/build/LastAnimal.x86_64"
 GUI_HELPER="${GUI_HELPER:-/usr/local/bin/graphical-test-helper.sh}"
-SMOKE_OUT_DIR="${SMOKE_OUT_DIR:-/home/svarkor/last-animal/.audits/202609251217-45babbbb}"
+if [ -n "${SMOKE_OUT_DIR:-}" ]; then
+  mkdir -p "$SMOKE_OUT_DIR"
+else
+  # Fresh run-unique evidence dir (MC 10103) — never a fixed, shared target.
+  mkdir -p "$PROJ/.audits"
+  SMOKE_OUT_DIR="$(mktemp -d "$PROJ/.audits/$(date -u +%Y%m%d%H%M)-launch-linux-smoke.XXXXXX")" \
+    || fail "mktemp -d failed deriving the run evidence dir under $PROJ/.audits/"
+fi
 PNG="$SMOKE_OUT_DIR/linux-smoke-capture.png"
 
-fail() { echo "LAUNCH_LINUX_SMOKE: FAIL: $*" >&2; exit 1; }
+# MC 10103 refuse-overwrite: captured evidence is never clobbered silently.
+if [ -e "$PNG" ] && [ -z "${SMOKE_FORCE:-}" ]; then
+  fail "capture already exists: $PNG — refusing to overwrite an existing capture (MC 10103); re-run with SMOKE_FORCE=1 to overwrite"
+fi
 
 [ -f "$OUT_EXE" ] || fail "no exported binary at $OUT_EXE (run tools/export_linux.sh first)"
 [ -x "$OUT_EXE" ] || fail "$OUT_EXE is not executable"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER"
-mkdir -p "$SMOKE_OUT_DIR"
 
 echo "LAUNCH_LINUX_SMOKE: launching $OUT_EXE natively under Xvfb (helper: $GUI_HELPER)"
 # The helper starts its own throwaway Xvfb (1280x800x24) and captures THAT
