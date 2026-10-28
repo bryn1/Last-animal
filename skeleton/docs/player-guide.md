@@ -132,8 +132,9 @@ blank box.
 
 A quiet five-beat quest arc runs on top of the same systems
 (`src/story/QuestTable.cs`, advanced by `src/story/QuestLog.cs`): **Arrival**
-(enter the meadow) → **Answer in Tongue** (speak DNA to a creature with
-`E`) → **Bread Before Bonds** (pay a due wage with `P`) → **Blood Teaches**
+(enter the meadow) → **Answer in Tongue** (speak DNA to a creature —
+interact with `E` or speak aloud with `V`; both ride the one spoken signal) →
+**Bread Before Bonds** (pay a due wage with `P`) → **Blood Teaches**
 (extract DNA from four creatures) → **The Watcher Falls** (kill the boss the
 zone fields once your spoken DNA crosses its threshold). Quests advance
 automatically as you play; each completion starts the next. A quest's

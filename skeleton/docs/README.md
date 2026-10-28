@@ -14,7 +14,7 @@ explicit, per PHASE0.md. The deliverable is a Windows/Linux zip you run locally.
 | [install.md](install.md) | How a player installs and first-runs the game (Windows and Linux). |
 | [release-notes/](release-notes/) | Per-version release notes, committed at the tag (v0.5.0+; earlier versions' notes lived only on the GitHub release page). |
 
-## The delivered artifact (v0.5.0 era — what the GitHub release carries)
+## The delivered artifact (v0.6.0 era — what the GitHub release carries)
 
 The published assets of each release are exactly:
 
@@ -27,7 +27,12 @@ The published assets of each release are exactly:
 - `LastAnimal-windows-x86_64.zip` — Windows x86_64 distributable: `LastAnimal.exe`
   (full-game release export) + `data_LastAnimalPreflight_windows_x86_64/` +
   `preflight.exe` (the standalone hardware/render preflight check, v0.4.1 asset
-  layout — run it first if the game itself will not open). Produced by
+  layout — run it first if the game itself will not open) + the two rig launchers
+  and the one-page note `LAST-ANIMAL-CLASSIC.bat` / `LAST-ANIMAL-ISO.bat` /
+  `OWNER-PLAYTEST.txt` at the zip top level (the MC 11129 owner-playtest extras,
+  VERIFIED against the published v0.5.0 asset listing at the v0.6.0 sweep —
+  the previous README sentence omitted them; the layout is unchanged since,
+  `tools/export_windows.sh` packages them at every release leg). Produced by
   `ci/export_check.sh` (both Windows presets) + `bash tools/export_windows.sh`,
   then the release leg folds `build/preflight.exe` into the published zip.
 
@@ -37,7 +42,10 @@ the hashes live in the evidence, not in the docs. The binaries are rebuilt on
 every export, so their hashes change by design.
 
 Both are produced from `skeleton/` (the scripts live in `skeleton/tools/`); see
-[build-and-run.md](build-and-run.md).
+[build-and-run.md](build-and-run.md). (Era re-stamped v0.5.0 → v0.6.0 at the
+v0.6.0 release, MC 11587: the asset names and layout above are UNCHANGED from
+v0.5.0 — measured against `export_presets.cfg` + the packaging scripts at the
+tag — the stamp moved because the release era moved.)
 
 > **History note (replaces the old superseded sizes block, MC 10059 → de-staled
 > at the v0.5.0 release, MC 11399):** the per-build byte counts and hashes this
