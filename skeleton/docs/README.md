@@ -34,7 +34,12 @@ The published assets of each release are exactly:
   the previous README sentence omitted them; the layout is unchanged since,
   `tools/export_windows.sh` packages them at every release leg). Produced by
   `ci/export_check.sh` (both Windows presets) + `bash tools/export_windows.sh`,
-  then the release leg folds `build/preflight.exe` into the published zip.
+  then the release leg folds `build/preflight.exe` into the published zip. The
+  export gates' clean is scoped to the engine's own outputs and never deletes
+  a packaged zip (`tools/package_artifact.sh` owns the zip lifecycle), so the
+  `Windows-preflight` leg is safe before OR after packaging — at the v0.6.0
+  cut its clean removed the already-packaged zip and the first Windows asset
+  had to be discarded and rebuilt (fixed at MC 11654).
 
 Exact byte sizes and sha256 per asset are recorded on each release's asset list
 (GitHub API) and in that release's evidence dir under `.audits/` — per doctrine

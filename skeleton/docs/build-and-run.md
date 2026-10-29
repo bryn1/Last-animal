@@ -41,7 +41,14 @@ The script runs three steps and fails loudly on any of them:
    rebuilds the C# solution through the engine (`--build-solutions`), runs
    `godot --headless --export-release`, and proves the output is a real PE
    (`MZ` magic) that carries the C# assembly, the GodotSharp runtime and the
-   godot-mono runtimeconfig markers. Zero export ERROR lines is part of the gate.
+   godot-mono runtimeconfig markers. Zero export ERROR lines is part of the
+   gate. The gate's clean-export wipe is scoped to the engine's OWN outputs —
+   the .exe and `data_*` dir it re-produces, plus the `.godot` cache — and
+   NEVER touches a packaged zip (`tools/package_artifact.sh` owns the zip
+   lifecycle: rm + fresh write at every packaging), so the gate — including
+   the `Windows-preflight` leg — may run at any point of the release sequence
+   without destroying the artifact it certifies (MC 11654; at the v0.6.0 cut
+   its clean rm'd the already-packaged Windows zip).
 2. **Packaging** — zips the .exe AND the `data_LastAnimalPreflight_windows_x86_64/`
    assemblies dir into `build/LastAnimal-windows-x86_64.zip` (python3
    `zipfile`; the `zip` CLI is not installed on the build host). The step

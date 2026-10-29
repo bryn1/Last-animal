@@ -38,18 +38,24 @@ bash "$PROJ/tools/export_templates_guard.sh" --pinned \
   || fail "export-template hashlist-pin drift (MC 11229) — see TPL_PIN_DRIFT line(s) above; restore from checksum-verified .tpz, NEVER --repin over suspected drift (lineage: .audits/20261024-0528-137t/EVIDENCE.md)"
 
 cd "$PROJ" || fail "cannot cd $PROJ"
-# Clean-export property, scoped to THIS platform (DA P3, MC 1405): a Windows
-# re-export must not delete the Linux binary beside it (and vice versa), so
-# only the current platform's exe, data dir and zip are removed here. The
-# shared .godot import cache is still wiped so the export rebuilds from a
-# clean engine state.
+# Clean-export property, scoped to THIS platform (DA P3, MC 1405) AND to the
+# engine's OWN outputs (MC 11654): a Windows re-export must not delete the
+# Linux binary beside it (and vice versa), and NO leg may delete a packaged
+# distributable zip — at the v0.6.0 cut the Windows-preflight leg ran AFTER
+# packaging and this clean (case maps Windows-preflight -> windows too) rm'd
+# the shipped build/LastAnimal-windows-x86_64.zip and never rebuilt it
+# (11587 evidence: "First packaged Windows zip was DISCARDED"). The zip
+# lifecycle belongs to tools/package_artifact.sh (rm + fresh write at every
+# packaging); this gate removes only the outputs IT re-produces — $OUT_EXE
+# and the platform data dir — plus the shared .godot import cache, so the
+# export still rebuilds from a clean engine state.
 case "$PRESET" in
-  Linux*) PLAT="linuxbsd"; TAG="linux"  ;;
-  *)      PLAT="windows";  TAG="windows" ;;
+  Linux*) PLAT="linuxbsd" ;;
+  *)      PLAT="windows"  ;;
 esac
 rm -rf .godot
 mkdir -p build
-rm -f "$OUT_EXE" "build/LastAnimal-${TAG}-x86_64.zip"
+rm -f "$OUT_EXE"
 rm -rf build/data_*_"${PLAT}"_x86_64
 
 # Import + build the C# assembly THROUGH THE ENGINE. `--quit` does NOT build the
