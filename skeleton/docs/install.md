@@ -20,7 +20,8 @@
    `LastAnimal.exe` itself will not open.
 
 Expected first run: a window opens with the game world (meadow zone) in the
-**isometric view** — the boot default since v0.5.0; launch with `--classic-cam`
+**fixed-angle view** — a perspective camera held at one constant angle (the
+owner's "iso" rig) — the boot default since v0.5.0; launch with `--classic-cam`
 to get the old follow camera. The HUD
 shows Life / Manna / DNA meter / companion hearts, and background music plays.
 If Windows SmartScreen warns about an unsigned binary, choose **More info →
@@ -91,7 +92,8 @@ so do not move or delete it. No Godot installation and no .NET SDK are needed
 on the player machine — the .NET runtime ships in the data dir.
 
 Expected first run: a window opens with the game world (meadow zone) in the
-**isometric view** — the boot default since v0.5.0; run with `--classic-cam`
+**fixed-angle view** — a perspective camera held at one constant angle (the
+owner's "iso" rig) — the boot default since v0.5.0; run with `--classic-cam`
 for the old follow camera. The
 HUD shows Life / Manna / DNA meter / companion hearts. Saves work the same as
 on Windows (`user://savegame.json`, on Linux resolving under

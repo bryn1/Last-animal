@@ -4,8 +4,9 @@ Last Animal is a single-player 3D ARPG about understanding creatures through a
 spoken DNA language. You explore zones, fight or befriend what lives there,
 raise a companion, and talk to the ecosystem in its own language.
 
-The game boots into a **fixed isometric view** (the default since v0.5.0,
-owner ruling "Iso,"); run the binary with `--classic-cam` to opt back into the
+The game boots into a **fixed-angle view** — a perspective camera held at one
+constant angle, the rig the owner named "iso" (the default since v0.5.0, owner
+ruling "Iso,"); run the binary with `--classic-cam` to opt back into the
 classic follow camera (a session-only launch flag, nothing saved). The world's
 light follows an in-game day/night clock — dusk warms and night dims the mood,
 including the canyon horizon strip (VERIFIED against

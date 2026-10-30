@@ -33,7 +33,7 @@ public partial class Player : CharacterBody3D
     // terrain heightfield; ~9.8 m/s^2 at 60 physics ticks = 0.1633/frame^2).
     private const float Gravity = 9.8f;
 
-    // Camera offset for the isometric action cam (BRIDGE-MVP STEP C Camera3D):
+    // Camera offset for the fixed-angle action cam (BRIDGE-MVP STEP C Camera3D):
     // a fixed third-person offset that keeps the player centred-ish on screen.
     [Export] public Node3D? CameraRig { get; set; }
 
@@ -82,7 +82,7 @@ public partial class Player : CharacterBody3D
         // --- advance the pure C10 model so its State (Run/Idle) stays live ----
         Controller.Move(new CombatVec3(raw.X, 0f, raw.Y), dt);
 
-        // --- keep the isometric cam following the player ---------------------
+        // --- keep the fixed-angle cam following the player -------------------
         if (CameraRig != null)
             CameraRig.GlobalPosition = GlobalPosition + new Vector3(0, 6, 6);
     }

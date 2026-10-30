@@ -4,11 +4,11 @@
 # Proves res://main.tscn is a PLAYABLE composition root (BRIDGE-MVP.md §2 STEP C):
 #   RG2 closed  : project.godot run/main_scene points at main.tscn (not preflight).
 #   Scene loads : main.tscn instantiates the meadow zone + Player CharacterBody3D +
-#                 isometric Camera3D (the whole tree resolves + the pure-logic
+#                 fixed-angle Camera3D (the whole tree resolves + the pure-logic
 #                 PlayerController sidecar boots).
 #   Player moves: simulated WASD (the [input] map from 1123.2/RG3) drives
 #                 PlayerController.Move -> CharacterBody3D XZ displacement.
-#   Cam follows : the CameraRig (isometric Camera3D) tracks the player.
+#   Cam follows : the CameraRig (fixed-angle Camera3D) tracks the player.
 #   Renders     : graphical-test-helper non-blank framebuffer (the playable-bar).
 #
 # Run: ./ci/main_composition_test.sh [project_dir]   (defaults to dir above ci/)
@@ -58,7 +58,7 @@ printf '%s\n' "$LOGA"
 [[ "$LOGA" == *'PLAYER_MOVED'* ]] \
   || fail "expected 'PLAYER_MOVED' (input -> PlayerController -> body)"
 [[ "$LOGA" == *'CAMERA_FOLLOWS'* ]] \
-  || fail "expected 'CAMERA_FOLLOWS' (isometric Camera3D tracks player)"
+  || fail "expected 'CAMERA_FOLLOWS' (fixed-angle Camera3D tracks player)"
 
 # (B) framebuffer render bar: the composition root actually paints a non-blank frame
 LOGC="$("$GUI_HELPER" --cmd "$GODOT --path $PROJ --script $PROOF" --wait 6 2>&1)"

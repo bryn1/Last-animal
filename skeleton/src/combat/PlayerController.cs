@@ -5,7 +5,7 @@ using System;
 // C10 (PHASE0.md line 379): `PlayerController` exposes `Move(Vec3)`/`State`.
 // Engine-free (I3): this is the pure-logic player controller model, testable
 // under `dotnet test` without a window. The Godot scene (M08) maps this to a
-// CharacterBody3D + isometric Camera3D at the seam (I4 — engine types do not
+// CharacterBody3D + fixed-angle Camera3D at the seam (I4 — engine types do not
 // leak into the pure module).
 //
 // `Move(Vec3)` drives the controller one frame: it updates position from the

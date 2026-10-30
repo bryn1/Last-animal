@@ -14,7 +14,7 @@ using LastAnimal.Core;
 // Last Animal — W3-fix composition (MC 1123.10, artemis, 2026-09-08).
 //
 // FollowCamera: the SINGLE current camera of the playable composition root.
-// A small isometric third-person follow cam. It is deliberately decoupled
+// A small fixed-angle third-person follow cam. It is deliberately decoupled
 // from the Player physics shell (Player.cs only drives movement), so framing
 // is one concern in one small node — a fixed behind-and-above offset that
 // keeps terrain, player, enemies and companion in frame, with sky visible.
@@ -22,14 +22,14 @@ using LastAnimal.Core;
 // (I4 seam: a View-layer node; it only reads the target transform and frames
 // it. It owns no gameplay logic.)
 //
-// MC 11018 / 10026.44.6 S45: the SAME node also carries the fixed isometric
+// MC 11018 / 10026.44.6 S45: the SAME node also carries the fixed-angle
 // rig behind a toggle — a rig-mode switch inside the existing camera, NOT a
 // parallel camera class (mechanism monogamy). The mode is chosen PER BOOT
 // from a session-only launch flag: `--classic-cam` as a cmdline USER arg
 // (after the `--` separator). R7-safe: zero save fields, the rig is never
 // persisted; a save loads in either rig. MC 11189 DEFAULT FLIP (owner
 // ruling verbatim "Iso," — PoE/D2 ground-dominated iso view, camera-ref
-// VIEW-REFERENCE.md): NO flag -> the FIXED ISO rig is THE shipped default;
+// VIEW-REFERENCE.md [RETIRED 2026-10-30 MC 11733: no such file exists anywhere in the tree — marked in place, no substitute doc authored]): NO flag -> the FIXED ISO rig is THE shipped default;
 // `--classic-cam` -> the follow rig below. The earlier "Toggle" reading
 // (MC 10995 append 9, "the owner plays both and names the default later")
 // STANDS in its mechanism half — both rigs stay launchable per session,
@@ -185,7 +185,7 @@ public partial class FollowCamera : Node3D
         // boot — zero per-frame output, so the F4-CMP marker streams stay
         // clean. Derived from the SAME Rig the switch above decided.
         GD.Print(RigIsFixedIso
-            ? "LA_PLAYTEST_RIG=ISO (fixed isometric camera)"
+            ? "LA_PLAYTEST_RIG=ISO (fixed-angle perspective camera)"
             : "LA_PLAYTEST_RIG=CLASSIC (follow camera)");
         // Robust runtime resolution: this FollowCamera lives on the composition
         // root's Camera node, whose sibling Player is the frame target.

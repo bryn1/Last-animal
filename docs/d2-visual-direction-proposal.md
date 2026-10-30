@@ -100,8 +100,13 @@ W5-A pick)" — YES recommended.
 
 ### B — Fixed isometric (D2-style) camera ruling
 Feasible, VERIFIED: combat nearest-in-range (nothing to aim-break), saves carry no camera state, UI screen-space. Breaks/retunes: (1) canyon/ruins `current=true` dual-camera bug (rides S39/S27 mount); (2) FollowCamera juice retune; (3) terrain occlusion — fixed rig needs clearance or camera collision; (4) readability — A's density/grades must be authored for the fixed angle (do B with/after A); (5) perf roughly neutral. Orthographic = optional flag, not rewrite. Effort: 1 card + playtest ruling. Risk: feel regression (owner-only call).
-**OWNER RULING NEEDED (B):** "fixed isometric as THE camera — yes / no / try behind a toggle" —
-recommendation: toggle card first (cheap, reversible), follow-cam default until he plays it.
+**OWNER RULING (B) — GIVEN 2026-10-30 (MC 11733), verbatim: "Ground dominant iso view."**
+The yes/no/toggle question (this section's 2026-10-09 proposal wording — the open line is
+superseded per versioned-truth; git history holds it) is CLOSED. The tree already carries the
+mechanical answer: the rig rides a toggle (S45 shipped, MC 11018) and the fixed rig is THE boot
+default (MC 11189, ruling "Iso,"); the shipped render is a perspective camera held at a fixed
+angle ("iso view" is the owner's own naming and stays his). The player-facing isometric-projection
+wording is corrected by MC 11733.
 
 ### C — Funded external art path (prerendered / isometric rework)
 A prerendered-D2 rework is a **rewrite** class: new camera+render model, per-zone baked backplate pipeline, per-direction sprite sets (the existing animation pipeline is realtime-3D only), big-studio resource asymmetry (§1 baseline). Even the humane version (commissioned stylized 3D pack replacing Kenney) is owner money under D-1. **No quote on file — C=YES opens an estimating step first** (market rows, scope sheet), it does not open a build. Buys: the only path to new silhouettes/quality ceiling. Does NOT buy: mood (A/C' buy mood now); a funded pack without A's lighting still looks like bright toys in new clothes.
