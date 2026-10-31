@@ -21,8 +21,8 @@ using LastAnimal.Ui;
 // live authorities at CALL time — PlayerMutations.Unlocked over the same
 // per-position consensus the ecosystem learns from (the only round-trip
 // stable unlock source), PlayerController.Manna, and the ACTIVE quest row
-// across both act logs (LiveQuestLine's union, MC 10138). Nothing on this
-// side of the seam is a copy.
+// across the three act logs (LiveQuestLine's union, MC 10138 + MC 11311).
+// Nothing on this side of the seam is a copy.
 //
 // MC 10098 Inc-3 S0 (this file owns the bus-emit seam): TickUi additionally
 // runs the per-frame EDGE-DETECT poll that mirrors dialogue/hurt/boss state
@@ -79,20 +79,32 @@ public partial class WorldDirector
         PlayerMutations.Unlocked(EcosystemAdaptation.ModelPlayerDna(_spokenDna));
 
     /// <summary>The quest tracker line: ACTIVE quest title + objective.
-    /// MC 10138 (S10-flagged limitation): union across BOTH act logs — the
+    /// MC 10138 (S10-flagged limitation): union across the act logs — the
     /// act-two row wins while its log has a still-Active row (from the act-
     /// open edge through the arc); otherwise act one's first still-Active
-    /// row (boot through the finale, and the post-arc "none"). This is a
-    /// READ-side union only: _quests keeps its shipped act-one identity —
+    /// row (boot through the finale, and the post-arc "none"). MC 11311
+    /// (MC 11295 F1: the gap — the union stopped at act two, so an act-
+    /// three-open state fell through both exhausted logs and painted
+    /// "Quest: none"; the final act's rows NEVER painted): the act-three
+    /// log joins the SAME union as its own leg. This stays a READ-side
+    /// union only: _quests keeps its shipped act-one identity —
     /// quest_arc reads QStatus("q_boss") through Quests AFTER the open edge
     /// (RuntimeIntegrationProof.Quests.cs case 5), a reference swap there
     /// would break the shipped proofs.</summary>
     public string LiveQuestLine()
     {
+        // MC 11311 precedence, one line: the NEWEST opened act wins — act
+        // three over act two over act one (an act opens only when the
+        // previous arc is complete, so the deepest log with a still-Active
+        // row IS the current story beat; extend-the-union-leg, no second
+        // mechanism).
+        var act3Id = _questsAct3.ActiveQuestId;
         var act2Id = _questsAct2.ActiveQuestId;
-        return act2Id != null
-            ? FormatQuestLine(_questsAct2.Table, act2Id)
-            : FormatQuestLine(_quests.Table, _quests.ActiveQuestId);
+        return act3Id != null
+            ? FormatQuestLine(_questsAct3.Table, act3Id)
+            : act2Id != null
+                ? FormatQuestLine(_questsAct2.Table, act2Id)
+                : FormatQuestLine(_quests.Table, _quests.ActiveQuestId);
     }
 
     /// <summary>

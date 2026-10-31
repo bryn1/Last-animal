@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): 471 l by wc AT this head, past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave).
+# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave). 471 l by wc AT the MC 11431 head; MC 11311 +52 to 523 l by wc AT this head (section (L): the HUD_QUESTLINE_ACT3 act-three tracker leg closing MC 11295 F1 — two raw capture runs + marker greps + quest-row pixel bars riding the existing QUEST_CROP, header A–L + tail-echo restamps; NO battery leg, NO mode).
 #
 # The Phase-11 DoD (PHASE0.md Phase 11, C13):
 #   "headless render of the HUD scene is non-blank with all bound values
@@ -98,7 +98,7 @@
 #       DialogueSystem/EmpathyPanel rect fix and J1 exits 1 naming the
 #       overlaps (dialogue over LifeGauge; state/summary/hint across the five
 #       other gauge rows). No save touch in either J leg.
-# The gate passes only if A–K all behave as expected.
+# The gate passes only if A–L all behave as expected.
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
@@ -119,6 +119,7 @@ UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
 UI_QUESTLINE="res://tests/ui/HudQuestAct2CaptureTest.cs"
 UI_OVERLAP="res://tests/ui/HudDialogueOverlapTest.cs"
 UI_QUESTMONO="res://tests/ui/HudQuestMonoCaptureTest.cs"
+UI_QUESTLINE_ACT3="res://tests/ui/HudQuestAct3CaptureTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
@@ -154,6 +155,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$PROJ/tests/ui/HudQuestAct2CaptureTest.cs" ] || fail "HudQuestAct2CaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudDialogueOverlapTest.cs" ] || fail "HudDialogueOverlapTest.cs not found"
 [ -f "$PROJ/tests/ui/HudQuestMonoCaptureTest.cs" ] || fail "HudQuestMonoCaptureTest.cs not found"
+[ -f "$PROJ/tests/ui/HudQuestAct3CaptureTest.cs" ] || fail "HudQuestAct3CaptureTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -467,5 +469,55 @@ echo "UI_HUD_TEST: K BEFORE-vs-AFTER quest-row diff stddev=$MJ_DIFF_SD (bar: std
 fnum "$MJ_DIFF_SD" 0.01 || fail "run K: quest row identical BEFORE/AFTER (stddev=$MJ_DIFF_SD) — the tracker did not repaint on the boss-kill beat"
 echo "UI_HUD_TEST: K ok — quest line reads Watcher Falls BEFORE, the advanced act-two row AFTER the boss-kill beat at the ruins, and the SAVED state carries the advanced rows"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K)"
+# ---------------------------------------------------------------------------
+# (L) MC 11311 — HUD_QUESTLINE_ACT3: the tracker line follows the ACT-THREE
+#     log once the act opens (MC 11295 F1: LiveQuestLine unioned ONLY act one
+#     + act two — an act-three-open state painted the exhausted fallthrough
+#     "Quest: none" and the act-three rows NEVER painted; the tracker never
+#     showed the final act's objective). TWO runs of tests/ui/
+#     HudQuestAct3CaptureTest.cs (LA_QUESTLINE_ACT3=0 / =1), leg-I idiom:
+#     run 0 is the boot control (act-one active title, the same face leg I
+#     pins); run 1 opens the act through the REAL save path (the Story3
+#     phase-1 diverge + SaveGame/LoadGame — the shipped FreshOpen restore
+#     arm) and must self-check the act-three row title ("The Hollow") while
+#     its row is Active. PLANTED-BAD (this card's RED half, banked): run the
+#     leg at the UNFIXED union and run 1 prints LA_QUESTLINE_ACT3: FAIL
+#     line=[Quest: none] — the frame shows the act-three row NOT painted.
+#     NOTE run 1 writes user://savegame.json — gate-level SAVEGATE flock.
+# ---------------------------------------------------------------------------
+echo "UI_HUD_TEST: run L — HUD_QUESTLINE_ACT3 baseline + act-three mid-arc title"
+LOGL_BASE="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT3=0 $GODOT --path $PROJ --script $UI_QUESTLINE_ACT3 > $CAPDIR/app-ql3-base.log 2>&1" \
+            --wait 6 --out "$CAPDIR/la-ql3-base.png" 2>&1)"
+printf '%s\n' "$LOGL_BASE"
+[[ "$LOGL_BASE" == *'RESULT=PASS'* ]] \
+  || fail "run L: baseline capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-ql3-base.log" 2>/dev/null)" == *'LA_QUESTLINE_ACT3: PASS'* ]] \
+  || fail "run L: baseline self-check marker missing (act-one tracker title not painted at boot — see app-ql3-base.log)"
+
+LOGL_ACT3="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT3=1 $GODOT --path $PROJ --script $UI_QUESTLINE_ACT3 > $CAPDIR/app-ql3-act3.log 2>&1" \
+            --wait 6 --out "$CAPDIR/la-ql3-act3.png" 2>&1)"
+printf '%s\n' "$LOGL_ACT3"
+[[ "$LOGL_ACT3" == *'RESULT=PASS'* ]] \
+  || fail "run L: act-three capture not RESULT=PASS (game frame did not render)"
+[[ "$(cat "$CAPDIR/app-ql3-act3.log" 2>/dev/null)" == *'LA_QUESTLINE_ACT3: PASS'* ]] \
+  || fail "run L: act-three self-check marker missing (the tracker did NOT follow the act-three log — the MC 11295 F1 gap is back)"
+
+# The quest-row crop must carry glyphs in the act-three run AND differ from
+# the baseline run's row (a different title painted). Bars mirror leg I.
+QL3_SD="$(convert "$CAPDIR/la-ql3-act3.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
+        -format '%[fx:standard_deviation]' info:)"
+QL3_COLORS="$(convert "$CAPDIR/la-ql3-act3.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
+echo "UI_HUD_TEST: L act3 quest-row stddev=$QL3_SD colors=$QL3_COLORS (bar: stddev>=0.02, colors>=4)"
+fnum "$QL3_SD" 0.02 || fail "run L: act-three quest row blank-ish (stddev=$QL3_SD) — the tracker line did not paint"
+fnum "$QL3_COLORS" 4 || fail "run L: act-three quest row has <4 colours (colors=$QL3_COLORS) — no glyph shapes present"
+QL3_DIFF_SD="$(convert "$CAPDIR/la-ql3-base.png" "$CAPDIR/la-ql3-act3.png" -compose difference -composite \
+             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
+QL3_DIFF_MEAN="$(convert "$CAPDIR/la-ql3-base.png" "$CAPDIR/la-ql3-act3.png" -compose difference -composite \
+               -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:mean]' info:)"
+echo "UI_HUD_TEST: L quest-row diff stddev=$QL3_DIFF_SD mean=$QL3_DIFF_MEAN (bar: stddev>=0.01, mean>=0.003)"
+fnum "$QL3_DIFF_SD" 0.01 || fail "run L: quest row identical baseline/act-three (stddev=$QL3_DIFF_SD) — the tracker did not repaint on act open"
+fnum "$QL3_DIFF_MEAN" 0.003 || fail "run L: quest row diff too small (mean=$QL3_DIFF_MEAN) — act-three title not actually painted"
+echo "UI_HUD_TEST: L ok — tracker paints act-one title at boot, act-three title mid-arc (pixels moved)"
+
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)"
 exit 0
