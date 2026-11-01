@@ -1,0 +1,24 @@
+DETERMINISM_CMP: project=/home/claudecode/Games/la-work/11312/skeleton modes=positive logs=/tmp/detcmp.jr2X2Q declares=0 (savegate lock must be HELD by caller)
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+DETERMINISM_CMP: mode=positive (A/A)
+DETERMINISM_CMP: (i) byte-stable stream: 11 lines, IDENTICAL
+DETERMINISM_CMP: (ii) numeric stream: 4 lines, masked-IDENTICAL, numeric drift inside masked-equal lines (allowed noise class)
+DETERMINISM: IDENTICAL

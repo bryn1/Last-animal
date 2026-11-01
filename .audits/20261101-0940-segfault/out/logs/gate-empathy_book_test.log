@@ -1,0 +1,81 @@
+M04_EMPATHY_BOOK: project=/home/claudecode/Games/la-work/11312/skeleton  godot=4.7.2.stable.mono.official.ed1daf0bf
+M04_EMPATHY_BOOK: run A1 — with harness self-test (expect 1 failure)
+  Determining projects to restore...
+  Restored /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/LastAnimalEmpathyTests.csproj (in 4.87 sec).
+  LastAnimalEmpathyTests -> /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/bin/Debug/net8.0/LastAnimalEmpathyTests.dll
+Test run for /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/bin/Debug/net8.0/LastAnimalEmpathyTests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.8.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.35]     LastAnimal.Tests.Empathy.EmpathyHarnessSelfTest.DeliberatelyBroken_ForgiveAtZeroEmpathy_IsWrong [FAIL]
+  Failed LastAnimal.Tests.Empathy.EmpathyHarnessSelfTest.DeliberatelyBroken_ForgiveAtZeroEmpathy_IsWrong [11 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Forgive
+Actual:   PermanentBreak
+  Stack Trace:
+     at LastAnimal.Tests.Empathy.EmpathyHarnessSelfTest.DeliberatelyBroken_ForgiveAtZeroEmpathy_IsWrong() in /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/EmpathyHarnessSelfTest.cs:line 26
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     1, Passed:    16, Skipped:     0, Total:    17, Duration: 66 ms - LastAnimalEmpathyTests.dll (net8.0)
+M04_EMPATHY_BOOK: run A1 — Failed=1 Passed=16 Total=17
+M04_EMPATHY_BOOK: run A2 — without harness self-test (expect 0 failures)
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  LastAnimalEmpathyTests -> /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/bin/Debug/net8.0/LastAnimalEmpathyTests.dll
+Test run for /home/claudecode/Games/la-work/11312/skeleton/tests/empathy/bin/Debug/net8.0/LastAnimalEmpathyTests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.8.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    16, Skipped:     0, Total:    16, Duration: 62 ms - LastAnimalEmpathyTests.dll (net8.0)
+M04_EMPATHY_BOOK: run A2 — Failed=0 Passed=16 Total=16
+M04_EMPATHY_BOOK: build through engine, then run EmpathySignalTest.cs
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+M04_EMPATHY_SIGNAL_TEST: start
+M04_EMPATHY_SIGNAL_TEST: check: signal starts at 0: ok got 0
+M04_EMPATHY_SIGNAL_TEST: check: EmpathyBookOpened() fired to subscriber: ok got 1 (want 1)
+M04_EMPATHY_SIGNAL_TEST: check: signal delivers on repeat emits: ok got 3 (want 3)
+M04_EMPATHY_SIGNAL_TEST: PASS — EmpathyBookOpened() fired to subscriber (C2)
+MusicManager: ensured bus "Sfx"
+MusicManager: ensured bus "Music"
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+MusicManager: playing music on bus "Music"
+GameBootstrap: booting module Salary (order 0)
+GameBootstrap: booting module Betrayal (order 1)
+GameBootstrap: booting module Companion (order 2)
+GameBootstrap: booting module Combat (order 3)
+GameBootstrap: booting module Ecosystem (order 4)
+GameBootstrap: booting module DnaLanguage (order 5)
+GameLoop: ready — boot-only autoload (composition root is WorldDirector)
+M04_EMPATHY_BOOK: GATE PASS — Query+RouteResolution suite green (16 passed, 0 failed), harness self-test red, EmpathyBookOpened() fired (C2)

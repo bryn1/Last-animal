@@ -1,0 +1,123 @@
+BRIDGE_MVP_TEST: project=/home/claudecode/Games/la-work/11312/skeleton  godot=4.7.2.stable.mono.official.ed1daf0bf
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+BRIDGE_MVP_PROOF: start
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   C# backtrace (most recent call first):
+       [0] Godot.GodotObject Godot.NativeCalls.godot_icall_1_914(nint, nint, Godot.NativeInterop.godot_node_path) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:8079)
+       [1] Godot.Node Godot.Node.GetNodeOrNull(Godot.NodePath) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:973)
+       [2] T Godot.Node.GetNodeOrNull<T>(Godot.NodePath) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Extensions/NodeExtensions.cs:82)
+       [3] void BridgeMvpProof._Initialize() (/home/claudecode/Games/la-work/11312/skeleton/ci_proofs/BridgeMvpProof.cs:118)
+       [4] bool Godot.MainLoop.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/MainLoop.cs:230)
+       [5] bool Godot.SceneTree.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/SceneTree.cs:1007)
+       [6] bool BridgeMvpProof.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/home/claudecode/Games/la-work/11312/skeleton/Godot.SourceGenerators/Godot.SourceGenerators.ScriptMethodsGenerator/BridgeMvpProof_ScriptMethods.generated.cs:138)
+       [7] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+MusicManager: ensured bus "Sfx"
+MusicManager: ensured bus "Music"
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+MusicManager: playing music on bus "Music"
+GameBootstrap: booting module Salary (order 0)
+GameBootstrap: booting module Betrayal (order 1)
+GameBootstrap: booting module Companion (order 2)
+GameBootstrap: booting module Combat (order 3)
+GameBootstrap: booting module Ecosystem (order 4)
+GameBootstrap: booting module DnaLanguage (order 5)
+GameLoop: ready — boot-only autoload (composition root is WorldDirector)
+LA_PLAYTEST_RIG=ISO (fixed-angle perspective camera)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+[terrain] Ground: 64x64 map, height range 0.00..1.50
+[zone] Meadow: decor distance cull armed at 45m over 12 roots; soft fade 3 bands 39..45m, hysteresis 2m
+[zone] Meadow ready; zone_id=meadow
+S27: zone scene mounted World/Meadow from res://zones/meadow/meadow.tscn (previous zone scene unmounted; day-night driver re-binds next tick)
+W3: fall-recovery plane floorMin=0 (triggers below y<-2)
+W3: ground-extent clamp x[-48..48] z[-48..48] (enemy motion + co-locations bounded inside)
+W3: zone 'meadow' SpawnSet applied (enemies=3, adaptation=1)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+SFX_ROUTER: fired "dna_extract"  bus=Sfx  playing=True  streamLen=0.250s
+REWARD_SHOWN q_intro -> intro
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+W3DBG: director ready (composition root) player=True uicanvas=True enemies=3 origin=(0, 3, 0)
+WARNING: Source geometry parsing for navigation mesh baking had to parse RenderingServer meshes at runtime.
+		This poses a significant performance issues as visual meshes store geometry data on the GPU and transferring this data back to the CPU blocks the rendering.
+		For runtime (re)baking navigation meshes use and parse collision shapes as source geometry or create geometry data procedurally in scripts.
+     at: add_mesh (scene/resources/3d/navigation_mesh_source_geometry_data_3d.cpp:205)
+     GDScript backtrace (most recent call first):
+         [0] bake_navmesh (res://zones/zone.gd:115)
+[zone] Meadow: navmesh baked, polygons=107
+BRIDGE_MVP_PROOF: VISUAL_CONTENT — all 3 spawned enemies have >=1 MeshInstance3D under Visual
+BRIDGE_MVP_PROOF: composed — Player + 3 enemies + Hud + EmpathyPanel + Companion (dnaBefore=0)
+LA_GATE: OPENING_GRACE t=0s life=100 min=100 ring=12 zone=meadow
+BRIDGE_MVP_PROOF: MARKER 1/6 PLAYER_MOVED — simulated WASD -> PlayerController -> CharacterBody3D
+BRIDGE_MVP_PROOF: player teleported into attack range of Spawned1000 at (12.55,1.98,0.77)
+BRIDGE_MVP_PROOF: follow baseline captured dist0=13.613
+SFX_ROUTER: fired "betrayal"  bus=Sfx  playing=True  streamLen=0.450s
+SFX_ROUTER: fired "dna_extract"  bus=Sfx  playing=True  streamLen=0.250s
+W3: enemy killed via CombatSystem.DealDamage -> OnKill (HUD DNA meter +1)
+BRIDGE_MVP_PROOF: check: Hud.DnaMeter incremented by the kill's DnaExtracted: ok dna=1 (before 0)
+BRIDGE_MVP_PROOF: MARKER 2/6 DNA_EXTRACTED — kill via WorldDirector attack input: OnKill -> EventBus.DnaExtracted -> Hud.DnaMeter
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+BRIDGE_MVP_PROOF: check: Hud.CompanionHearts follows LoyaltyChanged (mapping holds for every event; 80 -> 4 seen): ok pairs=80->4
+BRIDGE_MVP_PROOF: check: Hud.Life follows the combat seam (UpdateLife): ok life=77
+BRIDGE_MVP_PROOF: check: Hud is bus-wired (DnaMeter moved on DnaExtracted): ok dna=1
+BRIDGE_MVP_PROOF: MARKER 3/6 HUD_BOUND — Hud bound to the bus; Life/DnaMeter/Hearts update on events
+BRIDGE_MVP_PROOF: check: EmpathyBook.Query returns a real entry: ok entry=BookEntry(7: Neutral, loyalty=55, depth=0.50)
+SFX_ROUTER: fired "dna_spoken"  bus=Sfx  playing=True  streamLen=0.300s
+BRIDGE_MVP_PROOF: check: EmpathyPanel.Open surfaces the entry: ok current=True visible=True
+BRIDGE_MVP_PROOF: check: panel shows the M04 hidden state: ok state=Neutral
+BRIDGE_MVP_PROOF: check: EmpathyBookOpened fired exactly once on open: ok count=1
+BRIDGE_MVP_PROOF: MARKER 4/6 BOOK_OPENED — EmpathyPanel.Open(BookEntry) surfaced the M04 entry + fired C2
+BRIDGE_MVP_PROOF: follow baseline recaptured after player reposition dist0=15.25
+LA_GATE: OPENING_GRACE t=1s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=2s life=95 min=95 ring=12 zone=meadow
+BRIDGE_MVP_PROOF: MARKER 5/6 COMPANION_FOLLOWS — companion closed on the player (dist 15.25 -> 3.588, moved 11.72)
+BRIDGE_MVP_PROOF: check: SaveSystem.Save(GameState, GodotSaveStore) succeeded: ok path=/home/claudecode/Games/la-work/11312/.tmp/home/data/godot/app_userdata/Last Animal/savegame.json
+BRIDGE_MVP_PROOF: check: Load returned the saved state: ok loaded=LastAnimal.Save.GameState
+BRIDGE_MVP_PROOF: check: round-trip preserved zone/progression/loyalty/dna: ok zone=bridge-mvp-proof prog=3 loy=84 dna=4
+BRIDGE_MVP_PROOF: MARKER 6/6 SAVE_ROUNDTRIP — SaveSystem.Save -> Load round-trip via GodotSaveStore (user://)
+BRIDGE_MVP_PROOF: PASS — all six playable-MVP markers asserted (BRIDGE-MVP.md §3)
+LA_GATE: OPENING_GRACE t=3s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=4s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=5s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=6s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=7s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=8s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=9s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=10s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=11s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=12s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=13s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=14s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=15s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=16s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=17s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=18s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=19s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE t=20s life=95 min=95 ring=12 zone=meadow
+LA_GATE: OPENING_GRACE_DONE window=20s life=95 min=95 ring=12 zone=meadow
+RESULT=PASS path=/tmp/gfxverify.SE6IeD/capture.png mean=0.302522 stddev=0.219771 colors=5804
+BRIDGE_MVP_TEST: GATE PASS — six-marker playable MVP verified (PLAYER_MOVED, DNA_EXTRACTED, HUD_BOUND, BOOK_OPENED, COMPANION_FOLLOWS, SAVE_ROUNDTRIP; non-blank render)

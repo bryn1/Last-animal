@@ -1,0 +1,90 @@
+M06_AUDIO_TEST: godot=4.7.2.stable.mono.official.ed1daf0bf  project=/home/claudecode/Games/la-work/11312/skeleton
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+M06_AUDIO_TEST: start
+MusicManager: ensured bus "Sfx"
+MusicManager: ensured bus "Music"
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   C# backtrace (most recent call first):
+       [0] Godot.GodotObject Godot.NativeCalls.godot_icall_1_914(nint, nint, Godot.NativeInterop.godot_node_path) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:8079)
+       [1] Godot.Node Godot.Node.GetNodeOrNull(Godot.NodePath) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:973)
+       [2] T Godot.Node.GetNodeOrNull<T>(Godot.NodePath) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Extensions/NodeExtensions.cs:82)
+       [3] void LastAnimal.Core.Audio.MusicManager.Boot() (/home/claudecode/Games/la-work/11312/skeleton/autoload/MusicManager.cs:59)
+       [4] void AudioTest._Initialize() (/home/claudecode/Games/la-work/11312/skeleton/tests/AudioTest.cs:61)
+       [5] bool Godot.MainLoop.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/MainLoop.cs:230)
+       [6] bool Godot.SceneTree.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/SceneTree.cs:1007)
+       [7] bool AudioTest.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/home/claudecode/Games/la-work/11312/skeleton/Godot.SourceGenerators/Godot.SourceGenerators.ScriptMethodsGenerator/AudioTest_ScriptMethods.generated.cs:118)
+       [8] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+M06_AUDIO_TEST: check: bus 'Sfx' exists: ok must be added by EnsureBuses
+M06_AUDIO_TEST: check: bus 'Music' exists: ok must be added by EnsureBuses
+M06_AUDIO_TEST: check: SFX 'dna_extract' loaded + non-silent (len=0.250s): ok WAV must load and GetLength()>0 (real PCM, not a silent stub)
+M06_AUDIO_TEST: check: SFX 'dna_spoken' loaded + non-silent (len=0.300s): ok WAV must load and GetLength()>0 (real PCM, not a silent stub)
+M06_AUDIO_TEST: check: SFX 'loyalty' loaded + non-silent (len=0.350s): ok WAV must load and GetLength()>0 (real PCM, not a silent stub)
+M06_AUDIO_TEST: check: SFX 'betrayal' loaded + non-silent (len=0.450s): ok WAV must load and GetLength()>0 (real PCM, not a silent stub)
+M06_AUDIO_TEST: check: SFX 'ecosystem' loaded + non-silent (len=0.300s): ok WAV must load and GetLength()>0 (real PCM, not a silent stub)
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+MusicManager: playing music on bus "Music"
+GameBootstrap: booting module Salary (order 0)
+GameBootstrap: booting module Betrayal (order 1)
+GameBootstrap: booting module Companion (order 2)
+GameBootstrap: booting module Combat (order 3)
+GameBootstrap: booting module Ecosystem (order 4)
+GameBootstrap: booting module DnaLanguage (order 5)
+GameLoop: ready — boot-only autoload (composition root is WorldDirector)
+SFX_ROUTER: fired "dna_extract"  bus=Sfx  playing=True  streamLen=0.250s
+M06_AUDIO_TEST: check: EventBus signal -> non-silent SFX on Sfx bus: ok bus=Sfx playing=True streamLen=0.250s (fired player must be on Sfx bus, playing, len>0)
+M06_AUDIO_TEST: check: music Ogg loads non-silent (len>0): ok music_theme.ogg GetLength()=8.120s
+MusicManager: playing music on bus "Music"
+MIX_DUCK_ON_SHOW: ok Music bus ducks -8 dB while DialogueShown held (bus=-8.000dB duck=-8.000dB)
+MIX_DUCK_OFF_CLOSE: ok Music bus decays back to base 30 frames after DialogueClosed (bus=0.000dB duck=0.000dB after 32f)
+MIX_BOSS_STANCE: engage bus=-12.000dB duck=-12.000dB (want -12dB) ok
+MIX_BOSS_STANCE: ok Music bus ducks -12 dB under boss stance and decays back on release (released=True bus=0.000dB duck=0.000dB after 32f)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+MAP QuestStarted->loyalty: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=loyalty:True pitch=1.150/1.150:True)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+MAP QuestObjective->loyalty: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=loyalty:True pitch=1.150/1.150:True)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+MAP WagePaid->loyalty: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=loyalty:True pitch=1.150/1.150:True)
+SFX_ROUTER: fired "dna_extract"  bus=Sfx  playing=True  streamLen=0.250s
+MAP QuestCompleted->dna_extract: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=dna_extract:True pitch=1.150/1.150:True)
+SFX_ROUTER: fired "dna_spoken"  bus=Sfx  playing=True  streamLen=0.300s
+MAP EmpathyBookOpened->dna_spoken: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=dna_spoken:True pitch=1.000/1.000:True)
+SFX_ROUTER: fired "betrayal"  bus=Sfx  playing=True  streamLen=0.450s
+MAP PlayerHurt->betrayal: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=betrayal:True pitch=1.000/1.000:True)
+SFX_ROUTER: fired "ecosystem"  bus=Sfx  playing=True  streamLen=0.300s
+MAP BossFallen->ecosystem: ok routed EXACTLY once (routed+=1 bus=Sfx playing=True stream=ecosystem:True pitch=1.200/1.200:True)
+MAP pitch-determinism: ok PitchFor(q_s5) is stable and pinned to 1.15 (pitch(q_s5)=1.150)
+M06_AUDIO_TEST: MAP_TABLE: ok
+M06_AUDIO_TEST: PASS — EventBus triggered non-silent SFX on Sfx bus; music on Music bus; S4 duck legs green
+M06_AUDIO_TEST: GATE PASS — EventBus-triggered non-silent SFX on the Sfx bus, music on Music bus, S4 duck legs (show/close/boss) green, S5 mapping table (7 pairs + pitch determinism) green

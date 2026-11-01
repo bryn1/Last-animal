@@ -1,0 +1,101 @@
+MAIN_COMPOSITION_TEST: project=/home/claudecode/Games/la-work/11312/skeleton  godot=4.7.2.stable.mono.official.ed1daf0bf
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+MAIN_COMPOSITION_PROOF: start
+MAIN_COMPOSITION_PROOF: RG2 OK — run/main_scene=res://main.tscn
+MAIN_COMPOSITION_PROOF: main.tscn instantiated
+ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   C# backtrace (most recent call first):
+       [0] Godot.Vector3 Godot.NativeCalls.godot_icall_0_151(nint, nint) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:1354)
+       [1] Godot.Vector3 Godot.Node3D.GetGlobalPosition() (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node3D.cs:567)
+       [2] Godot.Vector3 Godot.Node3D.get_GlobalPosition() (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node3D.cs:242)
+       [3] void MainCompositionProof._Initialize() (/home/claudecode/Games/la-work/11312/skeleton/ci_proofs/MainCompositionProof.cs:107)
+       [4] bool Godot.MainLoop.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/MainLoop.cs:230)
+       [5] bool Godot.SceneTree.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/SceneTree.cs:1007)
+       [6] bool MainCompositionProof.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/home/claudecode/Games/la-work/11312/skeleton/Godot.SourceGenerators/Godot.SourceGenerators.ScriptMethodsGenerator/MainCompositionProof_ScriptMethods.generated.cs:78)
+       [7] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   C# backtrace (most recent call first):
+       [0] Godot.Vector3 Godot.NativeCalls.godot_icall_0_151(nint, nint) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:1354)
+       [1] Godot.Vector3 Godot.Node3D.GetGlobalPosition() (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node3D.cs:567)
+       [2] Godot.Vector3 Godot.Node3D.get_GlobalPosition() (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node3D.cs:242)
+       [3] void MainCompositionProof._Initialize() (/home/claudecode/Games/la-work/11312/skeleton/ci_proofs/MainCompositionProof.cs:108)
+       [4] bool Godot.MainLoop.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/MainLoop.cs:230)
+       [5] bool Godot.SceneTree.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/SceneTree.cs:1007)
+       [6] bool MainCompositionProof.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/home/claudecode/Games/la-work/11312/skeleton/Godot.SourceGenerators/Godot.SourceGenerators.ScriptMethodsGenerator/MainCompositionProof_ScriptMethods.generated.cs:78)
+       [7] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+MAIN_COMPOSITION_PROOF: composition resolved (Player + top-level Camera/FollowCamera)
+MusicManager: ensured bus "Sfx"
+MusicManager: ensured bus "Music"
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+MusicManager: playing music on bus "Music"
+GameBootstrap: booting module Salary (order 0)
+GameBootstrap: booting module Betrayal (order 1)
+GameBootstrap: booting module Companion (order 2)
+GameBootstrap: booting module Combat (order 3)
+GameBootstrap: booting module Ecosystem (order 4)
+GameBootstrap: booting module DnaLanguage (order 5)
+GameLoop: ready — boot-only autoload (composition root is WorldDirector)
+LA_PLAYTEST_RIG=ISO (fixed-angle perspective camera)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+[terrain] Ground: 64x64 map, height range 0.00..1.50
+[zone] Meadow: decor distance cull armed at 45m over 12 roots; soft fade 3 bands 39..45m, hysteresis 2m
+[zone] Meadow ready; zone_id=meadow
+S27: zone scene mounted World/Meadow from res://zones/meadow/meadow.tscn (previous zone scene unmounted; day-night driver re-binds next tick)
+W3: fall-recovery plane floorMin=0 (triggers below y<-2)
+W3: ground-extent clamp x[-48..48] z[-48..48] (enemy motion + co-locations bounded inside)
+W3: zone 'meadow' SpawnSet applied (enemies=3, adaptation=1)
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+SFX_ROUTER: fired "dna_extract"  bus=Sfx  playing=True  streamLen=0.250s
+REWARD_SHOWN q_intro -> intro
+SFX_ROUTER: fired "loyalty"  bus=Sfx  playing=True  streamLen=0.350s
+W3DBG: director ready (composition root) player=True uicanvas=True enemies=3 origin=(0, 3, 0)
+WARNING: Source geometry parsing for navigation mesh baking had to parse RenderingServer meshes at runtime.
+		This poses a significant performance issues as visual meshes store geometry data on the GPU and transferring this data back to the CPU blocks the rendering.
+		For runtime (re)baking navigation meshes use and parse collision shapes as source geometry or create geometry data procedurally in scripts.
+     at: add_mesh (scene/resources/3d/navigation_mesh_source_geometry_data_3d.cpp:205)
+     GDScript backtrace (most recent call first):
+         [0] bake_navmesh (res://zones/zone.gd:115)
+[zone] Meadow: navmesh baked, polygons=107
+MAIN_COMPOSITION_PROOF: player start=(0.667,2.902,0) camera=(9,9.5,9) offset=(9, 6.5, 9)
+MAIN_COMPOSITION_PROOF: f1 inp=(1,0) gp=(0.6667,2.902,0)
+LA_GATE: OPENING_GRACE t=0s life=100 min=100 ring=12 zone=meadow
+MAIN_COMPOSITION_PROOF: f2 inp=(1,0) gp=(1.3333,2.6298,0)
+MAIN_COMPOSITION_PROOF: f3 inp=(1,0) gp=(1.4167,2.5835,0)
+MAIN_COMPOSITION_PROOF: f4 inp=(1,0) gp=(1.4167,2.5835,0)
+MAIN_COMPOSITION_PROOF: f5 inp=(1,0) gp=(1.4167,2.5835,0)
+MAIN_COMPOSITION_PROOF: f6 inp=(1,0) gp=(1.5,2.5345,0)
+MAIN_COMPOSITION_PROOF: f7 inp=(1,0) gp=(1.5,2.5345,0)
+MAIN_COMPOSITION_PROOF: f8 inp=(1,0) gp=(1.5,2.5345,0)
+MAIN_COMPOSITION_PROOF: after 10 frames player dx=0.9167 dz=0
+MAIN_COMPOSITION_PROOF: PLAYER_MOVED (input -> PlayerController -> CharacterBody3D)
+MAIN_COMPOSITION_PROOF: CAMERA_FOLLOWS (top-level FollowCamera tracks player)
+MAIN_COMPOSITION_PROOF: PASS — playable composition root verified (RG2 + RG3 + C10 + C17)
+RESULT=PASS path=/tmp/gfxverify.RcJSS9/capture.png mean=0.314868 stddev=0.243528 colors=4346
+MAIN_COMPOSITION_TEST: GATE PASS — composition root playable (RG2+RG3+C10+C17; non-blank render)

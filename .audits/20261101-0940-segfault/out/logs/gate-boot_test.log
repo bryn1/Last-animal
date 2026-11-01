@@ -1,0 +1,47 @@
+BOOT_TEST: godot=4.7.2.stable.mono.official.ed1daf0bf  project=/home/claudecode/Games/la-work/11312/skeleton
+TOOLCHAIN: dotnet=8.0.133  godot=4.7.2.stable.mono.official.ed1daf0bf
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Started Building .NET project... (1 steps)[39m[0m
+[   0% ] [90m[1mdotnet_build_project[22m | Building project[39m[0m
+[92m[ DONE ][39m [1mdotnet_build_project[22m
+[0m
+WARNING: Scan thread aborted...
+     at: _notification (editor/file_system/editor_file_system.cpp:1757)
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+BOOT_TEST: start
+BOOT_TEST: check: C3 DI round-trip: ok expected same instance, got <Node#27866957301>
+BOOT_TEST: check: C3 Resolve-missing -> null: ok an unbound optional module must resolve to null, not throw
+BOOT_TEST: check: C2 signal received by subscriber: ok got sig_001 (want sig_001)
+GameBootstrap: booting module m1 (order 0)
+GameBootstrap: booting module m2 (order 1)
+BOOT_TEST: check: C3 boot order = registration order: ok got [m1,m2]
+BOOT_TEST: PASS signal received
+MusicManager: ensured bus "Sfx"
+MusicManager: ensured bus "Music"
+MusicManager: loaded SFX "dna_extract" (res://assets/audio/dna_extract.wav, length=0.250s)
+MusicManager: loaded SFX "dna_spoken" (res://assets/audio/dna_spoken.wav, length=0.300s)
+MusicManager: loaded SFX "loyalty" (res://assets/audio/loyalty.wav, length=0.350s)
+MusicManager: loaded SFX "betrayal" (res://assets/audio/betrayal.wav, length=0.450s)
+MusicManager: loaded SFX "ecosystem" (res://assets/audio/ecosystem.wav, length=0.300s)
+MusicManager: booted (buses: Sfx/Music)
+MusicManager: playing music on bus "Music"
+GameBootstrap: booting module Salary (order 0)
+GameBootstrap: booting module Betrayal (order 1)
+GameBootstrap: booting module Companion (order 2)
+GameBootstrap: booting module Combat (order 3)
+GameBootstrap: booting module Ecosystem (order 4)
+GameBootstrap: booting module DnaLanguage (order 5)
+GameLoop: ready — boot-only autoload (composition root is WorldDirector)
+BOOT_TEST: GATE PASS — signal received, DI round-trip, boot order = registration order

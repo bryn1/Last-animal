@@ -1,0 +1,94 @@
+EXPORT_CHECK: godot=4.7.2.stable.mono.official.ed1daf0bf  templates=/home/claudecode/Games/la-work/11312/.tmp/home/.local/share/godot/export_templates
+TPL_OK android_debug.apk
+TPL_OK android_release.apk
+TPL_OK android_source.zip
+TPL_OK icudt_godot.dat (shared)
+TPL_OK ios.zip
+TPL_OK linux_debug.arm32
+TPL_OK linux_debug.arm64
+TPL_OK linux_debug.x86_32
+TPL_OK linux_debug.x86_64
+TPL_OK linux_release.arm32
+TPL_OK linux_release.arm64
+TPL_OK linux_release.x86_32
+TPL_OK linux_release.x86_64
+TPL_OK macos.zip
+TPL_OK version.txt
+TPL_OK web_debug.zip (shared)
+TPL_OK web_dlink_debug.zip (shared)
+TPL_OK web_dlink_nothreads_debug.zip (shared)
+TPL_OK web_dlink_nothreads_release.zip (shared)
+TPL_OK web_dlink_release.zip (shared)
+TPL_OK web_nothreads_debug.zip (shared)
+TPL_OK web_nothreads_release.zip (shared)
+TPL_OK web_release.zip (shared)
+TPL_OK windows_debug_arm64_console.exe
+TPL_OK windows_debug_arm64.exe
+TPL_OK windows_debug_x86_32_console.exe
+TPL_OK windows_debug_x86_32.exe
+TPL_OK windows_debug_x86_64_console.exe
+TPL_OK windows_debug_x86_64.exe
+TPL_OK windows_release_arm64_console.exe
+TPL_OK windows_release_arm64.exe
+TPL_OK windows_release_x86_32_console.exe
+TPL_OK windows_release_x86_32.exe
+TPL_OK windows_release_x86_64_console.exe
+TPL_OK windows_release_x86_64.exe
+TPL_GUARD: PASS — 35 templates checked (9 shared-identical + 26 diverged, per 4.7.2 baseline map)
+TPL_PIN_OK mono/android_debug.apk
+TPL_PIN_OK mono/android_release.apk
+TPL_PIN_OK mono/android_source.zip
+TPL_PIN_OK mono/ios.zip
+TPL_PIN_OK mono/linux_debug.arm32
+TPL_PIN_OK mono/linux_debug.arm64
+TPL_PIN_OK mono/linux_debug.x86_32
+TPL_PIN_OK mono/linux_debug.x86_64
+TPL_PIN_OK mono/linux_release.arm32
+TPL_PIN_OK mono/linux_release.arm64
+TPL_PIN_OK mono/linux_release.x86_32
+TPL_PIN_OK mono/linux_release.x86_64
+TPL_PIN_OK mono/macos.zip
+TPL_PIN_OK mono/version.txt
+TPL_PIN_OK mono/windows_debug_arm64_console.exe
+TPL_PIN_OK mono/windows_debug_arm64.exe
+TPL_PIN_OK mono/windows_debug_x86_32_console.exe
+TPL_PIN_OK mono/windows_debug_x86_32.exe
+TPL_PIN_OK mono/windows_debug_x86_64_console.exe
+TPL_PIN_OK mono/windows_debug_x86_64.exe
+TPL_PIN_OK mono/windows_release_arm64_console.exe
+TPL_PIN_OK mono/windows_release_arm64.exe
+TPL_PIN_OK mono/windows_release_x86_32_console.exe
+TPL_PIN_OK mono/windows_release_x86_32.exe
+TPL_PIN_OK mono/windows_release_x86_64_console.exe
+TPL_PIN_OK mono/windows_release_x86_64.exe
+TPL_PIN_OK std/android_debug.apk
+TPL_PIN_OK std/android_release.apk
+TPL_PIN_OK std/android_source.zip
+TPL_PIN_OK std/ios.zip
+TPL_PIN_OK std/linux_debug.arm32
+TPL_PIN_OK std/linux_debug.arm64
+TPL_PIN_OK std/linux_debug.x86_32
+TPL_PIN_OK std/linux_debug.x86_64
+TPL_PIN_OK std/linux_release.arm32
+TPL_PIN_OK std/linux_release.arm64
+TPL_PIN_OK std/linux_release.x86_32
+TPL_PIN_OK std/linux_release.x86_64
+TPL_PIN_OK std/macos.zip
+TPL_PIN_OK std/version.txt
+TPL_PIN_OK std/windows_debug_arm64_console.exe
+TPL_PIN_OK std/windows_debug_arm64.exe
+TPL_PIN_OK std/windows_debug_x86_32_console.exe
+TPL_PIN_OK std/windows_debug_x86_32.exe
+TPL_PIN_OK std/windows_debug_x86_64_console.exe
+TPL_PIN_OK std/windows_debug_x86_64.exe
+TPL_PIN_OK std/windows_release_arm64_console.exe
+TPL_PIN_OK std/windows_release_arm64.exe
+TPL_PIN_OK std/windows_release_x86_32_console.exe
+TPL_PIN_OK std/windows_release_x86_32.exe
+TPL_PIN_OK std/windows_release_x86_64_console.exe
+TPL_PIN_OK std/windows_release_x86_64.exe
+TPL_PIN_OK: 52 pins verified vs /home/claudecode/Games/la-work/11312/skeleton/tools/export_templates.sha256 (diverged names x 2 variants, 4.7.2 baseline map; the 9 shared names are covered by the swap-invariant check)
+EXPORT_CHECK: found project assembly marker LastAnimalPreflight x1
+EXPORT_CHECK: found GodotSharp runtime marker GodotSharp x5
+EXPORT_CHECK: found godot-mono runtimeconfig marker .godot/mono x1
+EXPORT_CHECK: PASS — build/LastAnimal.exe (156006800 bytes, PE magic OK)
