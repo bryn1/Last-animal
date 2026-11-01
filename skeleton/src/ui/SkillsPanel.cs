@@ -32,7 +32,10 @@ namespace LastAnimal.Ui;
 public partial class SkillsPanel : Control
 {
     /// <summary>Panel rect on the 1152x648 play screen (fixed, deterministic:
-    /// the ui_test.sh framebuffer leg crops exactly this region).</summary>
+    /// the ui_test.sh framebuffer leg crops exactly this region). CONSUMED BY
+    /// POSITION (MC 11303 F-DA4): the DialogueSystem band and the Empathy book
+    /// sit RIGHT of RegionX+RegionWidth — leg J's TAB_DIALOGUE_DISJOINT
+    /// asserts the painted rects, so a move here goes RED, never silent.</summary>
     public const int RegionX = 8;
     public const int RegionY = 440;
     public const int RegionWidth = 420;

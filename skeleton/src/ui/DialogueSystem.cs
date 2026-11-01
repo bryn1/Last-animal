@@ -183,7 +183,10 @@ public partial class DialogueSystem : Control
     public bool IsOpen => ActiveNode.Length > 0;
 
     // --- the dialogue box rect (MC 11293 D1; SkillsPanel Region idiom) -----
-    // Bottom band, RIGHT of the SkillsPanel column (its x ends at 428): the
+    // Bottom band, RIGHT of the SkillsPanel column (its x ends at
+    // SkillsPanel.RegionX+RegionWidth — MC 11303 F-DA4: the coupling is that
+    // arithmetic, NOT a literal 428; leg J's TAB_DIALOGUE_DISJOINT asserts the
+    // two painted rects, so a Region drift goes RED, never silent): the
     // playthrough P1 (MC 11270 D1) was this box's anchors collapsing to a
     // zero-sized Control — the Label then overflowed-painted the intro/dialogue
     // line straight over the top-left HUD gauges, both layers unreadable. The

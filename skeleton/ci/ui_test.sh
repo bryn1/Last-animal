@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave). 471 l by wc AT the MC 11431 head; MC 11311 +52 to 523 l by wc AT this head (section (L): the HUD_QUESTLINE_ACT3 act-three tracker leg closing MC 11295 F1 — two raw capture runs + marker greps + quest-row pixel bars riding the existing QUEST_CROP, header A–L + tail-echo restamps; NO battery leg, NO mode).
+# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave). 471 l by wc AT the MC 11431 head; MC 11311 +52 to 523 l by wc AT this head (section (L): the HUD_QUESTLINE_ACT3 act-three tracker leg closing MC 11295 F1 — two raw capture runs + marker greps + quest-row pixel bars riding the existing QUEST_CROP, header A–L + tail-echo restamps; NO battery leg, NO mode); MC 11303 +15 to 538 l by wc AT this head (section (J): the TAB-OPEN stage rides the EXISTING leg — plant recipe + red-pair docs are the whole growth, comment-only on top of the existing leg; 4 echo/grep lines restamped in place; ceiling RE-JUSTIFIED, not ratcheted: still one gate script, one concern; NO battery leg, NO mode).
 #
 # The Phase-11 DoD (PHASE0.md Phase 11, C13):
 #   "headless render of the HUD scene is non-blank with all bound values
@@ -88,7 +88,12 @@
 #       control, so a bare rect compare went green on the bug): any overlap
 #       prints a NAMED FAIL (HUD_DIALOGUE_OVERLAP / HUD_EMPATHY_OVERLAP); an
 #       unopened surface prints OVERLAP_PROOF_NOT_ARMED (the vacuous-green
-#       wall — asserts over closed panels are worthless).
+#       wall — asserts over closed panels are worthless). MC 11303 F-DA1: a
+#       TAB-OPEN stage joins the SAME leg's surface set — the dialogue band is
+#       additionally asserted DISJOINT from the TAB panel region
+#       (TAB_DIALOGUE_DISJOINT / FAIL TAB_DIALOGUE_OVERLAP), and the shipped
+#       PanelViewport fallback goes RED-capable through the planted narrow
+#       window LA_OVERLAP_FORCE_W (see the section (J) note by the runs).
 #        J1 headless assert leg -> exit 0 + the DISJOINT PASS marker;
 #        J2 windowed capture leg (graphical-test-helper) -> RESULT=PASS (the
 #           non-blank bar) + the same marker in the very log the PNG was shot
@@ -393,13 +398,23 @@ echo "UI_HUD_TEST: I ok — tracker paints act-one title at boot, act-two title 
 #     PLANTED-BAD (red pair, .audits/202610251405-d1/transcripts/
 #     overlap-RED-pre-fix.log): revert the DialogueSystem/EmpathyPanel rect
 #     fix -> J1 exits 1 naming 1 dialogue + 8 empathy overlaps.
+#     MC 11303 F-DA1 extends THIS leg (no parallel gate): a TAB-OPEN stage
+#     joins the surface set and a third assert pins the dialogue band DISJOINT
+#     from the TAB panel region (marker TAB_DIALOGUE_DISJOINT / FAIL named
+#     TAB_DIALOGUE_OVERLAP). RED-PAIR (banked .audits/20261101-1215-taboverlap/
+#     out/): the shipped PanelViewport fallback keeps the band at x>=440 at
+#     EVERY width below the play size, so the plant sets LA_OVERLAP_FORCE_W=800
+#     AND drops the fallback (the bare vp.X-712 formula) in a throwaway copy —
+#     the band lands 88..792 under the panel 8..428 and J1 exits 1 naming the
+#     overlap; the same width WITHOUT the plant stays GREEN (the fallback's
+#     own proof).
 # ---------------------------------------------------------------------------
 echo "UI_HUD_TEST: run J1 — HUD_UI_DISJOINT headless assert (expect exit 0 + PASS)"
 LOGJ="$(timeout 240 "$GODOT" --headless --path "$PROJ" --script "$UI_OVERLAP" 2>&1)"
 CODEJ=$?
 printf '%s\n' "$LOGJ"
 [ "$CODEJ" -eq 0 ] || fail "run J1: overlap proof exited $CODEJ (a named HUD_*_OVERLAP / OVERLAP_PROOF_NOT_ARMED line above says which)"
-[[ "$LOGJ" == *'LA_GATE: PASS — HUD/dialogue/empathy bounding boxes DISJOINT'* ]] \
+[[ "$LOGJ" == *'LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT'* ]] \
   || fail "run J1: expected the DISJOINT PASS marker (the measure leg never ran)"
 
 echo "UI_HUD_TEST: run J2 — fixed-layout capture under Xvfb (expect RESULT=PASS + marker)"
@@ -410,9 +425,9 @@ printf '%s\n' "$LOGJ2"
   || fail "run J2: fixed-layout capture not RESULT=PASS (game frame did not render)"
 [[ "$(cat "$CAPDIR/app-overlap-capture.log" 2>/dev/null)" == *'LA_GATE: PASS'* ]] \
   || fail "run J2: capture-run self-check marker missing (layout was not DISJOINT at capture time)"
-echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book paint on their own rects, HUD gauges never overlapped (MC 11293 D1)"
+echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book + TAB panel paint on their own rects, HUD gauges and the TAB panel never overlapped the dialogue band (MC 11293 D1 + MC 11303 F-DA1)"
 
-echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J)"
+echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + fixed-layout capture (J)"
 # (K) MC 11295 — HUD_QUEST_MONO: the BOSS-KILL-ORDERING quest-line frame bank
 #     (playthrough D3: "The Watcher Falls" -> back to "The Way Down — Reach
 #     ruins" AT THE RUINS, and the SAVE held it). THREE runs of tests/ui/
@@ -519,5 +534,5 @@ fnum "$QL3_DIFF_SD" 0.01 || fail "run L: quest row identical baseline/act-three 
 fnum "$QL3_DIFF_MEAN" 0.003 || fail "run L: quest row diff too small (mean=$QL3_DIFF_MEAN) — act-three title not actually painted"
 echo "UI_HUD_TEST: L ok — tracker paints act-one title at boot, act-three title mid-arc (pixels moved)"
 
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/HUD bounding boxes DISJOINT with both surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)"
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)"
 exit 0

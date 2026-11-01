@@ -88,7 +88,8 @@ public partial class EmpathyPanel : Control
     // interlaced with the Life/Manna/DNA/Hearts/Skills/Quest gauges. A REAL
     // rect anchored top-right now: at the play window (UiTheme.PanelViewport
     // fallback) exactly x 844..1144, y 200..400 — clear of the HUD block
-    // (ends ~y 176, x ~427), of the TAB panel (ends x 428), and of the
+    // (ends ~y 176, x ~427), of the TAB panel (ends at SkillsPanel.RegionX
+    // +RegionWidth — MC 11303 F-DA4, derived, not a literal), and of the
     // dialogue band (starts y 540). Wrap widths grew 240 -> 280 to fill the
     // panel instead of floating in it.
     public const int PanelWidth = 300;
