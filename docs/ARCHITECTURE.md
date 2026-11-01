@@ -222,6 +222,14 @@ integer-phase walk/idle/lean on PRESENTATION roots only, 285 l), `WorldDirector.
 `dna_npc_test.sh`, `ecosystem_test.sh`, `empathy_book_test.sh`, `save_test.sh`,
 `story_test.sh`, `quest_test.sh`, `skill_test.sh`, `roster_test.sh`,
 `audio_test.sh`, `ui_test.sh`, `export_check.sh`, `toolchain.sh` (sourced lib),
+`build_solutions.sh` (MC 11312 — the engine `--build-solutions --quit-after N`
+step as ONE named wrapper, every `ci/*.sh` caller routing through it: a NAMED
+BOUNDED quit-segfault retry, max `LA_BUILD_RETRY_MAX` (default 2) NAMED retries
+after the first attempt, each logged `quit-segfault retry k/N`,
+retrying ONLY exit 139 AND only after a `dotnet build` re-run proves the
+assembly landed — the engine's `[ DONE ] dotnet_build_project` prints even on a
+FAILED build (measured at dbf2e08), so the build tool is the verify — exhaustion
+and every other non-zero rc are hard named FAILs, never swallowed),
 plus `determinism_cmp.sh` — the F4-CMP determinism comparator shipped at
 f1892f4 (MC 10099 S7): runs battery mode(s) twice (A/A) and classifies the
 stdout streams BYTE-STABLE (RED on any delta) vs NUMERIC-MASK (field-name

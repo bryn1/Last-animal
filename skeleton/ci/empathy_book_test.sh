@@ -78,7 +78,7 @@ echo "M04_EMPATHY_BOOK: run A2 — Failed=$FAILED2 Passed=$PASSED2 Total=$TOTAL2
 # (B) Godot headless — EmpathyBookOpened() fired to a subscriber (C2)
 # ---------------------------------------------------------------------------
 echo "M04_EMPATHY_BOOK: build through engine, then run EmpathySignalTest.cs"
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 LOG3="$(timeout 180 "$GODOT" --headless --path "$PROJ" --script res://tests/EmpathySignalTest.cs 2>&1)"

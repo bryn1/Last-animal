@@ -166,7 +166,7 @@ echo "UI_HUD_TEST: project=$PROJ  godot=$("$GODOT" --version 2>/dev/null | tail 
 # build through the pinned engine so the C# assembly (incl. src/ui/) is current
 # ---------------------------------------------------------------------------
 echo "UI_HUD_TEST: build through engine"
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 # ---------------------------------------------------------------------------

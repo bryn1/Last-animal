@@ -61,7 +61,7 @@ rm -rf build/data_*_"${PLAT}"_x86_64
 # Import + build the C# assembly THROUGH THE ENGINE. `--quit` does NOT build the
 # solution; without --build-solutions a mono project exports a .exe that is missing
 # its assembly (or carries a stale one from an earlier build) and still reports PASS.
-timeout 300 "$GODOT" --headless --path . --build-solutions --quit-after 2 >/dev/null 2>&1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" . 2 >/dev/null 2>&1 \
   || fail "engine --build-solutions failed (see ci/smoke.sh for the readable error)"
 timeout 300 "$GODOT" --headless --path . --export-release "$PRESET" "$OUT_EXE" 2>&1 | grep -E "ERROR" && fail "export reported ERROR"
 [ -f "$OUT_EXE" ] || fail "export produced no $OUT_EXE"

@@ -43,7 +43,7 @@ echo "SMOKE: godot=$($GODOT --version 2>/dev/null | tail -1)  project=$PROJ"
 # framebuffer gate below would PASS with ZERO scripts executing. --build-solutions
 # forces the engine's own build step, which is the only thing that proves the
 # pinned mono toolchain (not our shell) can compile the project.
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 2 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 2 \
   || fail "engine --build-solutions exited nonzero"
 
 # (a) headless load+quit — the process must exit 0, and NO C# load error is tolerated

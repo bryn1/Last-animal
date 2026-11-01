@@ -29,7 +29,7 @@ echo "BOOT_TEST: godot=$($GODOT --version 2>/dev/null | tail -1)  project=$PROJ"
 # (1) Build the C# assembly THROUGH THE ENGINE (the only thing that proves the
 # pinned mono toolchain compiles the project — a bare --script run loads the
 # last-built assembly and would pass with zero of our code, PREFLIGHT.md L2).
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 # (2) Run the headless boot test as a script: no scene, no render, no X. The

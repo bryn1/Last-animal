@@ -124,7 +124,7 @@ echo "DETERMINISM_CMP: project=$PROJ modes=${MODES[*]} logs=$LOGDIR declares=${#
 if [ ! -d "$PROJ/.godot/imported" ] || [ -z "$(ls -A "$PROJ/.godot/imported" 2>/dev/null)" ]; then
   timeout 600 "$GODOT" --headless --path "$PROJ" --import >/dev/null 2>&1 || fail "engine --import exited nonzero"
 fi
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 for spec in "${MODES[@]}"; do

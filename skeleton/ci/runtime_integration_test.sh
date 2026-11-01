@@ -76,7 +76,7 @@ fi
 echo "RUNTIME_INTEGRATION_TEST: project=$PROJ  godot=$("$GODOT" --version 2>/dev/null | tail -1)"
 
 # build through the pinned engine so the C# assembly (incl. the proof) is current
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 run_mode() {  # run_mode <mode> <expect: pass|fail> <marker> [proof-res-path]

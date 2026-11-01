@@ -29,7 +29,7 @@ echo "M06_AUDIO_TEST: godot=$("$GODOT" --version 2>/dev/null | tail -1)  project
 
 # (1) Build through the engine (proves the pinned mono toolchain compiles our M06 code;
 #     a bare --script run would silently use a stale assembly).
-timeout 300 "$GODOT" --headless --path "$PROJ" --build-solutions --quit-after 1 \
+GODOT="$GODOT" bash "$HERE/build_solutions.sh" "$PROJ" 1 \
   || fail "engine --build-solutions exited nonzero (C# build failed)"
 
 # (2) Run the headless audio DoD test. The test self-reports each check + a final
