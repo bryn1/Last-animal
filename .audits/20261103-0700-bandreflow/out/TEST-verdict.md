@@ -1,0 +1,46 @@
+# TEST-verdict — MC 11891 independent verification (test profile, VM350)
+
+Graded commit `43c35b6e5308bec0d643f012a4165bd295e9717e`, parent `6a1ca1df373a…`, branch `la/11891`.
+Owner ruling graded against, verbatim: `B` — reflow the band to fit whatever window the player has, NO minimum window size (MC 11891 append 14940, 2026-11-03).
+EVERY verdict-grade row below is MY OWN run this session: green copy = `git archive 43c35b6` (tracked bytes, cmp-verified against the worktree, zero mismatches) under isolated HOME/XDG; my throwaway plant at `.tmp/verifier-11891/plant/`; logs+frames in `.tmp/verifier-11891/{logs,frames,probe}/`. The producer's banked logs were read for claims-to-check only, never used as evidence.
+
+## DoD rows (the card's five + the verifier brief's six)
+
+| # | Row | Level | Evidence (all mine, this session) |
+|---|-----|-------|------------------------------------|
+| 1 | Band fully inside the window at shipped default AND planted 800 px | VERIFIED | My full-gate green run: default `band=(440,540),(704,100)` right edge 1144 ≤ vis 1152; `DIALOGUE_IN_VIEW: ok … vis=(0,0),(1152,648)`; 800 px: `band=(8,332),(704,100)` right edge **712 ≤ 800** (old bug: 1144 > 800); `GAME_RC=0` both widths, from the process. Green 800 frame visually shows the FULL sentence above the TAB panel. Shipped default byte-identical to the old rect as claimed |
+| 2 | `DIALOGUE_IN_VIEW` can fail, BY MY PLANT, and fails TWICE the same way | VERIFIED | My plant (independent of the producer's revert): one-line bypass in `DialogueSystem.LayoutBand` re-routing `vis` through the stood-down `UiTheme.PanelViewport` (plant compiles, BUILD_RC=0). Two full gate runs: BOTH `GATE_RC=1` (rc echoed from the process), both printing the byte-identical named red `LA_GATE: FAIL — DIALOGUE_IN_VIEW band=(440, 540), (704, 100) outside window vis=(0, 0), (800, 648)` ×2 + summary; `diff` of all LA_GATE verdict lines run1 vs run2: identical. J2 stayed GREEN in the plant (no-default-change control). Direct rc probe of the plant: game's own `GAME_RC=1` — the FAIL now HOLDS the opened state and quits rc 1 at t=20 (red frame captured at 45 s in my probe shows the clipped band; the historical one-tick-early quit is gone). Frames differ byte-wise between runs (animated 3D background), the failed STATE is the same — named red + rc are byte-identical |
+| 3 | The reflow does not break TAB_DIALOGUE_DISJOINT | VERIFIED | My green run at default AND 800: `TAB_DIALOGUE_DISJOINT: ok` (band y 332..432 clears panel y 440..700; label 1 line). My probes at 400 px and 200 px also ok. No cure-by-overlap |
+| 4 | "No minimum window size" checked, not accepted | VERIFIED | No min-size enforcement anywhere (code grep: band derives from live rect; `MinBandWidth=96` is only `Mathf.Max` inside `LayoutBand`). My windowed probes: **400 px** band `(8,332),(384,100)`, label `(22,342),(356,31)`, all guards ok, `GAME_RC=0` — nothing clipped, zero-height, or unreachable. **200 px** band `(8,332),(184,100)`, label wraps to `(22,342),(156,65)` INSIDE the band and window, all guards ok, `GAME_RC=0`. **100 px** (below the floor): band clamps to 96 wide → right edge 104 > 100 → `DIALOGUE_IN_VIEW` FAILs BY NAME + `TAB_DIALOGUE_OVERLAP` fires (wrapped label reaches y 509 under the panel), game rc 1 — at degenerate widths the failure is LOUD, not silent; text right edge (90) still inside the window |
+| 5 | The split is honest — no leg lost or silently downgraded | VERIFIED | Parent 6a1ca1d: ONE file (538 l), runs A,B,C,D,E,F1,F2,G,H,I,**J1**,J2,K,L. Head: `ui_test.sh` 273 l (A,B,D,E,G,J2,J3) + `ui_pixel_battery.sh` 177 l (C,F1,F2,H) + `ui_tracker_battery.sh` 191 l (I,K,L). I diffed every moved leg body (comments/echoes normalized): C,F,H,I,K,L **identical**; F1 differs in one fail-MESSAGE word (`<$4` literal → `<4`), bars unchanged; A,B,D,E,G identical in the entry. J1 RETIRED LOUD, and its basis I VERIFIED myself: headless probe with `LA_OVERLAP_FORCE_W=800` on green bytes composes `viewport=(64, 64)` — the retired leg asserted a layout that never paints, and the new in-view assert cannot ride that transport (it names red on the 64×64 fiction). J2 strictly stronger than parent J2 (adds FAIL-check, IN_VIEW ok + GAME_RC bars, frame banking). Stamps re-derived: `wc -l` = 273/177/191, each header says "by wc AT this head" — match. `git ls-tree 43c35b6 skeleton/ci/`: no fourth ui battery file exists (only ui_test + the two batteries). Card PROBE `grep -c DIALOGUE_IN_VIEW ci/ui_test.sh` = 12 |
+| 6a | Full leg set A–L rc 0, rc from the process | VERIFIED | `logs/gate-GREEN-mine.log`: `GATE_RC=0` echoed by the shell that ran the process (never a pipe tail); 0 `GATE FAIL` lines; tail `GATE PASS` names A–L incl. J at BOTH widths |
+| 6b | Battery file diff vs parent = 0 lines | VERIFIED | `git diff 6a1ca1d 43c35b6 -- skeleton/ci/runtime_integration_test.sh \| wc -l` = **0** (also 0 vs 0e2e98a) |
+| 6c | Engine binary vs `engine/PIN.txt` | VERIFIED | `--version` = `4.7.2.stable.mono.official.ed1daf0bf` == PIN.txt commit ed1daf0bf; C# actually LOADED (the whole A–L run prints C# markers) — a non-mono editor could not have run this |
+| 6d | Owner savegame byte-identical | VERIFIED | before `fdd1cc43a5124fee3d12b007f5874f0d9a2e969ab93d3c602e1ca96f9697cd4e` == after (my logs/owner-save-{before,after}.sha256) |
+| 6e | SAVEGATE mkdir mutex + isolated HOME/XDG on every save-touching run | VERIFIED | acquired `/tmp/la-savegate.lock` (mkdir) at 07:34:23Z with my HOLDER BEFORE the first engine run, held across green gate + both plant gates + all probes, identity-checked release after; all runs `HOME/XDG_*=scratch home` (owner save never reachable from them) |
+
+## Guard quality (test-quality-audit on the new assert)
+
+`DIALOGUE_IN_VIEW` (HudDialogueOverlapTest.cs:229–239): reads the LIVE visible rect and the PAINTED rects (global rect widened to combined min-size — the zero-size-collapse class cannot hide), checks band AND label against all four window edges, FAILs BY NAME with both rects, and rides the verdict sum. It reaches the real shipped scene (main.tscn, three surfaces opened through shipped inputs, `OVERLAP_PROOF_NOT_ARMED` wall against vacuous green). I watched it fail on MY planted fault (row 2) — named claim + demonstrated red: it is a check, not a talisman. The FAIL-hold fix (`_failed` branch returns false until t=20, `Quit(1)`) is what makes its red frame deterministic; measured directly.
+
+## Findings (classified, none gate-blocking)
+
+- **P3 (observation, degenerate widths ≤ ~110 px):** with `MinBandWidth=96` the band surface overhangs the window edge (100 px window: 4 px) and a wrapped label can reach the TAB panel — BOTH already name RED (`DIALOGUE_IN_VIEW`, `TAB_DIALOGUE_OVERLAP`), so no silent clipping and no PASS on a broken frame. The gate asserts at default + 800 only; a third gate width at the floor boundary would be a cheap follow-up. Not a ruling-B violation (no minimum window enforced; failure is loud, not a floor).
+- **P3 (pre-existing, named by the build itself):** `EmpathyPanel` still uses the constant-span `PanelViewport` — same-class narrow-width clip, explicitly declared out of scope at the site + LEDGER row (follow-up card). Honest stand-down: non-comment `PanelViewport` uses at head are EmpathyPanel + the UiTheme definition only; DialogueSystem has ZERO (grep-verified).
+- **P4 (hygiene law):** `DialogueSystem.cs` 279 l > ~250 (under 400, no reason line needed) — split note candidate. `dead_code.py` parent vs head: IDENTICAL finding sets (23, all pre-existing manual-probe/allow-set entries; the two new battery scripts are wired via the entry). All touched files ≤ 400; `WorldDirector.cs` (628, +1 comment) carries its inherited SIZE header chain.
+- **P4:** LEDGER/comment says table's longest line 77 chars; my grep of the raw table strings says 75 — comment precision only; at 800 px the measured label is 1 line (31 px) inside the band.
+
+## Deviations / honesty notes
+
+- My standalone `--import` probe on the fresh archive hung (SIGTERM at 600 s); NOT a gate path — the gate's own `build_solutions.sh` step (which the gate actually runs) exited 0 on the same bytes (`BUILD_STEP: signature=exit-0-clean`). Editor-`--import`-hang on fresh mono trees is the known MC 11312 quit-class neighbourhood; did not affect any graded run.
+- dotnet prints 8.0.133 vs PIN.txt's named 8.0.130 — pre-existing drift, NAMED in the parent LEDGER rows already; not this commit's.
+- The RED frames across my two plant runs differ byte-wise (animated scene background); determinism was graded on what the leg asserts — named marker lines (byte-identical) and rc (1, twice).
+
+## Reading used where the brief could be read two ways
+
+- "fails TWICE the same way" = two independent full gate runs on the same plant bytes agreeing in named marker and rc — they did (byte-identical LA_GATE lines, rc 1 twice).
+- "same nonzero rc" = the gate rc 1 (process-captured), plus the game process's own GAME_RC=1 proven by direct probe (the gate itself exits at the named-marker bar before the rc-run).
+- Item-5 "no leg lost" allows a RETIRED leg only if loud + justified; J1 is loud (header names the retirement + reason) and I independently verified the reason holds (headless composes at 64×64).
+
+# JUDGED: 6caf6f09a665748cb6bd348d4d96ebad40663bf6fc43d2c4625ed0dd070420e8
+# VERDICT: PASS
