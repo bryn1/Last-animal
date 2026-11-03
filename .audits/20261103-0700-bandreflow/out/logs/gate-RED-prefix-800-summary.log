@@ -1,0 +1,37 @@
+# MC 11891 SUMMARY of the full gate transcript gate-RED-prefix-800.log (gate-RED-prefix-800; 280420 B) — named marker lines only (MC 11891 packaging ruling: durable set = verdicts + SUMMARY logs; raw transcripts host-local at logs/gate-RED-prefix-800.log). Full log rc: GATE_RC=1.
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+UI_HUD_TEST: run A — headless render test (expect exit 0 + PASS)
+UI_HUD_TEST: run B — harness self-test (expect non-zero exit)
+UI_HUD_TEST: run D — story exact-text capture (expect exit 0 + PASS)
+UI_HUD_TEST: run E — 2f skills/quest UI logic (expect exit 0 + PASS)
+UI_HUD_TEST: run G — UI_TOKENS_SINGLE_SOURCE (three panel files raw-literal-clean)
+UI_HUD_TEST: run J2 — HUD_UI_DISJOINT + DIALOGUE_IN_VIEW at the shipped default window (expect GAME_RC=0 + markers, frame beside the log)
+RESULT=PASS path=/tmp/la-ui-band-legJ.kYUzFF/la-overlap-default.png mean=0.27483 stddev=0.209235 colors=6009
+LA_GATE: start — hud_dialogue_overlap (MC 11293 D1)
+LA_GATE: composed — zone=meadow viewport=(1152, 648)
+LA_GATE: rects: dialogue=(454, 550), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(440, 540), (704, 100) label=(454, 550), (676, 31) inside window vis=(0, 0), (1152, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+LA_GATE: rects: dialogue=(454, 550), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(440, 540), (704, 100) label=(454, 550), (676, 31) inside window vis=(0, 0), (1152, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+GAME_RC=0
+UI_HUD_TEST: run J3 — planted narrow window LA_OVERLAP_FORCE_W=800: the band REFLOWS to fit and stays in view (MC 11891 owner ruling B; expect GAME_RC=0 + markers)
+RESULT=PASS path=/tmp/la-ui-band-legJ.kYUzFF/la-overlap-narrow-800.png mean=0.192875 stddev=0.215653 colors=5222
+LA_GATE: start — hud_dialogue_overlap (MC 11293 D1)
+LA_GATE: planted-width — LA_OVERLAP_FORCE_W=800 root=(800, 648) vis=(0, 0), (800, 648)
+LA_GATE: composed — zone=meadow viewport=(800, 648)
+LA_GATE: rects: dialogue=(454, 550), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: FAIL — DIALOGUE_IN_VIEW band=(440, 540), (704, 100) outside window vis=(0, 0), (800, 648) (window edge cuts the band)
+LA_GATE: FAIL — DIALOGUE_IN_VIEW label=(454, 550), (676, 31) outside window vis=(0, 0), (800, 648) (window edge cuts the band)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: FAIL — overlap/in-view legs red (0 dialogue + 0 empathy + 0 TAB + 2 in-view, above)
+UI_HUD_TEST: GATE FAIL: run J3: DIALOGUE_IN_VIEW red — the window edge cuts the band at this width (MC 11303 F-P1-1 is back)

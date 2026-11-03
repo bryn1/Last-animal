@@ -1,0 +1,65 @@
+# MC 11891 SUMMARY of the full gate transcript gate-GREEN-final.log (gate-GREEN-final; 277985 B) — named marker lines only (MC 11891 packaging ruling: durable set = verdicts + SUMMARY logs; raw transcripts host-local at logs/gate-GREEN-final.log). Full log rc: 0.
+BUILD_STEP: signature=exit-0-clean attempt=1 — engine build step exited 0
+UI_HUD_TEST: run A — headless render test (expect exit 0 + PASS)
+UI_HUD_TEST: run B — harness self-test (expect non-zero exit)
+UI_HUD_TEST: run D — story exact-text capture (expect exit 0 + PASS)
+UI_HUD_TEST: run E — 2f skills/quest UI logic (expect exit 0 + PASS)
+UI_HUD_TEST: run G — UI_TOKENS_SINGLE_SOURCE (three panel files raw-literal-clean)
+UI_HUD_TEST: run J2 — HUD_UI_DISJOINT + DIALOGUE_IN_VIEW at the shipped default window (expect GAME_RC=0 + markers, frame beside the log)
+RESULT=PASS path=/tmp/la-ui-band-legJ.kySljd/la-overlap-default.png mean=0.275561 stddev=0.210276 colors=6012
+LA_GATE: start — hud_dialogue_overlap (MC 11293 D1)
+LA_GATE: composed — zone=meadow viewport=(1152, 648)
+LA_GATE: rects: dialogue=(454, 550), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(440, 540), (704, 100) label=(454, 550), (676, 31) inside window vis=(0, 0), (1152, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+LA_GATE: rects: dialogue=(454, 550), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(454, 550), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(440, 540), (704, 100) label=(454, 550), (676, 31) inside window vis=(0, 0), (1152, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+GAME_RC=0
+UI_HUD_TEST: run J3 — planted narrow window LA_OVERLAP_FORCE_W=800: the band REFLOWS to fit and stays in view (MC 11891 owner ruling B; expect GAME_RC=0 + markers)
+RESULT=PASS path=/tmp/la-ui-band-legJ.kySljd/la-overlap-narrow-800.png mean=0.1887 stddev=0.214392 colors=5316
+LA_GATE: start — hud_dialogue_overlap (MC 11293 D1)
+LA_GATE: planted-width — LA_OVERLAP_FORCE_W=800 root=(800, 648) vis=(0, 0), (800, 648)
+LA_GATE: composed — zone=meadow viewport=(800, 648)
+LA_GATE: rects: dialogue=(22, 342), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(22, 342), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(22, 342), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(8, 332), (704, 100) label=(22, 342), (676, 31) inside window vis=(0, 0), (800, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+LA_GATE: rects: dialogue=(22, 342), (676, 31) tab_panel=(8, 440), (420, 260) hud_rows=6 empathy_labels=3
+LA_GATE: check: HUD_DIALOGUE_DISJOINT: ok dialogue=(22, 342), (676, 31) clear of all 6 HUD rows
+LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue=(22, 342), (676, 31) clear of the TAB panel (8, 440), (420, 260)
+LA_GATE: check: DIALOGUE_IN_VIEW: ok band=(8, 332), (704, 100) label=(22, 342), (676, 31) inside window vis=(0, 0), (800, 648)
+LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows
+LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)
+GAME_RC=0
+UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), S6 UI tokens single-sourced (G), dialogue/empathy/TAB-panel/HUD boxes DISJOINT + DIALOGUE_IN_VIEW at BOTH widths with all three surfaces open on the real scene (J); pixel legs C/F/H and tracker legs I/K/L ride their battery files next
+UI_HUD_TEST: run C — graphical-test-helper non-blank render (expect RESULT=PASS)
+RESULT=PASS path=/tmp/gfxverify.1cHDhS/capture.png mean=0.111365 stddev=0.0799798 colors=501
+UI_HUD_TEST: run F1 — Manna digits region non-blank (framebuffer)
+RESULT=PASS path=/tmp/la-2f-capture.Dn8fes/la-2f-closed.png mean=0.0978303 stddev=0.0752141 colors=255
+UI_HUD_TEST: run F2 — TAB before/after pixel diff on the panel region
+RESULT=PASS path=/tmp/la-2f-capture.Dn8fes/la-2f-open.png mean=0.100337 stddev=0.0913994 colors=496
+UI_HUD_TEST: run H — HUD_VIGNETTE on/below boundary + tint pixel non-blank
+RESULT=PASS path=/tmp/la-2f-capture.Dn8fes/la-vig-29.png mean=0.116302 stddev=0.0687691 colors=246
+RESULT=PASS path=/tmp/la-2f-capture.Dn8fes/la-vig-30.png mean=0.0954794 stddev=0.0615649 colors=243
+UI_HUD_TEST: PIXEL-BATTERY OK (MC 11243 tail-law) — non-blank framebuffer render (C), 2f framebuffer Manna digits + TAB panel pixel diff on the DERIVED Region crop (F), low-health vignette on/off at the 30 boundary + tint pixel (H)
+UI_HUD_TEST: run I — HUD_QUESTLINE_ACT2 baseline + act-two mid-arc title
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-ql-base.png mean=0.0978303 stddev=0.0752141 colors=255
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-ql-act2.png mean=0.0995898 stddev=0.0873915 colors=495
+UI_HUD_TEST: run K — HUD_QUEST_MONO boss-kill ordering frame bank (BEFORE / AFTER / SAVE+LOAD)
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-mono-0.png mean=0.315563 stddev=0.24645 colors=3954
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-mono-1.png mean=0.112612 stddev=0.171877 colors=5508
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-mono-2.png mean=0.106567 stddev=0.166672 colors=5035
+UI_HUD_TEST: run L — HUD_QUESTLINE_ACT3 baseline + act-three mid-arc title
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-ql3-base.png mean=0.0978303 stddev=0.0752141 colors=255
+RESULT=PASS path=/tmp/la-tracker-capture.OOvHP3/la-ql3-act3.png mean=0.0993758 stddev=0.0864291 colors=491
+UI_HUD_TEST: TRACKER-BATTERY OK (MC 11243 tail-law) — act-two quest tracker mid-arc (I), MC 11295 boss-kill-ordering quest-line frame bank with the saved state shown (K), MC 11311 act-three quest tracker mid-arc (L)
+UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + the dialogue band DIALOGUE_IN_VIEW at the shipped default AND the planted 800 px width + fixed-layout captures (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)

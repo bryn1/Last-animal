@@ -370,7 +370,8 @@ public partial class WorldDirector : Node3D
         // B/E use the two panels OPENED straight onto the gauge block (the
         // MC 11270 playthrough P1). The OPEN state is now separated too: each
         // panel carries a real viewport-anchored rect clear of the HUD block
-        // (DialogueSystem + EmpathyPanel Region idioms, UiTheme.PanelViewport).
+        // (EmpathyPanel Region idiom via UiTheme.PanelViewport; the dialogue
+        // band derives its rect from the live visible rect — MC 11891 B).
         // MC 3900 stage 2a: inject the authored story data table into the view.
         _dialogue = new DialogueSystem { Name = "Dialogue", Table = LastAnimal.Story.DialogueTable.Default() };
         UICanvas.AddChild(_dialogue);

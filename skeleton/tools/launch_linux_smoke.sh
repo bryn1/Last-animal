@@ -13,7 +13,9 @@
 # a bare run silently overwrote that run's captured evidence (gitignored bytes,
 # lost once). A bare run now derives a FRESH run-unique dir under $PROJ/.audits/
 # — the repo's mktemp idiom (the mktemp pattern at ci/smoke.sh:74, the -d form
-# at ci/ui_test.sh:235), no host path in any default — and NO run, default or
+# at the leg-J CAPDIR block in ci/ui_test.sh — line-free since the MC 11891
+# A–L split moved sections around), no host path in any default — and NO run,
+# default or
 # SMOKE_OUT_DIR, overwrites an existing capture unless SMOKE_FORCE=1 says so.
 #
 # Usage:  bash tools/launch_linux_smoke.sh                       # fresh run-unique evidence dir

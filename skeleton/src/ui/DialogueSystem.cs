@@ -182,7 +182,7 @@ public partial class DialogueSystem : Control
     /// <summary>Is a dialogue node currently on screen?</summary>
     public bool IsOpen => ActiveNode.Length > 0;
 
-    // --- the dialogue box rect (MC 11293 D1; SkillsPanel Region idiom) -----
+    // --- the dialogue box rect (MC 11293 D1; MC 11891 live-rect reflow) ----
     // Bottom band, RIGHT of the SkillsPanel column (its x ends at
     // SkillsPanel.RegionX+RegionWidth — MC 11303 F-DA4: the coupling is that
     // arithmetic, NOT a literal 428; leg J's TAB_DIALOGUE_DISJOINT asserts the
@@ -190,27 +190,32 @@ public partial class DialogueSystem : Control
     // playthrough P1 (MC 11270 D1) was this box's anchors collapsing to a
     // zero-sized Control — the Label then overflowed-painted the intro/dialogue
     // line straight over the top-left HUD gauges, both layers unreadable. The
-    // fix gives the box a REAL rect (so the Panel paints a designed surface)
-    // anchored bottom-right of the viewport; at the play window (UiTheme.
-    // PanelViewport fallback) it sits exactly at x 440..1144, y 540..640 —
+    // fix gave the box a REAL rect (so the Panel paints a designed surface).
+    // MC 11891 (owner ruling B, 2026-11-03 — verbatim: "B", choosing "reflow
+    // the dialogue band to fit whatever window the player has" over a minimum
+    // window size): the rect is now DERIVED from the live visible viewport
+    // (LayoutBand). This REPLACES — and for this band STANDS DOWN — the
+    // UiTheme.PanelViewport constant-span fallback: below 1152 that fallback
+    // pinned the band at x 440..1144 whatever the window really was, so the
+    // window edge cut the tail of every dialogue line (MC 11303 F-P1-1). NO
+    // minimum window size is introduced; the right edge can no longer exceed
+    // the window. At the shipped play window (1152x648) the derivation is
+    // byte-identical to the old fallback's result: x 440..1144, y 540..640,
     // disjoint from the HUD block (ends ~y 176, x ~427) AND from the TAB panel.
     public const int BoxWidth = 704;
     public const int BoxHeight = 100;
     public const int BoxEdge = 8;      // viewport margin, both axes
     public const int TextPad = 14;     // label inset inside the panel rect
+    // Floor of the DERIVED band width: the smallest paintable surface (a
+    // zero-sized control is the MC 11293 P1, never again). This is NOT a
+    // minimum window size — the game runs at ANY width (ruling B); it is only
+    // the point where a sub-112 px window stops shrinking the band instead of
+    // collapsing it to nothing a player could read.
+    public const int MinBandWidth = 96;
 
     private void BuildIfNeeded()
     {
         if (_textLabel != null) return;
-
-        // Fixed rect (MC 11293 D1): viewport-anchored bottom-right, with the
-        // UiTheme fallback so a headless / tiny-window geometry mirrors the
-        // shipped play window byte-exactly (see PanelViewport).
-        var vp = UiTheme.PanelViewport(GetViewport()?.GetVisibleRect().Size ?? Vector2.Zero);
-        Position = new Vector2(Mathf.Max(BoxEdge, (int)vp.X - BoxWidth - BoxEdge),
-                               Mathf.Max(BoxEdge, (int)vp.Y - BoxHeight - BoxEdge));
-        Size = new Vector2(BoxWidth, BoxHeight);
-        CustomMinimumSize = Size;
 
         var panel = new Panel { Name = "DialoguePanel" };
         panel.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -218,10 +223,45 @@ public partial class DialogueSystem : Control
 
         _textLabel = new Label { Name = "DialogueText", Position = new Vector2(TextPad, 10) };
         _textLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _textLabel.CustomMinimumSize = new Vector2(BoxWidth - 2 * TextPad, 0);
         _textLabel.AddThemeFontSizeOverride("font_size", 22);
         _textLabel.Modulate = new Color(1.0f, 1.0f, 0.9f);
         panel.AddChild(_textLabel);
+
+        LayoutBand();   // live-rect geometry (MC 11891) — set before first paint
+        // The player may resize at any time: re-derive on every viewport
+        // resize so the right edge can never exceed the current window.
+        var vp = GetViewport();
+        if (vp != null) vp.SizeChanged += LayoutBand;   // Action — size_changed carries no args
+    }
+
+    /// <summary>MC 11891 (owner ruling B): derive the band rect from the LIVE
+    /// visible viewport so its right edge can never exceed the window. While
+    /// the window can hold the FULL band right of the TAB column the band is
+    /// the shipped bottom-right rect (byte-identical at the play window,
+    /// 1152x648: x 440..1144, y 540..640); when it cannot, the band takes the
+    /// full window width ABOVE the TAB panel (clear of the HUD block, which
+    /// ends ~y 176) instead of clipping off-screen. The label wrap width is
+    /// derived with the band (reflow), never left at the constant.
+    /// Ceiling (named, not hidden): at widths narrow enough to wrap the text
+    /// past BoxHeight the wrapped tail spills below the band surface — still
+    /// inside the window; the disjointness/in-view bars (ci/ui_test.sh leg J)
+    /// run at the shipped default and the planted 800 px width, where the
+    /// shipped table's longest line (77 chars) never wraps past the band.</summary>
+    private void LayoutBand()
+    {
+        var vis = GetViewport()?.GetVisibleRect().Size ?? Vector2.Zero;
+        int bandW = Mathf.Min(BoxWidth, Mathf.Max(MinBandWidth, (int)vis.X - 2 * BoxEdge));
+        bool rightOfTabColumn =
+            (int)vis.X - BoxEdge - bandW >= SkillsPanel.RegionX + SkillsPanel.RegionWidth + BoxEdge;
+        Position = rightOfTabColumn
+            ? new Vector2((int)vis.X - BoxEdge - bandW,
+                          Mathf.Max(BoxEdge, (int)vis.Y - BoxHeight - BoxEdge))
+            : new Vector2(BoxEdge,
+                          Mathf.Max(BoxEdge, Mathf.Min(SkillsPanel.RegionY - BoxEdge - BoxHeight,
+                                                       (int)vis.Y - BoxHeight - BoxEdge)));
+        Size = new Vector2(bandW, BoxHeight);
+        CustomMinimumSize = Size;
+        _textLabel!.CustomMinimumSize = new Vector2(bandW - 2 * TextPad, 0);
     }
 
     private void EnsureVisible() => Visible = true;

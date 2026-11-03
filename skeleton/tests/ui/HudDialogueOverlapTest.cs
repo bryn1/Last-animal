@@ -30,19 +30,27 @@ using System.Collections.Generic;
 // TAB_DIALOGUE_OVERLAP / TAB_DIALOGUE_DISJOINT. LA_OVERLAP_FORCE_W (the
 // card's planted narrow window) resizes the root viewport BEFORE the scene
 // composes, so the band builds at a content width the shipped default never
-// enters. RED-CAPABILITY (banked in .audits/20261101-1215-taboverlap/out/):
-// the shipped UiTheme.PanelViewport fallback pins the band at x>=440 for
-// every width BELOW the play size, so width alone cannot drive this assert
-// RED on the shipped code — the plant drops that fallback (the drift F-DA1
-// describes: the bare vp.X-712 formula) and at the planted 800px width the
-// band lands at 88..792, genuinely under the panel (8..428): RED by name.
+// enters. MC 11891 (owner ruling B) adds DIALOGUE_IN_VIEW — band + text
+// fully inside the live visible rect — and stands the constant-span
+// PanelViewport fallback down FOR THE BAND, which is what made width matter
+// at all: at the reviewer's captured 800 px window (the F-P1-1 clip, banked
+// .audits/20261101-1215-taboverlap/) the OLD geometry reads RED on this
+// assert by name, and the reflowed band at the same width reads GREEN
+// (red/green pair banked .audits/20261103-0700-bandreflow/out/).
 //
 // Runs TWO ways off one file:
-//   headless (the gate's assert leg):   $GODOT --headless --path <proj>
-//                                        --script res://tests/ui/HudDialogueOverlapTest.cs
-//   windowed (the capture leg, under graphical-test-helper): same script,
-//   holds the opened state past the helper's --wait so the fixed layout is
-//   captured as a frame; exits on its own verdict at t=20 s.
+//   headless (retired as a gate leg by MC 11891: a --script run's visible
+//   rect sits at the nominal 64x64 whatever the planted width — composed
+//   viewport=(64, 64), MC 11303 F-P2-1 — so its geometry asserts a layout
+//   that never paints):   $GODOT --headless --path <proj>
+//                         --script res://tests/ui/HudDialogueOverlapTest.cs
+//   windowed (THE gate leg, under graphical-test-helper): same script, holds
+//   the opened state past the helper's --wait so the fixed layout is
+//   captured as a frame — RED holds too (MC 11891: returning true on a
+//   failed verdict quits via MainLoop semantics; the failing state must
+//   survive to be captured); exits on its own verdict at t=20 s and the leg
+//   captures the process's own exit code into the app log (GAME_RC=) — rc
+//   from the process, never from a pipe tail.
 //
 // PLANTED-BAD (this card's red pair): revert DialogueSystem/EmpathyPanel to
 // the pre-fix zero-size anchor collapse and the named HUD_*_OVERLAP FAIL
@@ -108,7 +116,19 @@ public partial class HudDialogueOverlapTest : SceneTree
     public override bool _Process(double delta)
     {
         _t += delta;
-        if (_failed) return true;
+        // (MainLoop contract: returning true QUITS the app — false continues.)
+        if (_failed)
+        {
+            // MC 11891: a FAIL used to return true here — under MainLoop
+            // semantics that QUIT the windowed run at the verdict, one tick
+            // before any capture could see the failure (the MC 11303 red PNG
+            // survived only because its helper captured before the verdict).
+            // FAIL now HOLDS the opened state exactly like green, so the
+            // capture leg gets the failing frame deterministically, and
+            // quits with the verdict rc at t=20 for the rc run.
+            if (IsHeadless || _t >= 20.0) { ReleaseHeldRefsBeforeQuit(); Quit(1); return true; }
+            return false;
+        }
         if (_director == null && !Compose()) return true;
 
         _stageFrames++;
@@ -199,6 +219,25 @@ public partial class HudDialogueOverlapTest : SceneTree
         }
         if (tbad == 0) GD.Print($"LA_GATE: check: TAB_DIALOGUE_DISJOINT: ok dialogue={dlg} clear of the TAB panel {tabPanel}");
 
+        // MC 11891 (owner ruling B) — DIALOGUE_IN_VIEW: the band and its text
+        // Label must lie ENTIRELY inside the live visible rect. This is the
+        // assertion the old gate lacked: below 1152 the constant-span fallback
+        // painted the band flush against a window edge that cut the tail off
+        // every line, and leg J certified THAT screen PASS (MC 11303 F-P1-1 —
+        // the control log + frame are banked there). A rect past any window
+        // edge names DIALOGUE_IN_VIEW and turns the leg red at ANY width.
+        var vis = Root.GetVisibleRect();
+        var band = PaintedRect(_dialogue!);
+        int vbad = 0;
+        foreach (var (who, r) in new[] { ("band", band), ("label", dlg) })
+            if (r.Position.X < vis.Position.X || r.End.X > vis.End.X
+                || r.Position.Y < vis.Position.Y || r.End.Y > vis.End.Y)
+            {
+                vbad++;
+                GD.PrintErr($"LA_GATE: FAIL — DIALOGUE_IN_VIEW {who}={r} outside window vis={vis} (window edge cuts the band)");
+            }
+        if (vbad == 0) GD.Print($"LA_GATE: check: DIALOGUE_IN_VIEW: ok band={band} label={dlg} inside window vis={vis}");
+
         int ebad = 0;
         foreach (var (ename, er) in empathyLabels)
             foreach (var (hname, hr) in hudRows)
@@ -210,15 +249,15 @@ public partial class HudDialogueOverlapTest : SceneTree
         if (ebad == 0) GD.Print("LA_GATE: check: HUD_EMPATHY_DISJOINT: ok all Empathy-Book labels clear of all HUD rows");
 
         _verdictPrinted = true;
-        if (bad + ebad + tbad == 0)
+        if (bad + ebad + tbad + vbad == 0)
         {
-            GD.Print("LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT (MC 11293 D1 + MC 11303 F-DA1)");
+            GD.Print("LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT and the dialogue band is DIALOGUE_IN_VIEW (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)");
             _asserted = true;
         }
         else
         {
             _failed = true;
-            GD.PrintErr($"LA_GATE: FAIL — overlap legs red ({bad} dialogue + {ebad} empathy + {tbad} TAB, above)");
+            GD.PrintErr($"LA_GATE: FAIL — overlap/in-view legs red ({bad} dialogue + {ebad} empathy + {tbad} TAB + {vbad} in-view, above)");
             if (IsHeadless) { ReleaseHeldRefsBeforeQuit(); Quit(1); }   // the assert leg carries the exit code
         }
     }

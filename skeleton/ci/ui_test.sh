@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE reason (file hygiene law, MC 11431 R1): past 400 — one gate script, one concern; the battery-style section split is over-kill at this size (CC-2, comment-only wave). 471 l by wc AT the MC 11431 head; MC 11311 +52 to 523 l by wc AT this head (section (L): the HUD_QUESTLINE_ACT3 act-three tracker leg closing MC 11295 F1 — two raw capture runs + marker greps + quest-row pixel bars riding the existing QUEST_CROP, header A–L + tail-echo restamps; NO battery leg, NO mode); MC 11303 +15 to 538 l by wc AT this head (section (J): the TAB-OPEN stage rides the EXISTING leg — plant recipe + red-pair docs are the whole growth, comment-only on top of the existing leg; 4 echo/grep lines restamped in place; ceiling RE-JUSTIFIED, not ratcheted: still one gate script, one concern; NO battery leg, NO mode).
+# ui_test.sh — M10 ui-hud DoD gate (MC 890.14, dobbie, 2026-09-06). SIZE (file hygiene law, MC 11431 R1): 273 l by wc AT this head — the >400 re-justification chain (471→523→538, MC 11431 R1 → 11311 → 11303) is RETIRED here, not ratcheted a fifth time: MC 11303 F-P3-2 named the split and MC 11891 lands it. This file is the gate ENTRY — build + the no-framebuffer assert legs (A, B, D, E, G) + the band leg J (windowed since MC 11891, see the (J) note). The Xvfb pixel legs C/F/H moved to ci/ui_pixel_battery.sh and the save-touching quest-tracker legs I/K/L to ci/ui_tracker_battery.sh — legs, markers and pixel bars moved UNCHANGED; section docs moved with them. Each of the three files answers fewer questions than the one did (coding-discipline §split rule 6); the entry keeps the gate name and the MC 11243 tail-law echoes.
 #
 # The Phase-11 DoD (PHASE0.md Phase 11, C13):
 #   "headless render of the HUD scene is non-blank with all bound values
@@ -20,8 +20,8 @@
 #       the change-guard in Hud.PaintVignette and run A goes RED.
 #   (B) run the UiHarnessSelfTest     -> must exit NON-zero (deliberately broken;
 #       proves the gate can fail — not a rubber stamp).
-#   (C) run the UI under graphical-test-helper (Xvfb) -> RESULT=PASS means the
-#       framebuffer is non-blank (the Phase-11 DoD's named render bar).
+#   (C) MC framebuffer render proof   -> MOVED to ci/ui_pixel_battery.sh (leg C):
+#       graphical-test-helper RESULT=PASS is the Phase-11 DoD's non-blank bar.
 #   (D) MC 3900 stage 2a — story exact-text capture: run
 #       tests/story/StoryTextCaptureTest.cs headless -> exit 0 AND the
 #       'LA_STORY_CAPTURE: PASS' marker. Standing ruling (PLAN 2a, DA-c1
@@ -39,75 +39,58 @@
 #       asserting the new labels reuse the Hud gauge colour (zero new
 #       colours — the palette rule; legs A-D untouched, no pixel-palette leg
 #       exists at HEAD to keep).
-#   (F) MC 3933 stage 2f — headless framebuffer legs (graphical-test-helper
-#       on Xvfb, two runs of tests/ui/SkillsPanelCaptureTest.cs which boots
-#       the REAL WorldDirector and TAB-toggles only when LA_2F_TOGGLED=1):
-#        F1  the Manna DIGITS region (HUD row 2 crop) is non-blank — the
-#            persistent HUD readout genuinely paints its numbers;
-#        F2  the panel region differs before/after TAB (pixel diff of the
-#            fixed SkillsPanel rect across the two runs) — the real
-#            ui_toggle handler paints the panel. Remove the TAB handler and
-#            the two frames are byte-identical there and this leg goes RED
-#            (planted-bad #2). No Camera3D exists in the capture scene, so
-#            every other pixel is static 2D — the diff is the panel or zero.
+#   (F) MC 3933 stage 2f — headless framebuffer legs -> MOVED to
+#       ci/ui_pixel_battery.sh (F1 Manna digits, F2 TAB panel pixel diff).
 #   (G) MC 10123 stage S6 — UI_TOKENS_SINGLE_SOURCE: the three panel files
 #       (Hud.cs, SkillsPanel.cs, EmpathyPanel.cs) must carry ZERO raw theme
 #       literals — no `new Color(` and no numeric font_size override. Their
 #       single home is src/ui/UiTheme.cs (which must exist). Planted-bad
 #       (evidence dir 20261005-s6-hud): re-adding
 #       `label.Modulate = new Color(1f, 0f, 0f);` to Hud.cs turns this RED.
-#   (H) MC 10123 stage S6 — HUD_VIGNETTE: the low-health red tint layer, ON
-#       strictly BELOW 30 and OFF AT 30 (the strict `<` boundary), via two
-#       graphical-test-helper runs of tests/ui/HudVignetteCaptureTest.cs
-#       (LA_VIGNETTE_HEALTH=29 / =30). Each run's self-check marker pins the
-#       alpha state in-code; the pixel bar measures a corner crop far from
-#       every label/panel rect — pure uniform backdrop in the OFF run, so
-#       the ONLY thing that can move it is the vignette: the ON run's tint
-#       pixel must be non-blank red AND measurably redder than the OFF run.
-#   (I) MC 10138 — HUD_QUESTLINE_ACT2: the tracker line follows the ACT-TWO
-#       log once the act opens. TWO runs of tests/ui/
-#       HudQuestAct2CaptureTest.cs (LA_QUESTLINE_ACT2=0 / =1). Run 0 (the
-#       baseline) must self-check the ACT-ONE active title; run 1 opens the
-#       act through the REAL save path (FromSaveRows diverge + SaveGame/
-#       LoadGame — the shipped restore-sync open, the quest_arc2 idiom) and
-#       must self-check the act-two title mid-arc ("The Way Down"). The
-#       pixel bar proves the quest row is painted and its pixels actually
-#       changed between the runs. PLANTED-BAD (the card's own): revert
-#       WorldDirector.Ui.cs LiveQuestLine to the act-one-only read and run
-#       1 shows "Quest: none" -> the self-check marker goes RED. The run-1
-#       save round-trip writes user://savegame.json: run this gate under the
-#       SAVEGATE flock whenever other save-touching legs may run (the fleet
-#       convention, kb c8e1f2bb).
-#   (J) MC 11293 — HUD_UI_DISJOINT: the MC 11270 playthrough P1 (D1): the
-#       Empathy Book (B) and a dialogue line (E) printed their text DIRECTLY
-#       over the HUD Life/Manna/DNA/Hearts/Skills/Quest block — both layers
-#       illegible on normal use. tests/ui/HudDialogueOverlapTest.cs boots the
-#       REAL playable scene, opens BOTH surfaces through the shipped inputs,
-#       and measures the painted bounding boxes (global rect widened to the
-#       text's combined min-size — the broken layout painted from a ZERO-sized
-#       control, so a bare rect compare went green on the bug): any overlap
-#       prints a NAMED FAIL (HUD_DIALOGUE_OVERLAP / HUD_EMPATHY_OVERLAP); an
-#       unopened surface prints OVERLAP_PROOF_NOT_ARMED (the vacuous-green
-#       wall — asserts over closed panels are worthless). MC 11303 F-DA1: a
-#       TAB-OPEN stage joins the SAME leg's surface set — the dialogue band is
-#       additionally asserted DISJOINT from the TAB panel region
-#       (TAB_DIALOGUE_DISJOINT / FAIL TAB_DIALOGUE_OVERLAP), and the shipped
-#       PanelViewport fallback goes RED-capable through the planted narrow
-#       window LA_OVERLAP_FORCE_W (see the section (J) note by the runs).
-#        J1 headless assert leg -> exit 0 + the DISJOINT PASS marker;
-#        J2 windowed capture leg (graphical-test-helper) -> RESULT=PASS (the
-#           non-blank bar) + the same marker in the very log the PNG was shot
-#           from — the fixed-layout frame rides beside the pixels.
-#       PLANTED-BAD (the card's own red pair, transcript .audits/
-#       202610251405-d1/transcripts/overlap-RED-pre-fix.log): revert the
-#       DialogueSystem/EmpathyPanel rect fix and J1 exits 1 naming the
-#       overlaps (dialogue over LifeGauge; state/summary/hint across the five
-#       other gauge rows). No save touch in either J leg.
-# The gate passes only if A–L all behave as expected.
+#   (H) MC 10123 stage S6 — HUD_VIGNETTE -> MOVED to ci/ui_pixel_battery.sh (leg H).
+#   (I) MC 10138 — HUD_QUESTLINE_ACT2    -> MOVED to ci/ui_tracker_battery.sh (leg I).
+#   (J) MC 11293 — HUD_UI_DISJOINT + MC 11303 TAB-OPEN + MC 11891
+#       DIALOGUE_IN_VIEW: tests/ui/HudDialogueOverlapTest.cs boots the REAL
+#       playable scene, opens the Empathy Book (B), a dialogue line (E) and
+#       the TAB panel, and measures the painted bounding boxes (global rect
+#       widened to the text's combined min-size — the broken layouts painted
+#       from a ZERO-sized control, so a bare rect compare went green on the
+#       bug): any overlap prints a NAMED FAIL (HUD_DIALOGUE_OVERLAP /
+#       HUD_EMPATHY_OVERLAP / TAB_DIALOGUE_OVERLAP); band or text past a
+#       window edge prints DIALOGUE_IN_VIEW (MC 11891); an unopened surface
+#       prints OVERLAP_PROOF_NOT_ARMED (the vacuous-green wall). Since owner
+#       ruling B (verbatim "B", 2026-11-03) the dialogue band REFLOWS to the
+#       live visible rect (the constant-span PanelViewport fallback is stood
+#       down for the band), so the leg runs at TWO widths: the shipped default
+#       and the planted narrow LA_OVERLAP_FORCE_W=800 — the exact width where
+#       the old fallback clipped half of every line and leg J certified THAT
+#       screen PASS (MC 11303 F-P1-1, frames/control-narrow-800.png).
+#       J1 (the old HEADLESS assert leg) is RETIRED here, named: it only
+#       measured sense THROUGH the fallback — headless composes at the nominal
+#       64x64 whatever is planted (composed viewport=(64, 64), MC 11303
+#       F-P2-1), so it asserted a layout that never paints. The asserts ride
+#       the WINDOWED runs now; per width the SAME script runs twice through
+#       the SAME helper path (no second capture mechanism): a frame run that
+#       captures mid-hold with the frame beside the very log its markers were
+#       read from, and an rc run that lets the game reach its own
+#       verdict-quit — GAME_RC= is then the process's own OS exit code,
+#       written by the shell that ran it (rc from the process, never a pipe
+#       tail; a hang dies before the line and dies RED).
+#       PLANTED-BAD (red pair banked .audits/20261103-0700-bandreflow/out/):
+#       this leg's own bars run against the PRE-fix bytes at the planted
+#       800 px width exit GAME_RC=1 naming the clipped rects (DIALOGUE_IN_VIEW
+#       FAIL). The MC 11293 zero-size-collapse revert still redds the
+#       HUD_*_OVERLAP legs (older pair .audits/202610251405-d1/).
+#   (K) MC 11295 — HUD_QUEST_MONO        -> MOVED to ci/ui_tracker_battery.sh (leg K).
+#   (L) MC 11311 — HUD_QUESTLINE_ACT3    -> MOVED to ci/ui_tracker_battery.sh (leg L).
+# The gate passes only if A–L all behave as expected (this entry + the two
+# battery files it runs).
 #
 # Usage:
 #   ./ci/ui_test.sh [project_dir]   (defaults to dir above ci/)
-#   GUI_HELPER=... to override the graphical-test-helper path (default /usr/local/bin).
+#   GUI_HELPER=...  to override the graphical-test-helper path (default /usr/local/bin).
+#   FRAME_DIR=...   (optional) bank the leg-J capture frames into this dir —
+#                   the SAME files the leg asserted on (MC 11840 evidence class).
 set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -119,35 +102,26 @@ UI_RENDER="res://tests/ui/UiRenderTest.cs"
 UI_HARNESS="res://tests/ui/UiHarnessSelfTest.cs"
 STORY_CAPTURE="res://tests/story/StoryTextCaptureTest.cs"
 UI_2F_LOGIC="res://tests/ui/SkillsPanelTest.cs"
-UI_2F_CAPTURE="res://tests/ui/SkillsPanelCaptureTest.cs"
-UI_VIGNETTE="res://tests/ui/HudVignetteCaptureTest.cs"
-UI_QUESTLINE="res://tests/ui/HudQuestAct2CaptureTest.cs"
 UI_OVERLAP="res://tests/ui/HudDialogueOverlapTest.cs"
-UI_QUESTMONO="res://tests/ui/HudQuestMonoCaptureTest.cs"
-UI_QUESTLINE_ACT3="res://tests/ui/HudQuestAct3CaptureTest.cs"
 PASS_MARKER="M10_UI_RENDER_TEST: PASS"
 STORY_CAPTURE_MARKER="LA_STORY_CAPTURE: PASS"
 UI_2F_MARKER="LA_2F_UI_TEST: PASS"
-
-# 2f capture rects — MUST sit inside SkillsPanel.RegionX/Y/Width/Height and
-# the Hud row pitch (y = 8 + 28*row; Manna is row 1). The play window is the
-# project default 1152x648 mapped at the Xvfb root's top-left, so the panel
-# crop stays inside both the panel rect and the window (440..640). A drift
-# here fails F1/F2 loudly, never silently.
-MANNA_CROP="260x26+8+36"
-PANEL_CROP="420x200+8+440"
-# S6 vignette corner crop: far from every HUD label row (top-left) and from
-# the SkillsPanel rect (x 8..428, y 440..700). In the capture scene nothing
-# else paints there, so the ONLY thing that can move it is the vignette.
-VIGNETTE_CROP="200x120+900+480"
-# Leg I quest-row crop: the Quest gauge is the 6th HUD row (y = 8 + 5*28 =
-# 148, the BuildUi loop pitch), label at window x 8. Measured here (MC 10138,
-# deterministic across runs): the 1152x648 play window maps at +64+36 inside
-# the helper's 1280x720 Xvfb root (identical trim-box on every capture — the
-# shipped F/H crops tolerate the same offset with coarser bars), so the root
-# crop = window rect + (64,36). 500px wide covers the longest tracker line;
-# the dialogue box is CenterBottom — outside this crop.
-QUEST_CROP="500x26+72+182"
+# MC 11891: the planted narrow width — the window the independent reviewer
+# captured CLIPPED (control frame banked .audits/20261101-1215-taboverlap/).
+# Owner ruling B: no minimum window size ships; the gate PROVES the band
+# fits at this width and goes RED on a name when it does not.
+NARROW_W=800
+# The frame run must capture while the game HOLDS the opened state (a
+# self-quit tears the window down -> black capture, measured MC 11891; the
+# hold now survives FAIL too — a FAIL that returns true from _Process QUITS
+# via MainLoop semantics, so the red state historically died one tick before
+# any capture, which is why the MC 11303 red PNG raced its verdict) and
+# AFTER first paint (llvmpipe boots this scene in 4–15 s; the capture window
+# is boot+3 .. boot+20, so 18 s with the rc run outliving boot+20 s — both
+# measured MC 11891). A boot outside that band fails the leg loudly (black /
+# missing line), never silently.
+OVERLAP_FRAME_WAIT=18
+OVERLAP_RC_WAIT=45
 
 fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -d "$TESTS_UI" ] || fail "ui tests dir not found: $TESTS_UI"
@@ -155,12 +129,7 @@ fail() { echo "UI_HUD_TEST: GATE FAIL: $*" >&2; exit 1; }
 [ -f "$TESTS_UI/UiHarnessSelfTest.cs" ] || fail "UiHarnessSelfTest.cs not found"
 [ -f "$PROJ/tests/story/StoryTextCaptureTest.cs" ] || fail "StoryTextCaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/SkillsPanelTest.cs" ] || fail "SkillsPanelTest.cs not found"
-[ -f "$PROJ/tests/ui/SkillsPanelCaptureTest.cs" ] || fail "SkillsPanelCaptureTest.cs not found"
-[ -f "$PROJ/tests/ui/HudVignetteCaptureTest.cs" ] || fail "HudVignetteCaptureTest.cs not found"
-[ -f "$PROJ/tests/ui/HudQuestAct2CaptureTest.cs" ] || fail "HudQuestAct2CaptureTest.cs not found"
 [ -f "$PROJ/tests/ui/HudDialogueOverlapTest.cs" ] || fail "HudDialogueOverlapTest.cs not found"
-[ -f "$PROJ/tests/ui/HudQuestMonoCaptureTest.cs" ] || fail "HudQuestMonoCaptureTest.cs not found"
-[ -f "$PROJ/tests/ui/HudQuestAct3CaptureTest.cs" ] || fail "HudQuestAct3CaptureTest.cs not found"
 : "${GODOT:?set GODOT to the engine binary (see ../engine/PIN.txt)}"
 [ -x "$GODOT" ] || fail "GODOT not executable: $GODOT"
 [ -f "$GUI_HELPER" ] || fail "graphical-test-helper not found: $GUI_HELPER (install per infra/vm105)"
@@ -196,17 +165,6 @@ printf '%s\n' "$LOGB"
 [ "$CODEB" -ne 0 ] || fail "run B: harness self-test exited 0 (gate cannot fail — broken)"
 
 # ---------------------------------------------------------------------------
-# (C) framebuffer render proof — graphical-test-helper must report RESULT=PASS
-# ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run C — graphical-test-helper non-blank render (expect RESULT=PASS)"
-LOGC="$("$GUI_HELPER" --cmd "$GODOT --path $PROJ --script $UI_RENDER" --wait 3 2>&1)"
-CODEc=$?
-printf '%s\n' "$LOGC"
-[ "$CODEc" -eq 0 ] || fail "run C: graphical-test-helper exited $CODEc (non-blank render bar not met)"
-[[ "$LOGC" == *'RESULT=PASS'* ]] \
-  || fail "run C: expected 'RESULT=PASS' from graphical-test-helper (framebuffer blank)"
-
-# ---------------------------------------------------------------------------
 # (D) MC 3900 stage 2a — story exact-text capture (authored node paints its
 #     EXACT string; non-blank is NOT enough)
 # ---------------------------------------------------------------------------
@@ -230,56 +188,6 @@ printf '%s\n' "$LOGE"
   || fail "run E: expected '$UI_2F_MARKER' marker (panel content not derived from live state, or a HUD freshness leg went red)"
 
 # ---------------------------------------------------------------------------
-# (F) MC 3933 stage 2f — headless framebuffer legs (Manna digits + TAB diff)
-#     Two runs of the REAL WorldDirector under Xvfb (static 2D-only scene):
-#     closed (LA_2F_TOGGLED=0) and open (LA_2F_TOGGLED=1), each captured by
-#     graphical-test-helper into CAPDIR. The capture scene has NO Camera3D:
-#     every pixel outside the UI is one uniform colour and cannot move, so
-#     the region diff is the panel or nothing.
-# ---------------------------------------------------------------------------
-command -v convert >/dev/null 2>&1 \
-  || fail "run F: ImageMagick 'convert' missing (the helper's own bar, needed for the region asserts)"
-CAPDIR="$(mktemp -d "${TMPDIR:-/tmp}/la-2f-capture.XXXXXX")" || fail "run F: mktemp failed"
-trap 'rm -rf "$CAPDIR"' EXIT
-
-fnum() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a >= b) }'; }
-
-echo "UI_HUD_TEST: run F1 — Manna digits region non-blank (framebuffer)"
-# NOTE: graphical-test-helper backgrounds the command and sends its stdout to
-# its own temp app.log (gone at cleanup), so each capture command redirects
-# into CAPDIR from inside the helper's bash -c — the gate then reads the
-# capture script's self-check marker from the very log the PNG was taken of.
-LOGF1="$("$GUI_HELPER" --cmd "LA_2F_TOGGLED=0 $GODOT --path $PROJ --script $UI_2F_CAPTURE > $CAPDIR/app-closed.log 2>&1" \
-        --wait 6 --out "$CAPDIR/la-2f-closed.png" 2>&1)"
-printf '%s\n' "$LOGF1"
-[[ "$LOGF1" == *'RESULT=PASS'* ]] \
-  || fail "run F1: closed-run capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-closed.log" 2>/dev/null)" == *'LA_2F_CAPTURE: PASS'* ]] \
-  || fail "run F1: closed-run self-check marker missing (panel state at boot wrong)"
-MAN_SD="$(convert "$CAPDIR/la-2f-closed.png" -crop "$MANNA_CROP" +repage -colorspace Gray \
-         -format '%[fx:standard_deviation]' info:)"
-MAN_COLORS="$(convert "$CAPDIR/la-2f-closed.png" -crop "$MANNA_CROP" +repage -format '%k' info:)"
-echo "UI_HUD_TEST: F1 manna-region stddev=$MAN_SD colors=$MAN_COLORS (bar: stddev>=0.02, colors>=4)"
-fnum "$MAN_SD" 0.02 || fail "run F1: Manna digits region blank-ish (stddev=$MAN_SD) — the HUD did not paint the digits"
-fnum "$MAN_COLORS" 4 || fail "run F1: Manna digits region has <$4 colours (colors=$MAN_COLORS) — no glyph shapes present"
-
-echo "UI_HUD_TEST: run F2 — TAB before/after pixel diff on the panel region"
-LOGF2="$("$GUI_HELPER" --cmd "LA_2F_TOGGLED=1 $GODOT --path $PROJ --script $UI_2F_CAPTURE > $CAPDIR/app-open.log 2>&1" \
-        --wait 6 --out "$CAPDIR/la-2f-open.png" 2>&1)"
-printf '%s\n' "$LOGF2"
-[[ "$LOGF2" == *'RESULT=PASS'* ]] \
-  || fail "run F2: open-run capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-open.log" 2>/dev/null)" == *'LA_2F_CAPTURE: PASS'* ]] \
-  || fail "run F2: open-run self-check marker missing (TAB press did not open the panel)"
-DIFF_SD="$(convert "$CAPDIR/la-2f-closed.png" "$CAPDIR/la-2f-open.png" -compose difference -composite \
-          -crop "$PANEL_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
-DIFF_MEAN="$(convert "$CAPDIR/la-2f-closed.png" "$CAPDIR/la-2f-open.png" -compose difference -composite \
-            -crop "$PANEL_CROP" +repage -colorspace Gray -format '%[fx:mean]' info:)"
-echo "UI_HUD_TEST: F2 panel-region diff stddev=$DIFF_SD mean=$DIFF_MEAN (bar: stddev>=0.01, mean>=0.003)"
-fnum "$DIFF_SD" 0.01 || fail "run F2: panel region identical before/after TAB (stddev=$DIFF_SD) — the ui_toggle handler did not paint the panel"
-fnum "$DIFF_MEAN" 0.003 || fail "run F2: panel region diff too small (mean=$DIFF_MEAN) — panel content missing"
-
-# ---------------------------------------------------------------------------
 # (G) MC 10123 stage S6 — UI_TOKENS_SINGLE_SOURCE: the three panel files carry
 #     ZERO raw theme literals (their home is src/ui/UiTheme.cs, which must
 #     exist). Pure static grep — no godot, no framebuffer. PLANTED-BAD (the
@@ -301,238 +209,65 @@ done
 echo "UI_HUD_TEST: G ok — Hud/SkillsPanel/EmpathyPanel carry no raw colour/font-size literal (UiTheme.cs is the sole home)"
 
 # ---------------------------------------------------------------------------
-# (H) MC 10123 stage S6 — HUD_VIGNETTE: the low-health red tint layer, ON
-#     strictly below 30 and OFF at 30. TWO runs of HudVignetteCaptureTest.cs
-#     (LA_VIGNETTE_HEALTH=29 vs =30) under Xvfb, each self-checking its alpha
-#     state IN-SCENE (LA_VIGNETTE: PASS marker) AND measured at a far corner
-#     that ONLY the vignette can move: the 29-run tint pixel must be non-blank
-#     red, AND measurably redder than the 30-run (the strict `<` boundary).
-#     PLANTED-BAD: flip Hud.cs PaintVignette's `Life < UiTheme.LowHealthThreshold`
-#     to `<=` and the health=30 run turns the corner red -> this leg goes RED.
+# (J) MC 11293 + MC 11303 + MC 11891 — HUD_UI_DISJOINT, TAB-OPEN stage and
+#     DIALOGUE_IN_VIEW, WINDOWED (J1 headless RETIRED at MC 11891 — the (J)
+#     header note names why). One overlap_run per width: the same test script,
+#     the same helper capture path leg J always used — the narrow run is the
+#     existing LA_OVERLAP_FORCE_W plant, not a second mechanism.
 # ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run H — HUD_VIGNETTE on/below boundary + tint pixel non-blank"
-LOGH_ON="$("$GUI_HELPER" --cmd "LA_VIGNETTE_HEALTH=29 $GODOT --path $PROJ --script $UI_VIGNETTE > $CAPDIR/app-vig-29.log 2>&1" \
-          --wait 6 --out "$CAPDIR/la-vig-29.png" 2>&1)"
-printf '%s\n' "$LOGH_ON"
-[[ "$LOGH_ON" == *'RESULT=PASS'* ]] \
-  || fail "run H: health=29 capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-vig-29.log" 2>/dev/null)" == *'LA_VIGNETTE: PASS'* ]] \
-  || fail "run H: health=29 self-check marker missing (vignette did not report alpha>0 below 30)"
+CAPDIR="$(mktemp -d "${TMPDIR:-/tmp}/la-ui-band-legJ.XXXXXX")" || fail "run J: mktemp failed"
+trap 'rm -rf "$CAPDIR"' EXIT
 
-LOGH_OFF="$("$GUI_HELPER" --cmd "LA_VIGNETTE_HEALTH=30 $GODOT --path $PROJ --script $UI_VIGNETTE > $CAPDIR/app-vig-30.log 2>&1" \
-           --wait 6 --out "$CAPDIR/la-vig-30.png" 2>&1)"
-printf '%s\n' "$LOGH_OFF"
-[[ "$LOGH_OFF" == *'RESULT=PASS'* ]] \
-  || fail "run H: health=30 capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-vig-30.log" 2>/dev/null)" == *'LA_VIGNETTE: PASS'* ]] \
-  || fail "run H: health=30 self-check marker missing (vignette did not report alpha==0 at the boundary)"
+overlap_run() { # overlap_run <label> <out-png-name> <env-prefix-or-empty> — TWO
+  # helper runs of the SAME script on the SAME helper path (leg J's capture
+  # mechanism, no second one): (a) the FRAME run captures mid-hold, the frame
+  # beside the very log its markers were read from; (b) the RC run lets the
+  # game reach its own verdict-quit so the process's OS exit code lands as
+  # GAME_RC= (written by the shell that ran the process — rc from the
+  # process, never a pipe tail; its own capture is post-exit-blank and NOT
+  # a bar). A hang kills (b) before GAME_RC= — missing line is a FAIL.
+  local label="$1" png="$2" envpre="${3:-}"
+  local log="$CAPDIR/app-$png.log" rclog="$CAPDIR/app-$png.rc.log" helper_log app
+  helper_log="$("$GUI_HELPER" --cmd "$envpre$GODOT --path $PROJ --script $UI_OVERLAP > $log 2>&1" \
+               --wait "$OVERLAP_FRAME_WAIT" --out "$CAPDIR/$png.png" 2>&1)"
+  printf '%s\n' "$helper_log"
+  app="$(cat "$log" 2>/dev/null)"
+  printf '%s\n' "$app" | grep -E 'LA_GATE' || true
+  # bank the frame the leg MEASURED (red runs must bank their clipped frame too)
+  if [ -n "${FRAME_DIR:-}" ]; then mkdir -p "$FRAME_DIR"; cp "$CAPDIR/$png.png" "$FRAME_DIR/$png.png" 2>/dev/null || true; fi
+  # named asserts first: the DIALOGUE_IN_VIEW FAIL line is the diagnosis a
+  # reader needs; RESULT is the render bar beneath it
+  [[ "$app" != *'FAIL — DIALOGUE_IN_VIEW'* ]] \
+    || fail "run $label: DIALOGUE_IN_VIEW red — the window edge cuts the band at this width (MC 11303 F-P1-1 is back)"
+  [[ "$helper_log" == *'RESULT=PASS'* ]] \
+    || fail "run $label: capture not RESULT=PASS (game frame did not render)"
+  [[ "$app" == *'LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT'* ]] \
+    || fail "run $label: expected the DISJOINT PASS marker (the measure leg never ran — a named FAIL/NOT_ARMED line is above)"
+  [[ "$app" == *'DIALOGUE_IN_VIEW: ok'* ]] \
+    || fail "run $label: expected the DIALOGUE_IN_VIEW ok marker (the MC 11891 in-view assert never ran)"
+  "$GUI_HELPER" --cmd "$envpre$GODOT --path $PROJ --script $UI_OVERLAP > $rclog 2>&1; echo GAME_RC=\$? >> $rclog" \
+      --wait "$OVERLAP_RC_WAIT" --out "$CAPDIR/$png-rconly.png" >/dev/null 2>&1
+  app="$(cat "$rclog" 2>/dev/null)"
+  printf '%s\n' "$app" | grep -E 'LA_GATE: (rects|check|PASS|FAIL)|GAME_RC' || true
+  [[ "$app" == *'GAME_RC=0'* ]] \
+    || fail "run $label: the game process did not exit 0 (GAME_RC= line missing or non-zero — verdict-quit rc read from the process)"
+}
 
-# Red-channel mean of the far corner (a uniform backdrop OFF, red-tinted ON).
-# The 29-run must be non-blank red AND strictly redder than the 30-run: that
-# mean delta IS the on/off boundary painted on real pixels (t=0 pulse floor
-# 0.10 over a dark backdrop clears the 0.02 bar comfortably; a no-op vignette
-# leaves both means equal -> RED).
-RED29="$(convert "$CAPDIR/la-vig-29.png" -crop "$VIGNETTE_CROP" +repage \
-        -channel R -separate -delete 1,2 -format '%[fx:mean]' info: 2>/dev/null)"
-RED30="$(convert "$CAPDIR/la-vig-30.png" -crop "$VIGNETTE_CROP" +repage \
-        -channel R -separate -delete 1,2 -format '%[fx:mean]' info: 2>/dev/null)"
-RED_DELTA="$(awk -v a="$RED29" -v b="$RED30" 'BEGIN { printf "%.6f", a - b }')"
-echo "UI_HUD_TEST: H vignette-corner red mean: health29=$RED29  health30=$RED30  delta=$RED_DELTA (bar: red29>=0.15, delta>=0.02)"
-fnum "$RED29" 0.15 \
-  || fail "run H: health=29 corner red mean=$RED29 — the low-health tint pixel is blank (no red paint in the far corner)"
-fnum "$RED_DELTA" 0.02 \
-  || fail "run H: corner red delta=$RED_DELTA too small — the vignette does not turn ON below 30 / OFF at 30 (boundary not painted)"
-echo "UI_HUD_TEST: H ok — vignette ON <30 (tint pixel non-blank red), OFF at the 30 boundary"
+echo "UI_HUD_TEST: run J2 — HUD_UI_DISJOINT + DIALOGUE_IN_VIEW at the shipped default window (expect GAME_RC=0 + markers, frame beside the log)"
+overlap_run J2 la-overlap-default ""
 
-# ---------------------------------------------------------------------------
-# (I) MC 10138 — HUD_QUESTLINE_ACT2: the tracker line follows the act-two
-#     log once the act opens. Baseline run (LA_QUESTLINE_ACT2=0) shows the
-#     act-one active title; act run (=1) opens the act through the REAL save
-#     path (the quest_arc2 restore-sync idiom) and must show the act-two
-#     title mid-arc. The quest-row crop proves the row is painted and that
-#     its pixels actually moved between the runs. PLANTED-BAD: revert the
-#     LiveQuestLine union in world/WorldDirector.Ui.cs -> the act run shows
-#     "Quest: none" and its LA_QUESTLINE marker goes RED.
-#     NOTE run 1 writes user://savegame.json — gate-level SAVEGATE flock.
-# ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run I — HUD_QUESTLINE_ACT2 baseline + act-two mid-arc title"
-LOGI_BASE="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT2=0 $GODOT --path $PROJ --script $UI_QUESTLINE > $CAPDIR/app-ql-base.log 2>&1" \
-            --wait 6 --out "$CAPDIR/la-ql-base.png" 2>&1)"
-printf '%s\n' "$LOGI_BASE"
-[[ "$LOGI_BASE" == *'RESULT=PASS'* ]] \
-  || fail "run I: baseline capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-ql-base.log" 2>/dev/null)" == *'LA_QUESTLINE: PASS'* ]] \
-  || fail "run I: baseline self-check marker missing (act-one tracker title not painted at boot — see app-ql-base.log)"
+echo "UI_HUD_TEST: run J3 — planted narrow window LA_OVERLAP_FORCE_W=$NARROW_W: the band REFLOWS to fit and stays in view (MC 11891 owner ruling B; expect GAME_RC=0 + markers)"
+overlap_run J3 la-overlap-narrow-"$NARROW_W" "LA_OVERLAP_FORCE_W=$NARROW_W "
 
-LOGI_ACT2="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT2=1 $GODOT --path $PROJ --script $UI_QUESTLINE > $CAPDIR/app-ql-act2.log 2>&1" \
-            --wait 6 --out "$CAPDIR/la-ql-act2.png" 2>&1)"
-printf '%s\n' "$LOGI_ACT2"
-[[ "$LOGI_ACT2" == *'RESULT=PASS'* ]] \
-  || fail "run I: act-two capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-ql-act2.log" 2>/dev/null)" == *'LA_QUESTLINE: PASS'* ]] \
-  || fail "run I: act-two self-check marker missing (the tracker did NOT follow the act-two log mid-arc — the S10 limitation is back)"
-
-# The quest-row crop must carry glyphs in the act-two run AND differ from the
-# baseline run's row (a different title painted). Bars mirror F1/F2.
-QL_SD="$(convert "$CAPDIR/la-ql-act2.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
-        -format '%[fx:standard_deviation]' info:)"
-QL_COLORS="$(convert "$CAPDIR/la-ql-act2.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
-echo "UI_HUD_TEST: I act2 quest-row stddev=$QL_SD colors=$QL_COLORS (bar: stddev>=0.02, colors>=4)"
-fnum "$QL_SD" 0.02 || fail "run I: act-two quest row blank-ish (stddev=$QL_SD) — the tracker line did not paint"
-fnum "$QL_COLORS" 4 || fail "run I: act-two quest row has <4 colours (colors=$QL_COLORS) — no glyph shapes present"
-QL_DIFF_SD="$(convert "$CAPDIR/la-ql-base.png" "$CAPDIR/la-ql-act2.png" -compose difference -composite \
-             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
-QL_DIFF_MEAN="$(convert "$CAPDIR/la-ql-base.png" "$CAPDIR/la-ql-act2.png" -compose difference -composite \
-               -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:mean]' info:)"
-echo "UI_HUD_TEST: I quest-row diff stddev=$QL_DIFF_SD mean=$QL_DIFF_MEAN (bar: stddev>=0.01, mean>=0.003)"
-fnum "$QL_DIFF_SD" 0.01 || fail "run I: quest row identical baseline/act-two (stddev=$QL_DIFF_SD) — the tracker did not repaint on act open"
-fnum "$QL_DIFF_MEAN" 0.003 || fail "run I: quest row diff too small (mean=$QL_DIFF_MEAN) — act-two title not actually painted"
-echo "UI_HUD_TEST: I ok — tracker paints act-one title at boot, act-two title mid-arc (pixels moved)"
+echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book + TAB panel paint on their own rects AND band + text sit fully inside the window, at the shipped default AND the planted $NARROW_W px width (MC 11293 D1 + MC 11303 F-DA1 + MC 11891 B)"
+echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), S6 UI tokens single-sourced (G), dialogue/empathy/TAB-panel/HUD boxes DISJOINT + DIALOGUE_IN_VIEW at BOTH widths with all three surfaces open on the real scene (J); pixel legs C/F/H and tracker legs I/K/L ride their battery files next"
 
 # ---------------------------------------------------------------------------
-# (J) MC 11293 — HUD_UI_DISJOINT: dialogue + Empathy-Book boxes vs the HUD
-#     gauge block (the MC 11270 playthrough P1/D1). J1 is the headless assert
-#     leg (REAL scene, both surfaces OPENED through the shipped B/E inputs,
-#     painted bounding boxes DISJOINT or a named HUD_*_OVERLAP FAIL); J2 is
-#     the windowed capture leg — the fixed-layout frame beside its marker.
-#     PLANTED-BAD (red pair, .audits/202610251405-d1/transcripts/
-#     overlap-RED-pre-fix.log): revert the DialogueSystem/EmpathyPanel rect
-#     fix -> J1 exits 1 naming 1 dialogue + 8 empathy overlaps.
-#     MC 11303 F-DA1 extends THIS leg (no parallel gate): a TAB-OPEN stage
-#     joins the surface set and a third assert pins the dialogue band DISJOINT
-#     from the TAB panel region (marker TAB_DIALOGUE_DISJOINT / FAIL named
-#     TAB_DIALOGUE_OVERLAP). RED-PAIR (banked .audits/20261101-1215-taboverlap/
-#     out/): the shipped PanelViewport fallback keeps the band at x>=440 at
-#     EVERY width below the play size, so the plant sets LA_OVERLAP_FORCE_W=800
-#     AND drops the fallback (the bare vp.X-712 formula) in a throwaway copy —
-#     the band lands 88..792 under the panel 8..428 and J1 exits 1 naming the
-#     overlap; the same width WITHOUT the plant stays GREEN (the fallback's
-#     own proof).
+# battery files (the MC 11891 A–L split) — the legs and their bars live there;
+# this entry owns the build they ride and the final GATE PASS echo.
 # ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run J1 — HUD_UI_DISJOINT headless assert (expect exit 0 + PASS)"
-LOGJ="$(timeout 240 "$GODOT" --headless --path "$PROJ" --script "$UI_OVERLAP" 2>&1)"
-CODEJ=$?
-printf '%s\n' "$LOGJ"
-[ "$CODEJ" -eq 0 ] || fail "run J1: overlap proof exited $CODEJ (a named HUD_*_OVERLAP / OVERLAP_PROOF_NOT_ARMED line above says which)"
-[[ "$LOGJ" == *'LA_GATE: PASS — HUD/dialogue/empathy/TAB bounding boxes DISJOINT'* ]] \
-  || fail "run J1: expected the DISJOINT PASS marker (the measure leg never ran)"
+bash "$HERE/ui_pixel_battery.sh" "$PROJ" || fail "pixel battery (legs C, F, H) red — see UI_PIXEL_TEST lines above"
+bash "$HERE/ui_tracker_battery.sh" "$PROJ" || fail "tracker battery (legs I, K, L) red — see UI_TRACKER_TEST lines above (save-touching legs: whole-gate runs ride the SAVEGATE, leg I law)"
 
-echo "UI_HUD_TEST: run J2 — fixed-layout capture under Xvfb (expect RESULT=PASS + marker)"
-LOGJ2="$("$GUI_HELPER" --cmd "$GODOT --path $PROJ --script $UI_OVERLAP > $CAPDIR/app-overlap-capture.log 2>&1" \
-        --wait 10 --out "$CAPDIR/la-overlap-fixed-layout.png" 2>&1)"
-printf '%s\n' "$LOGJ2"
-[[ "$LOGJ2" == *'RESULT=PASS'* ]] \
-  || fail "run J2: fixed-layout capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-overlap-capture.log" 2>/dev/null)" == *'LA_GATE: PASS'* ]] \
-  || fail "run J2: capture-run self-check marker missing (layout was not DISJOINT at capture time)"
-echo "UI_HUD_TEST: J ok — dialogue + Empathy-Book + TAB panel paint on their own rects, HUD gauges and the TAB panel never overlapped the dialogue band (MC 11293 D1 + MC 11303 F-DA1)"
-
-echo "UI_HUD_TEST: SECTION-OK (MC 11243 tail-law — the tail echo owns the gate name) — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + fixed-layout capture (J)"
-# (K) MC 11295 — HUD_QUEST_MONO: the BOSS-KILL-ORDERING quest-line frame bank
-#     (playthrough D3: "The Watcher Falls" -> back to "The Way Down — Reach
-#     ruins" AT THE RUINS, and the SAVE held it). THREE runs of tests/ui/
-#     HudQuestMonoCaptureTest.cs (LA_MONO_STAGE=0/1/2) on the REAL main.tscn
-#     (spawning off at boot — the shipped quiet gate):
-#       0 BEFORE: act-one driven to q_boss Active — tracker paints "The Watcher
-#         Falls" (the playthrough frame-22 beat).
-#       1 AFTER the boss-kill beat AT THE RUINS (two REAL travels + the shipped
-#         Completed arm of OnQuestChanged): tracker must paint the ADVANCED
-#         act-two row "The Older Tongue" — the UNFIXED product paints the
-#         REGRESSED "The Way Down — Reach ruins" and THIS run's LA_MONO marker
-#         goes RED (the leg's RED-before-fix is the product's own before-face;
-#         the banked red frame SHOWS the bug painted).
-#       2 the same drive + SaveGame/LoadGame AT THE RUINS: the tracker must
-#         STILL read advanced AND the disk rows must carry q_r_descent:completed
-#         — the saved state shown (D3's evidence class).
-#     The in-code LA_MONO markers are the semantic pins (HUD == director,
-#     no-cache law from leg I); the pixel bars corroborate (row painted +
-#     BEFORE-vs-AFTER pixels moved — on the live scene the background also
-#     moves, so the DIFF bar is corroboration, never the verdict).
-#     Runs 1-2 write user://savegame.json: gate-level SAVEGATE flock (leg I law).
-# ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run K — HUD_QUEST_MONO boss-kill ordering frame bank (BEFORE / AFTER / SAVE+LOAD)"
-for MONO_ST in 0 1 2; do
-  MONO_W=8; [ "$MONO_ST" -ge 1 ] && MONO_W=45   # two REAL travels bake two zones SYNCHRONOUSLY
-  # (heightfield + navmesh, ~5 s each, inside the director's travel handler) — the
-  # AFTER stages need ~37 s wall before the verdict prints; the helper kill is the
-  # script's life-support (leg I law).
-  LOGK="$("$GUI_HELPER" --cmd "LA_MONO_STAGE=$MONO_ST $GODOT --path $PROJ --script $UI_QUESTMONO > $CAPDIR/app-mono-$MONO_ST.log 2>&1" \
-          --wait $MONO_W --out "$CAPDIR/la-mono-$MONO_ST.png" 2>&1)"
-  printf '%s\n' "$LOGK"
-  [[ "$LOGK" == *'RESULT=PASS'* ]] \
-    || fail "run K stage $MONO_ST: capture not RESULT=PASS (game frame did not render)"
-  [[ "$(cat "$CAPDIR/app-mono-$MONO_ST.log" 2>/dev/null)" == *'LA_MONO: PASS'* ]] \
-    || fail "run K stage $MONO_ST: LA_MONO self-check marker missing/RED (boss-kill ordering NOT advanced at stage $MONO_ST — see app-mono-$MONO_ST.log)"
-done
-# the saved state shown: stage 2 printed the DISK file's quest rows beside its frame
-grep -o 'LA_MONO: SAVEDROWS .*' "$CAPDIR/app-mono-2.log" \
-  | sed 's/^LA_MONO: SAVEDROWS //' > "$CAPDIR/la-mono-saved-rows.txt" || true
-grep -q 'q_r_descent:completed' "$CAPDIR/la-mono-saved-rows.txt" \
-  || fail "run K: the SAVED state does not carry the advanced q_r_descent:completed row (D3 is back — the save holds a regressed beat; see la-mono-saved-rows.txt)"
-grep -q 'q_r_tongue:active' "$CAPDIR/la-mono-saved-rows.txt" \
-  || fail "run K: the SAVED state does not carry q_r_tongue:active (the beat did not ADVANCE past the descent row)"
-# pixel bars: the quest row painted in the AFTER run + actually moved BEFORE->AFTER
-MJ_SD="$(convert "$CAPDIR/la-mono-1.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
-        -format '%[fx:standard_deviation]' info:)"
-MJ_COLORS="$(convert "$CAPDIR/la-mono-1.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
-echo "UI_HUD_TEST: K after-run quest-row stddev=$MJ_SD colors=$MJ_COLORS (bar: stddev>=0.02, colors>=4)"
-fnum "$MJ_SD" 0.02 || fail "run K: AFTER quest row blank-ish (stddev=$MJ_SD) — the tracker line did not paint"
-fnum "$MJ_COLORS" 4 || fail "run K: AFTER quest row has <4 colours (colors=$MJ_COLORS) — no glyph shapes present"
-MJ_DIFF_SD="$(convert "$CAPDIR/la-mono-0.png" "$CAPDIR/la-mono-1.png" -compose difference -composite \
-             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
-echo "UI_HUD_TEST: K BEFORE-vs-AFTER quest-row diff stddev=$MJ_DIFF_SD (bar: stddev>=0.01)"
-fnum "$MJ_DIFF_SD" 0.01 || fail "run K: quest row identical BEFORE/AFTER (stddev=$MJ_DIFF_SD) — the tracker did not repaint on the boss-kill beat"
-echo "UI_HUD_TEST: K ok — quest line reads Watcher Falls BEFORE, the advanced act-two row AFTER the boss-kill beat at the ruins, and the SAVED state carries the advanced rows"
-
-# ---------------------------------------------------------------------------
-# (L) MC 11311 — HUD_QUESTLINE_ACT3: the tracker line follows the ACT-THREE
-#     log once the act opens (MC 11295 F1: LiveQuestLine unioned ONLY act one
-#     + act two — an act-three-open state painted the exhausted fallthrough
-#     "Quest: none" and the act-three rows NEVER painted; the tracker never
-#     showed the final act's objective). TWO runs of tests/ui/
-#     HudQuestAct3CaptureTest.cs (LA_QUESTLINE_ACT3=0 / =1), leg-I idiom:
-#     run 0 is the boot control (act-one active title, the same face leg I
-#     pins); run 1 opens the act through the REAL save path (the Story3
-#     phase-1 diverge + SaveGame/LoadGame — the shipped FreshOpen restore
-#     arm) and must self-check the act-three row title ("The Hollow") while
-#     its row is Active. PLANTED-BAD (this card's RED half, banked): run the
-#     leg at the UNFIXED union and run 1 prints LA_QUESTLINE_ACT3: FAIL
-#     line=[Quest: none] — the frame shows the act-three row NOT painted.
-#     NOTE run 1 writes user://savegame.json — gate-level SAVEGATE flock.
-# ---------------------------------------------------------------------------
-echo "UI_HUD_TEST: run L — HUD_QUESTLINE_ACT3 baseline + act-three mid-arc title"
-LOGL_BASE="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT3=0 $GODOT --path $PROJ --script $UI_QUESTLINE_ACT3 > $CAPDIR/app-ql3-base.log 2>&1" \
-            --wait 6 --out "$CAPDIR/la-ql3-base.png" 2>&1)"
-printf '%s\n' "$LOGL_BASE"
-[[ "$LOGL_BASE" == *'RESULT=PASS'* ]] \
-  || fail "run L: baseline capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-ql3-base.log" 2>/dev/null)" == *'LA_QUESTLINE_ACT3: PASS'* ]] \
-  || fail "run L: baseline self-check marker missing (act-one tracker title not painted at boot — see app-ql3-base.log)"
-
-LOGL_ACT3="$("$GUI_HELPER" --cmd "LA_QUESTLINE_ACT3=1 $GODOT --path $PROJ --script $UI_QUESTLINE_ACT3 > $CAPDIR/app-ql3-act3.log 2>&1" \
-            --wait 6 --out "$CAPDIR/la-ql3-act3.png" 2>&1)"
-printf '%s\n' "$LOGL_ACT3"
-[[ "$LOGL_ACT3" == *'RESULT=PASS'* ]] \
-  || fail "run L: act-three capture not RESULT=PASS (game frame did not render)"
-[[ "$(cat "$CAPDIR/app-ql3-act3.log" 2>/dev/null)" == *'LA_QUESTLINE_ACT3: PASS'* ]] \
-  || fail "run L: act-three self-check marker missing (the tracker did NOT follow the act-three log — the MC 11295 F1 gap is back)"
-
-# The quest-row crop must carry glyphs in the act-three run AND differ from
-# the baseline run's row (a different title painted). Bars mirror leg I.
-QL3_SD="$(convert "$CAPDIR/la-ql3-act3.png" -crop "$QUEST_CROP" +repage -colorspace Gray \
-        -format '%[fx:standard_deviation]' info:)"
-QL3_COLORS="$(convert "$CAPDIR/la-ql3-act3.png" -crop "$QUEST_CROP" +repage -format '%k' info:)"
-echo "UI_HUD_TEST: L act3 quest-row stddev=$QL3_SD colors=$QL3_COLORS (bar: stddev>=0.02, colors>=4)"
-fnum "$QL3_SD" 0.02 || fail "run L: act-three quest row blank-ish (stddev=$QL3_SD) — the tracker line did not paint"
-fnum "$QL3_COLORS" 4 || fail "run L: act-three quest row has <4 colours (colors=$QL3_COLORS) — no glyph shapes present"
-QL3_DIFF_SD="$(convert "$CAPDIR/la-ql3-base.png" "$CAPDIR/la-ql3-act3.png" -compose difference -composite \
-             -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:standard_deviation]' info:)"
-QL3_DIFF_MEAN="$(convert "$CAPDIR/la-ql3-base.png" "$CAPDIR/la-ql3-act3.png" -compose difference -composite \
-               -crop "$QUEST_CROP" +repage -colorspace Gray -format '%[fx:mean]' info:)"
-echo "UI_HUD_TEST: L quest-row diff stddev=$QL3_DIFF_SD mean=$QL3_DIFF_MEAN (bar: stddev>=0.01, mean>=0.003)"
-fnum "$QL3_DIFF_SD" 0.01 || fail "run L: quest row identical baseline/act-three (stddev=$QL3_DIFF_SD) — the tracker did not repaint on act open"
-fnum "$QL3_DIFF_MEAN" 0.003 || fail "run L: quest row diff too small (mean=$QL3_DIFF_MEAN) — act-three title not actually painted"
-echo "UI_HUD_TEST: L ok — tracker paints act-one title at boot, act-three title mid-arc (pixels moved)"
-
-echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + fixed-layout capture (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)"
+echo "UI_HUD_TEST: GATE PASS — C13 Hud/Dialogue/EmpathyPanel checks green (A), harness self-test red (B), non-blank framebuffer render (C), story authored node exact-text capture (D), 2f skills/quest UI logic + palette guard (E), 2f framebuffer Manna digits + TAB panel pixel diff (F), S6 UI tokens single-sourced (G), S6 low-health vignette on/off at the 30 boundary + tint pixel (H), act-two quest tracker mid-arc (I), dialogue/empathy/TAB-panel/HUD bounding boxes DISJOINT with all three surfaces open on the real scene + the dialogue band DIALOGUE_IN_VIEW at the shipped default AND the planted $NARROW_W px width + fixed-layout captures (J), MC 11295 boss-kill-ordering quest-line frame bank — advanced beat + saved state shown (K), MC 11311 act-three quest tracker mid-arc — the act-three row paints once the act opens (L)"
 exit 0

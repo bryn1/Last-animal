@@ -52,21 +52,30 @@ public static class UiTheme
     // property — the logic value every consumer reads — is never touched.
     public const int SmoothFrames = 10;
 
-    // --- panel layout fallback (MC 11293 D1) ---------------------------------
-    // The dialogue + Empathy-Book panels rect-anchor to the live viewport so
-    // they sit clear of the top-left HUD block at ANY window size. Two heads
-    // need the same fallback: the headless assert legs (a --script run
-    // reports a nominal 64x64 window — geometry must mirror the painted
-    // layout there, or an assert proves nothing about what ships) and a
-    // window too small to fit the boxes. The fallback is the shipped play
-    // window (ui_test.sh: "the project default 1152x648") — the panel
-    // rects below are measured against it byte-exactly.
+    // --- panel layout fallback (MC 11293 D1; stood down for the band by
+    //     MC 11891) ------------------------------------------------------------
+    // The Empathy-Book panel rect-anchors to the live viewport so it sits
+    // clear of the top-left HUD block. Two heads needed the fallback: the
+    // headless assert legs (a --script run reports a nominal 64x64 window —
+    // geometry must mirror the painted layout there, or an assert proves
+    // nothing about what ships) and a window too small to fit the box. The
+    // fallback is the shipped play window (ui_test.sh: "the project default
+    // 1152x648") — the panel rect below is measured against it byte-exactly.
+    // MC 11891 (owner ruling B) STOOD THIS DOWN FOR THE DIALOGUE BAND: the
+    // constant span anchored the band at x 440..1144 at every width below
+    // the play size, so the window edge cut the tail of every line (MC 11303
+    // F-P1-1); DialogueSystem now derives its rect from the live visible
+    // rect (LayoutBand). This fallback serves EmpathyPanel only — that
+    // panel clips the same way below 1152; its reflow is the same-class
+    // follow-up card, deliberately NOT this one.
     public const int PlayVpWidth = 1152;
     public const int PlayVpHeight = 648;
 
     /// <summary>The viewport a panel should rect-anchor against: the real
     /// one when it can hold the boxes, the shipped play window otherwise
-    /// (headless + tiny-window fallback, MC 11293 D1).</summary>
+    /// (headless + tiny-window fallback, MC 11293 D1). Since MC 11891 this
+    /// serves EmpathyPanel only — the dialogue band derives from the live
+    /// rect and never passes through here.</summary>
     public static Vector2 PanelViewport(Vector2 measured) =>
         measured.X >= PlayVpWidth && measured.Y >= PlayVpHeight
             ? measured : new Vector2(PlayVpWidth, PlayVpHeight);
